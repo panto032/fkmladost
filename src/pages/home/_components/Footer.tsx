@@ -144,6 +144,12 @@ export default function Footer() {
               alt="mts"
               className="h-14 object-contain"
             />
+            <div className="w-px h-8 bg-[oklch(0.28_0.04_252)] hidden sm:block" />
+            <img
+              src="https://cdn.hercules.app/file_aoV49Bnn8jun5pPK76p81e6c"
+              alt="Arena Sport"
+              className="h-10 object-contain brightness-0 invert opacity-70"
+            />
           </div>
         </div>
 
