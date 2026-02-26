@@ -15,15 +15,18 @@ import StandingsTable from "./StandingsTable.tsx";
 function SmallNewsCard({
   article,
   className = "",
+  showExcerpt = false,
 }: {
   article: {
     _id: string;
     title: string;
+    excerpt?: string;
     category: string;
     date: string;
     resolvedImageUrl?: string | null;
   };
   className?: string;
+  showExcerpt?: boolean;
 }) {
   return (
     <Link
@@ -45,9 +48,16 @@ function SmallNewsCard({
         </div>
       </div>
       <div className="p-4 flex-1 flex flex-col justify-between">
-        <h4 className="text-sm font-bold text-card-foreground leading-snug group-hover:text-accent transition-colors line-clamp-2">
-          {article.title}
-        </h4>
+        <div>
+          <h4 className="text-sm font-bold text-card-foreground leading-snug group-hover:text-accent transition-colors line-clamp-2">
+            {article.title}
+          </h4>
+          {showExcerpt && article.excerpt && (
+            <p className="text-muted-foreground text-xs mt-1.5 line-clamp-2 leading-relaxed">
+              {article.excerpt}
+            </p>
+          )}
+        </div>
         <p className="text-muted-foreground text-[11px] mt-2 flex items-center">
           <Calendar size={10} className="mr-1" /> {article.date}
         </p>
@@ -130,6 +140,7 @@ export default function BentoGridSection() {
         {row2News.length > 0 ? (
           <SmallNewsCard
             article={row2News[0]}
+            showExcerpt
             className="lg:col-start-5 lg:col-end-9 lg:row-start-2 lg:row-end-3"
           />
         ) : (
@@ -142,6 +153,7 @@ export default function BentoGridSection() {
         {row2News.length > 1 ? (
           <SmallNewsCard
             article={row2News[1]}
+            showExcerpt
             className="lg:col-start-9 lg:col-end-13 lg:row-start-2 lg:row-end-3"
           />
         ) : (
