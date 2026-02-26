@@ -59,6 +59,11 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
+                <Link to="/vesti" className="hover:text-white transition-colors">
+                  Vesti
+                </Link>
+              </li>
+              <li>
                 <Link to="/najava-kola" className="hover:text-white transition-colors">
                   Najava kola
                 </Link>
@@ -66,26 +71,6 @@ export default function Footer() {
               <li>
                 <Link to="/analitika-rivala" className="hover:text-white transition-colors">
                   Analitika rivala
-                </Link>
-              </li>
-              <li>
-                <Link to="/super-liga" className="hover:text-white transition-colors">
-                  Super liga
-                </Link>
-              </li>
-              <li>
-                <Link to="/omladinska-liga" className="hover:text-white transition-colors">
-                  Omladinska
-                </Link>
-              </li>
-              <li>
-                <Link to="/kadetska-liga" className="hover:text-white transition-colors">
-                  Kadetska
-                </Link>
-              </li>
-              <li>
-                <Link to="/pionirska-liga" className="hover:text-white transition-colors">
-                  Pionirska
                 </Link>
               </li>
               <li>
@@ -108,13 +93,23 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-white transition-colors">
-                  Stručni štab
-                </a>
+                <Link to="/super-liga" className="hover:text-white transition-colors">
+                  Super liga
+                </Link>
               </li>
               <li>
-                <Link to="/omladinska-skola" className="hover:text-white transition-colors">
-                  Omladinska Škola
+                <Link to="/omladinska-liga" className="hover:text-white transition-colors">
+                  Omladinska
+                </Link>
+              </li>
+              <li>
+                <Link to="/kadetska-liga" className="hover:text-white transition-colors">
+                  Kadetska
+                </Link>
+              </li>
+              <li>
+                <Link to="/pionirska-liga" className="hover:text-white transition-colors">
+                  Pionirska
                 </Link>
               </li>
             </ul>
