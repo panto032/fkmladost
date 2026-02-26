@@ -49,11 +49,6 @@ export default function Footer() {
             </h5>
             <ul className="space-y-2 text-[oklch(0.55_0.03_252)] text-sm">
               <li>
-                <Link to="/istorija-kluba" className="hover:text-white transition-colors">
-                  Istorijat kluba
-                </Link>
-              </li>
-              <li>
                 <Link to="/stadion" className="hover:text-white transition-colors">
                   Stadion
                 </Link>
