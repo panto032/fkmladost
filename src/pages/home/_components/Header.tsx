@@ -8,7 +8,7 @@ const NAV_LINKS = [
   { label: "Vesti", href: "/vesti" },
   { label: "Prvi Tim", href: "/prvi-tim" },
   { label: "Klub", href: "#partneri" },
-  { label: "Omladinska Škola", href: "#" },
+  { label: "Omladinska Škola", href: "/omladinska-skola" },
 ];
 
 export default function Header() {
