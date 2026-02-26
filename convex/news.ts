@@ -1,4 +1,5 @@
 import { query } from "./_generated/server";
+import { v } from "convex/values";
 
 export const getPublished = query({
   args: {},
@@ -21,5 +22,12 @@ export const getLatest = query({
       .order("desc")
       .take(3);
     return articles;
+  },
+});
+
+export const getById = query({
+  args: { id: v.id("news") },
+  handler: async (ctx, args) => {
+    return await ctx.db.get(args.id);
   },
 });

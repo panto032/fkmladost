@@ -6,6 +6,7 @@ import {
   Newspaper,
   Handshake,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton.tsx";
 import StandingsTable from "./StandingsTable.tsx";
 
@@ -39,7 +40,7 @@ export default function BentoGridSection() {
 
         {/* ── CELL: FEATURED NEWS ───────────────────────── col 5-12, row 1 */}
         {featuredNews ? (
-          <div className="lg:col-start-5 lg:col-end-13 lg:row-start-1 lg:row-end-2 rounded-2xl overflow-hidden border border-border shadow-lg relative group cursor-pointer min-h-[280px] lg:min-h-0">
+          <Link to={`/vesti/${featuredNews._id}`} className="lg:col-start-5 lg:col-end-13 lg:row-start-1 lg:row-end-2 rounded-2xl overflow-hidden border border-border shadow-lg relative group cursor-pointer min-h-[280px] lg:min-h-0">
             <img
               src={featuredNews.imageUrl}
               alt={featuredNews.title}
@@ -68,7 +69,7 @@ export default function BentoGridSection() {
                 <Calendar size={11} className="mr-1" /> {featuredNews.date}
               </div>
             </div>
-          </div>
+          </Link>
         ) : (
           <div className="lg:col-start-5 lg:col-end-13 lg:row-start-1 lg:row-end-2 rounded-2xl bg-card border border-border shadow-lg min-h-[280px] flex items-center justify-center">
             <p className="text-muted-foreground">Nema objavljenih vesti</p>
@@ -77,7 +78,7 @@ export default function BentoGridSection() {
 
         {/* ── CELL: NEWS 2 ──────────────────────────────── col 5-8, row 2 */}
         {smallNews.length > 0 ? (
-          <div className="lg:col-start-5 lg:col-end-9 lg:row-start-2 lg:row-end-3 rounded-2xl overflow-hidden border border-border shadow-lg group cursor-pointer bg-card flex flex-col">
+          <Link to={`/vesti/${smallNews[0]._id}`} className="lg:col-start-5 lg:col-end-9 lg:row-start-2 lg:row-end-3 rounded-2xl overflow-hidden border border-border shadow-lg group cursor-pointer bg-card flex flex-col">
             <div className="relative h-36 overflow-hidden flex-shrink-0">
               <img
                 src={smallNews[0].imageUrl}
@@ -98,7 +99,7 @@ export default function BentoGridSection() {
                 <Calendar size={10} className="mr-1" /> {smallNews[0].date}
               </p>
             </div>
-          </div>
+          </Link>
         ) : (
           <div className="lg:col-start-5 lg:col-end-9 lg:row-start-2 lg:row-end-3 rounded-2xl bg-card border border-border shadow-lg flex items-center justify-center p-6">
             <p className="text-muted-foreground text-sm">Još vesti uskoro</p>
@@ -107,7 +108,7 @@ export default function BentoGridSection() {
 
         {/* ── CELL: NEWS 3 / "Sve Vesti" CTA ────────────── col 9-12, row 2 */}
         {smallNews.length > 1 ? (
-          <div className="lg:col-start-9 lg:col-end-13 lg:row-start-2 lg:row-end-3 rounded-2xl overflow-hidden border border-border shadow-lg group cursor-pointer bg-card flex flex-col">
+          <Link to={`/vesti/${smallNews[1]._id}`} className="lg:col-start-9 lg:col-end-13 lg:row-start-2 lg:row-end-3 rounded-2xl overflow-hidden border border-border shadow-lg group cursor-pointer bg-card flex flex-col">
             <div className="relative h-36 overflow-hidden flex-shrink-0">
               <img
                 src={smallNews[1].imageUrl}
@@ -128,9 +129,9 @@ export default function BentoGridSection() {
                 <Calendar size={10} className="mr-1" /> {smallNews[1].date}
               </p>
             </div>
-          </div>
+          </Link>
         ) : (
-          <div className="lg:col-start-9 lg:col-end-13 lg:row-start-2 lg:row-end-3 rounded-2xl bg-gradient-to-br from-[oklch(0.50_0.12_240)] to-[oklch(0.40_0.10_245)] border border-[oklch(0.55_0.10_238)] shadow-lg flex flex-col items-center justify-center p-6 text-white text-center cursor-pointer group">
+          <Link to="/vesti" className="lg:col-start-9 lg:col-end-13 lg:row-start-2 lg:row-end-3 rounded-2xl bg-gradient-to-br from-[oklch(0.50_0.12_240)] to-[oklch(0.40_0.10_245)] border border-[oklch(0.55_0.10_238)] shadow-lg flex flex-col items-center justify-center p-6 text-white text-center cursor-pointer group">
             <Newspaper
               size={28}
               className="text-white/60 mb-2 group-hover:scale-110 transition-transform"
@@ -141,7 +142,7 @@ export default function BentoGridSection() {
               size={18}
               className="mt-3 text-white/70 group-hover:translate-x-1 transition-transform"
             />
-          </div>
+          </Link>
         )}
 
         {/* ── CELL: PARTNERI & SPONZORI ─────────────────── col 1-12, row 3 */}
