@@ -23,9 +23,13 @@ import {
   TableRow,
 } from "@/components/ui/table.tsx";
 import { Skeleton } from "@/components/ui/skeleton.tsx";
-import { Pencil, Trash2, Plus, Eye, EyeOff, Upload, X, ImageIcon } from "lucide-react";
+import { Pencil, Trash2, Plus, Eye, EyeOff, Upload, X, ImageIcon, CalendarIcon } from "lucide-react";
 import { toast } from "sonner";
 import { ConvexError } from "convex/values";
+import { format, parse } from "date-fns";
+import { sr } from "date-fns/locale";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover.tsx";
+import { Calendar } from "@/components/ui/calendar.tsx";
 import RichTextEditor from "./RichTextEditor.tsx";
 
 type NewsItem = Doc<"news">;
@@ -51,6 +55,16 @@ const EMPTY_FORM: FormState = {
   imageStorageId: undefined,
   published: true,
 };
+
+/** Try to parse the Serbian-formatted date string back to a Date object */
+function parseFormDate(dateStr: string): Date | undefined {
+  if (!dateStr) return undefined;
+  try {
+    return parse(dateStr, "d. MMM yyyy.", new Date(), { locale: sr });
+  } catch {
+    return undefined;
+  }
+}
 
 export default function AdminNews() {
   const news = useQuery(api.admin.news.getAll);
@@ -280,11 +294,32 @@ export default function AdminNews() {
               </div>
               <div className="space-y-2">
                 <Label>Datum</Label>
-                <Input
-                  value={form.date}
-                  onChange={(e) => setForm({ ...form, date: e.target.value })}
-                  placeholder="npr. 24. feb 2026."
-                />
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="secondary"
+                      className="w-full justify-start text-left font-normal"
+                    >
+                      <CalendarIcon size={16} className="mr-2 text-muted-foreground" />
+                      {form.date || "Izaberite datum"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={parseFormDate(form.date)}
+                      onSelect={(date) => {
+                        if (date) {
+                          setForm({
+                            ...form,
+                            date: format(date, "d. MMM yyyy.", { locale: sr }),
+                          });
+                        }
+                      }}
+                      locale={sr}
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
             </div>
 
