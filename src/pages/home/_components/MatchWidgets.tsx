@@ -79,6 +79,20 @@ export default function MatchWidgets() {
                 <MapPin size={16} className="mr-2 text-accent" />{" "}
                 {nextMatch.stadium}
               </div>
+              {nextMatch.tvChannelLogoUrl && (
+                <>
+                  <div className="hidden sm:block text-[oklch(0.85_0.01_228)] mx-4">
+                    |
+                  </div>
+                  <div className="flex items-center mt-2 sm:mt-0">
+                    <img
+                      src={nextMatch.tvChannelLogoUrl}
+                      alt={nextMatch.tvChannel ?? "TV"}
+                      className="h-5 object-contain"
+                    />
+                  </div>
+                </>
+              )}
             </div>
           </div>
         ) : (

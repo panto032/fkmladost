@@ -7,8 +7,12 @@ import * as cheerio from "cheerio";
 
 const STANDINGS_URL =
   "https://www.superliga.rs/sezona/tabela-takmicenja/";
+const NAJAVA_KOLA_URL =
+  "https://www.superliga.rs/sezona/najava-kola/";
 const LOGO_BASE =
   "https://www.superliga.rs/wp-content/themes/newweb-theme/images/grbovi/";
+const ARENA_LOGO_BASE =
+  "https://www.superliga.rs/wp-content/themes/newweb-theme/images/arena-prenosi/";
 
 /**
  * Scrapes the current SuperLiga standings from superliga.rs
@@ -169,6 +173,7 @@ function findStadium(teamName: string): string {
 /**
  * Scrapes latest match data for FK Mladost from superliga.rs
  * – previous match (result) & next match (fixture), with team logos.
+ * Also scrapes TV channel info from najava-kola page for the next match.
  */
 export const scrapeMatches = action({
   args: {},
@@ -233,6 +238,39 @@ export const scrapeMatches = action({
       });
     }
 
+    // 2b) Scrape TV channel info from najava-kola for Mladost match
+    let ourTvChannel = "";
+    let ourTvLogoUrl = "";
+    try {
+      const naRes = await fetch(NAJAVA_KOLA_URL, {
+        headers: {
+          "User-Agent":
+            "Mozilla/5.0 (compatible; FKMladostBot/1.0; +https://fkmladost.rs)",
+          Accept: "text/html",
+        },
+      });
+      if (naRes.ok) {
+        const naHtml = await naRes.text();
+        const n$ = cheerio.load(naHtml);
+        n$(".najava-box").each((_, box) => {
+          const teams = n$(box).find(".najava-timovi").text().trim().toUpperCase();
+          if (teams.includes("MLADOST")) {
+            const tvImg = n$(box).find("img[alt*='Arena']");
+            if (tvImg.length > 0) {
+              const src = tvImg.attr("src") ?? "";
+              ourTvLogoUrl = src.startsWith("http") ? src : `https://www.superliga.rs${src}`;
+              // Extract channel name from filename (e.g., A1P.png -> Arena Sport 1)
+              const filename = src.split("/").pop() ?? "";
+              const chMatch = filename.match(/A(\d+)/);
+              ourTvChannel = chMatch ? `Arena Sport ${chMatch[1]}` : "Arena Sport";
+            }
+          }
+        });
+      }
+    } catch {
+      // TV channel is optional, don't fail if it can't be scraped
+    }
+
     const matches: Array<{
       type: "next" | "last";
       home: string;
@@ -246,6 +284,8 @@ export const scrapeMatches = action({
       stadium: string;
       competition: string;
       status?: string;
+      tvChannel?: string;
+      tvChannelLogoUrl?: string;
     }> = [];
 
     matchBlocks.each((_, block) => {
@@ -299,6 +339,9 @@ export const scrapeMatches = action({
         stadium: findStadium(homeTeam.displayName),
         competition: "Mozzart Bet Superliga",
         status: isLast ? "Završeno" : undefined,
+        // Add TV channel only for the next match
+        tvChannel: !isLast ? ourTvChannel || undefined : undefined,
+        tvChannelLogoUrl: !isLast ? ourTvLogoUrl || undefined : undefined,
       });
     });
 
@@ -313,6 +356,185 @@ export const scrapeMatches = action({
     await ctx.runMutation(internal.sync.saveData.saveMatches, { matches });
 
     return { matches: matches.length };
+  },
+});
+
+/**
+ * Scrapes the full "Najava kola" (round preview) page from superliga.rs.
+ * Gets all matches for the upcoming round with date, time, teams, stadium,
+ * TV channel, referees, and officials.
+ */
+export const scrapeRoundPreview = action({
+  args: {},
+  handler: async (ctx): Promise<{ roundNumber: number; matches: number }> => {
+    const res = await fetch(NAJAVA_KOLA_URL, {
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (compatible; FKMladostBot/1.0; +https://fkmladost.rs)",
+        Accept: "text/html",
+      },
+    });
+
+    if (!res.ok) {
+      throw new ConvexError({
+        code: "EXTERNAL_SERVICE_ERROR",
+        message: `Greška pri učitavanju najave kola: ${res.status}`,
+      });
+    }
+
+    const html = await res.text();
+    const $ = cheerio.load(html);
+
+    // Extract round number from subtitle (e.g., "Kolo: 25")
+    const subtitle = $(".subtitle").text();
+    const roundMatch = subtitle.match(/Kolo:\s*(\d+)/i);
+    const roundNumber = roundMatch ? parseInt(roundMatch[1], 10) : 0;
+
+    if (roundNumber === 0) {
+      throw new ConvexError({
+        code: "NOT_FOUND",
+        message: "Nije pronađen broj kola na superliga.rs",
+      });
+    }
+
+    const roundMatches: Array<{
+      roundNumber: number;
+      date: string;
+      time: string;
+      home: string;
+      away: string;
+      stadium: string;
+      tvChannel: string;
+      tvChannelLogoUrl: string;
+      referee: string;
+      assistantRef1: string;
+      assistantRef2: string;
+      fourthOfficial: string;
+      delegate: string;
+      refInspector: string;
+      varRef: string;
+      avarRef: string;
+      reportUrl: string;
+      isOurMatch: boolean;
+    }> = [];
+
+    $(".najava-box").each((_, box) => {
+      const boxEl = $(box);
+
+      // Date & time
+      const dateTimeEl = boxEl.find(".najava-time");
+      const dateTimeParts = dateTimeEl.text().trim().split(/\s+/);
+      const date = dateTimeParts[0] ?? "";
+      const time = dateTimeParts[1] ?? "";
+
+      // Teams
+      const teamsText = boxEl.find(".najava-timovi").text().trim();
+      const teamParts = teamsText.split(/\s*-\s*/);
+      const home = (teamParts[0] ?? "").trim();
+      const away = (teamParts[1] ?? "").trim();
+
+      // Stadium
+      const stadium = boxEl.find(".text-muted.uppercase").first().text().trim();
+
+      // TV channel from Arena Sport image
+      let tvChannel = "";
+      let tvChannelLogoUrl = "";
+      const tvImg = boxEl.find("img[alt*='Arena']");
+      if (tvImg.length > 0) {
+        const src = tvImg.attr("src") ?? "";
+        tvChannelLogoUrl = src.startsWith("http") ? src : `https://www.superliga.rs${src}`;
+        const filename = src.split("/").pop() ?? "";
+        const chMatch = filename.match(/A(\d+)/);
+        tvChannel = chMatch ? `Arena Sport ${chMatch[1]}` : "Arena Sport";
+      }
+
+      // Referees - parse from .refs divs
+      const refDivs = boxEl.find(".refs");
+      let referee = "";
+      let assistantRef1 = "";
+      let assistantRef2 = "";
+      let fourthOfficial = "";
+      let delegate = "";
+      let refInspector = "";
+      let varRef = "";
+      let avarRef = "";
+
+      refDivs.each((_, refDiv) => {
+        const refHtml = $(refDiv).html() ?? "";
+        const lines = refHtml.split("<br>").map((l) =>
+          l.replace(/<[^>]*>/g, "").trim()
+        );
+
+        for (const line of lines) {
+          if (line.startsWith("Glavni sudija:")) {
+            referee = line.replace("Glavni sudija:", "").trim();
+          } else if (line.startsWith("1. pomoćni sudija:")) {
+            assistantRef1 = line.replace("1. pomoćni sudija:", "").trim();
+          } else if (line.startsWith("2. pomoćni sudija:")) {
+            assistantRef2 = line.replace("2. pomoćni sudija:", "").trim();
+          } else if (line.startsWith("Četvrti sudija:")) {
+            fourthOfficial = line.replace("Četvrti sudija:", "").trim();
+          } else if (line.startsWith("Delegat:")) {
+            delegate = line.replace("Delegat:", "").trim();
+          } else if (line.startsWith("Kontrolor suđenja:")) {
+            refInspector = line.replace("Kontrolor suđenja:", "").trim();
+          } else if (line.startsWith("VAR:")) {
+            varRef = line.replace("VAR:", "").trim();
+          } else if (line.startsWith("AVAR:")) {
+            avarRef = line.replace("AVAR:", "").trim();
+          }
+        }
+      });
+
+      // Report link
+      let reportUrl = "";
+      const reportLink = boxEl.find("a.izvestaj-link, a.button");
+      if (reportLink.length > 0) {
+        const href = reportLink.first().attr("href") ?? "";
+        reportUrl = href.startsWith("http") ? href : href ? `https://www.superliga.rs${href}` : "";
+      }
+
+      // Flag our team
+      const isOurMatch =
+        home.toUpperCase().includes("MLADOST") ||
+        away.toUpperCase().includes("MLADOST");
+
+      if (home && away) {
+        roundMatches.push({
+          roundNumber,
+          date,
+          time,
+          home,
+          away,
+          stadium,
+          tvChannel,
+          tvChannelLogoUrl,
+          referee,
+          assistantRef1,
+          assistantRef2,
+          fourthOfficial,
+          delegate,
+          refInspector,
+          varRef,
+          avarRef,
+          reportUrl,
+          isOurMatch,
+        });
+      }
+    });
+
+    if (roundMatches.length === 0) {
+      throw new ConvexError({
+        code: "NOT_FOUND",
+        message: "Nisu pronađene utakmice u najavi kola",
+      });
+    }
+
+    await ctx.runMutation(internal.sync.saveData.saveRoundMatches, {
+      roundMatches,
+    });
+
+    return { roundNumber, matches: roundMatches.length };
   },
 });
 

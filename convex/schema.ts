@@ -36,6 +36,8 @@ export default defineSchema({
     stadium: v.string(),
     competition: v.string(),
     status: v.optional(v.string()),
+    tvChannel: v.optional(v.string()),
+    tvChannelLogoUrl: v.optional(v.string()),
   }).index("by_type", ["type"]),
 
   partners: defineTable({
@@ -90,4 +92,25 @@ export default defineSchema({
     content: v.string(),
     published: v.boolean(),
   }).index("by_slug", ["slug"]),
+
+  roundMatches: defineTable({
+    roundNumber: v.number(),
+    date: v.string(),
+    time: v.string(),
+    home: v.string(),
+    away: v.string(),
+    stadium: v.string(),
+    tvChannel: v.string(),
+    tvChannelLogoUrl: v.string(),
+    referee: v.string(),
+    assistantRef1: v.string(),
+    assistantRef2: v.string(),
+    fourthOfficial: v.string(),
+    delegate: v.string(),
+    refInspector: v.string(),
+    varRef: v.string(),
+    avarRef: v.string(),
+    reportUrl: v.string(),
+    isOurMatch: v.boolean(),
+  }).index("by_round", ["roundNumber"]),
 });

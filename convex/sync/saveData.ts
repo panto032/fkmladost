@@ -50,18 +50,56 @@ export const saveMatches = internalMutation({
         stadium: v.string(),
         competition: v.string(),
         status: v.optional(v.string()),
+        tvChannel: v.optional(v.string()),
+        tvChannelLogoUrl: v.optional(v.string()),
       }),
     ),
   },
   handler: async (ctx, args) => {
-    // Delete existing matches
     const existing = await ctx.db.query("matches").collect();
     for (const row of existing) {
       await ctx.db.delete(row._id);
     }
-    // Insert new matches
     for (const match of args.matches) {
       await ctx.db.insert("matches", match);
+    }
+  },
+});
+
+export const saveRoundMatches = internalMutation({
+  args: {
+    roundMatches: v.array(
+      v.object({
+        roundNumber: v.number(),
+        date: v.string(),
+        time: v.string(),
+        home: v.string(),
+        away: v.string(),
+        stadium: v.string(),
+        tvChannel: v.string(),
+        tvChannelLogoUrl: v.string(),
+        referee: v.string(),
+        assistantRef1: v.string(),
+        assistantRef2: v.string(),
+        fourthOfficial: v.string(),
+        delegate: v.string(),
+        refInspector: v.string(),
+        varRef: v.string(),
+        avarRef: v.string(),
+        reportUrl: v.string(),
+        isOurMatch: v.boolean(),
+      }),
+    ),
+  },
+  handler: async (ctx, args) => {
+    // Delete all existing round matches
+    const existing = await ctx.db.query("roundMatches").collect();
+    for (const row of existing) {
+      await ctx.db.delete(row._id);
+    }
+    // Insert new round matches
+    for (const match of args.roundMatches) {
+      await ctx.db.insert("roundMatches", match);
     }
   },
 });

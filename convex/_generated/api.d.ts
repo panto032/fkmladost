@@ -19,6 +19,7 @@ import type * as news from "../news.js";
 import type * as pages from "../pages.js";
 import type * as partners from "../partners.js";
 import type * as players from "../players.js";
+import type * as roundMatches from "../roundMatches.js";
 import type * as standings from "../standings.js";
 import type * as sync_fetchFromApi from "../sync/fetchFromApi.js";
 import type * as sync_saveData from "../sync/saveData.js";
@@ -43,6 +44,7 @@ declare const fullApi: ApiFromModules<{
   pages: typeof pages;
   partners: typeof partners;
   players: typeof players;
+  roundMatches: typeof roundMatches;
   standings: typeof standings;
   "sync/fetchFromApi": typeof sync_fetchFromApi;
   "sync/saveData": typeof sync_saveData;
