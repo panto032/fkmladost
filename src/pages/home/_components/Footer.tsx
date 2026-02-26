@@ -142,7 +142,7 @@ export default function Footer() {
             <img
               src="https://cdn.hercules.app/file_UoSZIoqaYPoUjHDaxEZ7fVeT"
               alt="mts"
-              className="h-10 object-contain"
+              className="h-14 object-contain"
             />
           </div>
         </div>
