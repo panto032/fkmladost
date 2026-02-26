@@ -37,7 +37,7 @@ export default function Header() {
           {/* Logo */}
           <Link to="/" className="flex-shrink-0 flex items-center">
             <img
-              src="https://cdn.hercules.app/file_axTcoMfvHwfbwT3EXxUl4neg"
+              src="https://cdn.hercules.app/file_xZLi2Xl8a9ot9mYHe4IxLtFH"
               alt="FK Mladost Lučani grb"
               className="w-12 h-12 rounded-full object-cover mr-3 border-2 border-[oklch(0.69_0.095_228)]"
             />
