@@ -73,11 +73,6 @@ export default function Footer() {
                   Omladinska škola
                 </Link>
               </li>
-              <li>
-                <Link to="/kontakt" className="hover:text-white transition-colors">
-                  Kontakt
-                </Link>
-              </li>
             </ul>
           </div>
 
@@ -133,7 +128,7 @@ export default function Footer() {
                   size={16}
                   className="mr-2 text-[oklch(0.69_0.095_228)] flex-shrink-0"
                 />
-                <span>office@fkmladostlucani.com</span>
+                <span>fkmladostlucani@gmail.com</span>
               </li>
             </ul>
           </div>

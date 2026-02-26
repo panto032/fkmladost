@@ -24,19 +24,20 @@ const CONTACT_INFO = [
     icon: MapPin,
     label: "Adresa",
     value: "Radnička bb, 32240 Lučani, Srbija",
-    subtext: "Stadion FK Mladost",
+    subtext: 'SRC „Mr Radoš Milovanović"',
   },
   {
     icon: Mail,
     label: "Email",
-    value: "office@fkmladostlucani.com",
-    href: "mailto:office@fkmladostlucani.com",
+    value: "fkmladostlucani@gmail.com",
+    href: "mailto:fkmladostlucani@gmail.com",
   },
   {
     icon: Phone,
     label: "Telefon",
-    value: "+381 32 815 200",
-    href: "tel:+38132815200",
+    value: "+381 32 817 809",
+    href: "tel:+38132817809",
+    subtext: "Mobilni: +381 62 8088 628",
   },
   {
     icon: Clock,
@@ -207,7 +208,7 @@ export default function KontaktPage() {
                     Stadion
                   </p>
                   <p className="text-white font-bold text-lg">
-                    Stadion Mladosti
+                    {'SRC „Mr Radoš Milovanović"'}
                   </p>
                   <p className="text-[oklch(0.50_0.03_252)] text-sm mt-1">
                     Radnička bb, 32240 Lučani
