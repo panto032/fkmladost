@@ -251,36 +251,97 @@ export default function AdminPage() {
   return (
     <>
       <AuthLoading>
-        <div className="min-h-screen flex items-center justify-center bg-background">
-          <div className="space-y-4 w-full max-w-md px-4">
-            <Skeleton className="h-8 w-48 mx-auto" />
-            <Skeleton className="h-64 w-full rounded-xl" />
+        <AdminLoginShell>
+          <div className="space-y-4 w-full max-w-xs">
+            <Skeleton className="h-10 w-full rounded-lg" />
+            <Skeleton className="h-4 w-3/4 mx-auto rounded" />
           </div>
-        </div>
+        </AdminLoginShell>
       </AuthLoading>
       <Unauthenticated>
-        <div className="min-h-screen flex items-center justify-center bg-background">
-          <div className="text-center space-y-6 px-4">
-            <div className="w-16 h-16 bg-[oklch(0.22_0.06_250)] rounded-full flex items-center justify-center mx-auto">
-              <span className="text-white font-bold text-xl">FKM</span>
-            </div>
-            <h2 className="text-2xl font-bold text-foreground">Admin Panel</h2>
-            <p className="text-muted-foreground max-w-sm">
-              Morate biti prijavljeni da biste pristupili admin panelu.
-            </p>
-            <SignInButton />
-            <Link
-              to="/"
-              className="block text-sm text-muted-foreground hover:text-foreground transition-colors mt-4"
-            >
-              Nazad na početnu
-            </Link>
-          </div>
-        </div>
+        <AdminLoginShell>
+          <h2 className="text-xl font-bold text-white tracking-wide uppercase">
+            Admin Panel
+          </h2>
+          <p className="text-[oklch(0.65_0.03_252)] text-sm max-w-xs text-center leading-relaxed">
+            Prijavite se da biste pristupili upravljanju sajtom FK Mladost Lučani.
+          </p>
+          <SignInButton />
+          <Link
+            to="/"
+            className="inline-flex items-center gap-1.5 text-sm text-[oklch(0.55_0.03_252)] hover:text-white transition-colors mt-2"
+          >
+            <ArrowLeft size={14} />
+            Nazad na početnu
+          </Link>
+        </AdminLoginShell>
       </Unauthenticated>
       <Authenticated>
         <AdminDashboard />
       </Authenticated>
     </>
+  );
+}
+
+/** Shared login screen shell with branding */
+function AdminLoginShell({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="min-h-screen flex flex-col bg-[oklch(0.14_0.03_252)] relative overflow-hidden">
+      {/* Background pattern */}
+      <div className="absolute inset-0 opacity-[0.03]"
+        style={{
+          backgroundImage: `radial-gradient(circle at 1px 1px, white 1px, transparent 0)`,
+          backgroundSize: "32px 32px",
+        }}
+      />
+      {/* Gradient glow */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-[oklch(0.69_0.095_228)] rounded-full blur-[180px] opacity-[0.07]" />
+
+      {/* Main content */}
+      <div className="flex-1 flex items-center justify-center relative z-10 px-4">
+        <div className="flex flex-col items-center gap-6">
+          {/* Logo */}
+          <div className="relative">
+            <div className="absolute inset-0 bg-[oklch(0.69_0.095_228)] rounded-full blur-2xl opacity-20 scale-150" />
+            <img
+              src="https://cdn.hercules.app/file_O3xXQalJmikyjBgRaWY6p4A8"
+              alt="FK Mladost Lučani"
+              className="w-24 h-24 rounded-full object-cover relative z-10 border-2 border-[oklch(0.28_0.04_252)] shadow-2xl"
+            />
+          </div>
+
+          {/* Club name */}
+          <div className="text-center">
+            <h1 className="text-2xl font-extrabold text-white uppercase tracking-widest">
+              FK Mladost
+            </h1>
+            <p className="text-xs text-[oklch(0.50_0.03_252)] uppercase tracking-[0.25em] mt-1">
+              Lučani
+            </p>
+          </div>
+
+          {/* Divider */}
+          <div className="w-12 h-px bg-[oklch(0.30_0.04_252)]" />
+
+          {/* Dynamic content */}
+          {children}
+        </div>
+      </div>
+
+      {/* Copyright footer */}
+      <div className="relative z-10 text-center py-6 text-[11px] text-[oklch(0.35_0.03_252)]">
+        <p>&copy; {new Date().getFullYear()} FK Mladost Lučani. Sva prava zadržana.</p>
+        <p className="mt-1">
+          Kreirao{" "}
+          <a href="https://impulsee.cloud/" target="_blank" rel="noopener noreferrer" className="hover:text-[oklch(0.55_0.03_252)] font-medium transition-colors">
+            IMPULSE
+          </a>
+          {" "}part of{" "}
+          <a href="https://impuls-tech.rs/" target="_blank" rel="noopener noreferrer" className="hover:text-[oklch(0.55_0.03_252)] font-medium transition-colors">
+            IMPULS TECH DOO
+          </a>
+        </p>
+      </div>
+    </div>
   );
 }
