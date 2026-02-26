@@ -267,7 +267,7 @@ export default function BentoGridSection() {
           >
             {/* Background image */}
             <img
-              src="https://images.unsplash.com/photo-1580831800257-f83135932664?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NzIwMTN8MHwxfHNlYXJjaHwxfHxmb290YmFsbCUyMGNsdWIlMjBoaXN0b3J5JTIwdmludGFnZSUyMHNvY2NlciUyMHRyb3BoeXxlbnwwfHx8fDE3NzIxMzIxOTB8MA&ixlib=rb-4.1.0&q=80&w=1080"
+              src="https://cdn.hercules.app/file_sTktNFhLtjEJYGRp7SnFFfIr"
               alt="Istorija Kluba"
               className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
             />
@@ -294,7 +294,7 @@ export default function BentoGridSection() {
             className="group relative rounded-2xl overflow-hidden min-h-[260px] shadow-xl cursor-pointer"
           >
             <img
-              src="https://images.unsplash.com/photo-1765372674571-afef5d3771b2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NzIwMTN8MHwxfHNlYXJjaHwxfHx5b3V0aCUyMHNvY2NlciUyMGFjYWRlbXklMjB0cmFpbmluZyUyMGtpZHMlMjBmb290YmFsbHxlbnwwfHx8fDE3NzIxMzIxOTF8MA&ixlib=rb-4.1.0&q=80&w=1080"
+              src="https://cdn.hercules.app/file_kjevJTuW8Y3zKu7fz0ww5B1T"
               alt="Omladinska Škola"
               className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
             />
@@ -318,7 +318,7 @@ export default function BentoGridSection() {
             className="group relative rounded-2xl overflow-hidden min-h-[260px] shadow-xl cursor-pointer"
           >
             <img
-              src="https://images.unsplash.com/photo-1716745559715-282bb61e3012?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NzIwMTN8MHwxfHNlYXJjaHwxfHxmb290YmFsbCUyMHN0YWRpdW0lMjBmaWVsZCUyMGFlcmlhbCUyMHZpZXclMjBncmVlbiUyMGdyYXNzfGVufDB8fHx8MTc3MjEzMjE5MXww&ixlib=rb-4.1.0&q=80&w=1080"
+              src="https://cdn.hercules.app/file_UVSxHaKsO3WH89Qs3kT4kGB5"
               alt="Stadion"
               className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
             />
