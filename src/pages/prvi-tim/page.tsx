@@ -1,7 +1,14 @@
+import { useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api.js";
 import { Skeleton } from "@/components/ui/skeleton.tsx";
-import { ArrowLeft } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog.tsx";
+import { ArrowLeft, ExternalLink, User, Trophy, Clock, Target, Footprints } from "lucide-react";
 import { Link } from "react-router-dom";
 import Header from "../home/_components/Header.tsx";
 import Footer from "../home/_components/Footer.tsx";
@@ -16,6 +23,13 @@ type Player = {
   imageUrl: string;
   nationality?: string;
   birthDate?: string;
+  appearances?: number;
+  goals?: number;
+  assists?: number;
+  minutes?: number;
+  height?: string;
+  weight?: string;
+  superligaUrl?: string;
 };
 
 function groupByPosition(players: Player[]) {
@@ -34,9 +48,168 @@ function groupByPosition(players: Player[]) {
   return groups;
 }
 
-function PlayerCard({ player }: { player: Player }) {
+function StatItem({
+  icon,
+  label,
+  value,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string | number;
+}) {
   return (
-    <div className="group cursor-pointer">
+    <div className="flex flex-col items-center bg-[oklch(0.16_0.035_252)] rounded-xl p-3 md:p-4">
+      <div className="text-[oklch(0.69_0.095_228)] mb-1">{icon}</div>
+      <span className="text-white font-bold text-lg md:text-xl">{value}</span>
+      <span className="text-[oklch(0.50_0.03_252)] text-xs mt-0.5">
+        {label}
+      </span>
+    </div>
+  );
+}
+
+function PlayerBioModal({
+  player,
+  open,
+  onOpenChange,
+}: {
+  player: Player | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
+  if (!player) return null;
+
+  const hasStats =
+    player.appearances !== undefined ||
+    player.goals !== undefined ||
+    player.assists !== undefined ||
+    player.minutes !== undefined;
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent
+        className="bg-[oklch(0.20_0.04_252)] border-[oklch(0.28_0.04_252)] text-white p-0 overflow-hidden sm:max-w-xl max-h-[90vh] overflow-y-auto"
+        showCloseButton
+      >
+        {/* Hero image + jersey overlay */}
+        <div className="relative aspect-[4/3] bg-[oklch(0.14_0.03_252)] overflow-hidden">
+          {player.imageUrl ? (
+            <img
+              src={player.imageUrl}
+              alt={player.name}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <User size={80} className="text-[oklch(0.30_0.04_252)]" />
+            </div>
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-[oklch(0.20_0.04_252)] via-transparent to-transparent" />
+          {/* Jersey number badge */}
+          <div className="absolute bottom-3 right-3 bg-[oklch(0.69_0.095_228)] text-white font-black text-3xl md:text-5xl px-4 py-2 rounded-xl shadow-lg">
+            {player.number}
+          </div>
+        </div>
+
+        {/* Info section */}
+        <div className="px-5 pb-5 -mt-2 space-y-4">
+          <DialogTitle className="text-2xl md:text-3xl font-extrabold tracking-tight text-white">
+            {player.name}
+          </DialogTitle>
+          <DialogDescription asChild>
+            <div className="flex flex-wrap gap-2 text-sm">
+              <span className="inline-flex items-center bg-[oklch(0.69_0.095_228)]/15 text-[oklch(0.77_0.10_225)] rounded-full px-3 py-1 font-medium">
+                {player.position}
+              </span>
+              {player.nationality && (
+                <span className="inline-flex items-center bg-[oklch(0.26_0.04_252)] text-[oklch(0.65_0.03_228)] rounded-full px-3 py-1">
+                  {player.nationality}
+                </span>
+              )}
+              {player.birthDate && (
+                <span className="inline-flex items-center bg-[oklch(0.26_0.04_252)] text-[oklch(0.65_0.03_228)] rounded-full px-3 py-1">
+                  {player.birthDate}
+                </span>
+              )}
+              {player.height && (
+                <span className="inline-flex items-center bg-[oklch(0.26_0.04_252)] text-[oklch(0.65_0.03_228)] rounded-full px-3 py-1">
+                  {player.height}
+                </span>
+              )}
+              {player.weight && (
+                <span className="inline-flex items-center bg-[oklch(0.26_0.04_252)] text-[oklch(0.65_0.03_228)] rounded-full px-3 py-1">
+                  {player.weight}
+                </span>
+              )}
+            </div>
+          </DialogDescription>
+
+          {/* Season stats grid */}
+          {hasStats && (
+            <div>
+              <h4 className="text-xs font-semibold uppercase tracking-widest text-[oklch(0.50_0.03_252)] mb-2">
+                Statistika sezone
+              </h4>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {player.appearances !== undefined && (
+                  <StatItem
+                    icon={<Footprints size={18} />}
+                    label="Nastupi"
+                    value={player.appearances}
+                  />
+                )}
+                {player.goals !== undefined && (
+                  <StatItem
+                    icon={<Target size={18} />}
+                    label="Golovi"
+                    value={player.goals}
+                  />
+                )}
+                {player.assists !== undefined && (
+                  <StatItem
+                    icon={<Trophy size={18} />}
+                    label="Asistencije"
+                    value={player.assists}
+                  />
+                )}
+                {player.minutes !== undefined && (
+                  <StatItem
+                    icon={<Clock size={18} />}
+                    label="Minuti"
+                    value={player.minutes}
+                  />
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* External link */}
+          {player.superligaUrl && (
+            <a
+              href={player.superligaUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-sm text-[oklch(0.69_0.095_228)] hover:text-[oklch(0.77_0.10_225)] transition-colors font-medium"
+            >
+              <ExternalLink size={14} />
+              Pogledaj na superliga.rs
+            </a>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function PlayerCard({
+  player,
+  onClick,
+}: {
+  player: Player;
+  onClick: () => void;
+}) {
+  return (
+    <div className="group cursor-pointer" onClick={onClick}>
       <div className="relative overflow-hidden rounded-t-xl bg-[oklch(0.20_0.04_252)] aspect-[3/4]">
         <img
           src={player.imageUrl}
@@ -49,10 +222,14 @@ function PlayerCard({ player }: { player: Player }) {
         </div>
       </div>
       <div className="bg-[oklch(0.20_0.04_252)] p-4 rounded-b-xl border-t-2 border-[oklch(0.69_0.095_228)] group-hover:bg-[oklch(0.22_0.045_252)] transition-colors">
-        <h5 className="font-bold text-lg md:text-xl truncate text-white">{player.name}</h5>
+        <h5 className="font-bold text-lg md:text-xl truncate text-white">
+          {player.name}
+        </h5>
         <p className="text-[oklch(0.77_0.10_225)] text-sm">{player.position}</p>
         {player.nationality && (
-          <p className="text-[oklch(0.50_0.03_252)] text-xs mt-1">{player.nationality}</p>
+          <p className="text-[oklch(0.50_0.03_252)] text-xs mt-1">
+            {player.nationality}
+          </p>
         )}
       </div>
     </div>
@@ -62,6 +239,7 @@ function PlayerCard({ player }: { player: Player }) {
 export default function PrviTimPage() {
   const players = useQuery(api.players.getAll);
   const isLoading = players === undefined;
+  const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
 
   const groups = players ? groupByPosition(players) : {};
 
@@ -100,7 +278,10 @@ export default function PrviTimPage() {
                   <Skeleton className="h-8 w-32 mb-6 bg-white/10" />
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                     {Array.from({ length: 4 }).map((_, j) => (
-                      <Skeleton key={j} className="aspect-[3/4] rounded-xl bg-white/10" />
+                      <Skeleton
+                        key={j}
+                        className="aspect-[3/4] rounded-xl bg-white/10"
+                      />
                     ))}
                   </div>
                 </div>
@@ -121,7 +302,11 @@ export default function PrviTimPage() {
                     </h3>
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                       {group.map((player) => (
-                        <PlayerCard key={player._id} player={player} />
+                        <PlayerCard
+                          key={player._id}
+                          player={player}
+                          onClick={() => setSelectedPlayer(player)}
+                        />
                       ))}
                     </div>
                   </div>
@@ -137,7 +322,11 @@ export default function PrviTimPage() {
                   </h3>
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                     {groups["Ostalo"].map((player) => (
-                      <PlayerCard key={player._id} player={player} />
+                      <PlayerCard
+                        key={player._id}
+                        player={player}
+                        onClick={() => setSelectedPlayer(player)}
+                      />
                     ))}
                   </div>
                 </div>
@@ -146,6 +335,15 @@ export default function PrviTimPage() {
           )}
         </div>
       </section>
+
+      {/* Player bio modal */}
+      <PlayerBioModal
+        player={selectedPlayer}
+        open={selectedPlayer !== null}
+        onOpenChange={(open) => {
+          if (!open) setSelectedPlayer(null);
+        }}
+      />
 
       <Footer />
     </div>

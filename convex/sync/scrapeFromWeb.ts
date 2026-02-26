@@ -329,6 +329,11 @@ export const scrapePlayers = action({
       number: number;
       position: string;
       imageUrl: string;
+      superligaUrl?: string;
+      appearances?: number;
+      minutes?: number;
+      goals?: number;
+      assists?: number;
     }> = [];
 
     // Each position group has a .team-stat-title with <h3> followed by

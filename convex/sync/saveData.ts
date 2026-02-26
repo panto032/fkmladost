@@ -82,6 +82,11 @@ export const savePlayers = internalMutation({
         number: v.number(),
         position: v.string(),
         imageUrl: v.string(),
+        superligaUrl: v.optional(v.string()),
+        appearances: v.optional(v.number()),
+        minutes: v.optional(v.number()),
+        goals: v.optional(v.number()),
+        assists: v.optional(v.number()),
       }),
     ),
   },
@@ -96,6 +101,19 @@ export const savePlayers = internalMutation({
     for (const scraped of args.players) {
       const match = existingByName.get(scraped.name.toLowerCase());
 
+      // Optional stat fields to save
+      const statFields = {
+        ...(scraped.superligaUrl !== undefined
+          ? { superligaUrl: scraped.superligaUrl }
+          : {}),
+        ...(scraped.appearances !== undefined
+          ? { appearances: scraped.appearances }
+          : {}),
+        ...(scraped.minutes !== undefined ? { minutes: scraped.minutes } : {}),
+        ...(scraped.goals !== undefined ? { goals: scraped.goals } : {}),
+        ...(scraped.assists !== undefined ? { assists: scraped.assists } : {}),
+      };
+
       if (match) {
         // Update existing player – only overwrite imageUrl if real photo
         const hasRealImage =
@@ -104,6 +122,7 @@ export const savePlayers = internalMutation({
           number: scraped.number,
           position: scraped.position,
           ...(hasRealImage ? { imageUrl: scraped.imageUrl } : {}),
+          ...statFields,
         });
       } else {
         // Insert new player
@@ -117,6 +136,7 @@ export const savePlayers = internalMutation({
           imageUrl: hasRealImage ? scraped.imageUrl : "",
           sortOrder: nextSortOrder,
           isActive: true,
+          ...statFields,
         });
       }
     }
