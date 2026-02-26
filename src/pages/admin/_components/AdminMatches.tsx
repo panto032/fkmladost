@@ -55,12 +55,14 @@ export default function AdminMatches() {
   const updateMatch = useMutation(api.admin.matches.update);
   const removeMatch = useMutation(api.admin.matches.remove);
   const scrapeMatches = useAction(api.sync.scrapeFromWeb.scrapeMatches);
+  const scrapeRoundPreview = useAction(api.sync.scrapeFromWeb.scrapeRoundPreview);
 
   const [isOpen, setIsOpen] = useState(false);
   const [editing, setEditing] = useState<MatchItem | null>(null);
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [syncing, setSyncing] = useState(false);
+  const [syncingRound, setSyncingRound] = useState(false);
 
   const openCreate = () => {
     setEditing(null);
@@ -147,6 +149,25 @@ export default function AdminMatches() {
     }
   };
 
+  const handleSyncRound = async () => {
+    setSyncingRound(true);
+    try {
+      const result = await scrapeRoundPreview();
+      toast.success(
+        `Najava kola sinhronizovana! Kolo ${result.roundNumber}, učitano ${result.matches} utakmica.`,
+      );
+    } catch (error) {
+      if (error instanceof ConvexError) {
+        const { message } = error.data as { code: string; message: string };
+        toast.error(`Greška: ${message}`);
+      } else {
+        toast.error("Greška pri sinhronizaciji najave kola");
+      }
+    } finally {
+      setSyncingRound(false);
+    }
+  };
+
   if (matches === undefined) {
     return (
       <div className="space-y-3">
@@ -160,7 +181,7 @@ export default function AdminMatches() {
   return (
     <div>
       {/* ── Sync banner ── */}
-      <div className="bg-[oklch(0.22_0.06_250)] text-white rounded-xl p-4 mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+      <div className="bg-[oklch(0.22_0.06_250)] text-white rounded-xl p-4 mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
           <h4 className="font-bold text-sm">SuperLiga.rs Sinhronizacija</h4>
           <p className="text-[oklch(0.65_0.04_250)] text-xs mt-0.5">
@@ -175,6 +196,25 @@ export default function AdminMatches() {
         >
           <RefreshCw size={14} className={syncing ? "animate-spin" : ""} />
           {syncing ? "Sinhronizujem..." : "Sinhronizuj sada"}
+        </Button>
+      </div>
+
+      {/* ── Najava kola sync banner ── */}
+      <div className="bg-[oklch(0.18_0.04_252)] text-white rounded-xl p-4 mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border border-[oklch(0.30_0.05_252)]">
+        <div>
+          <h4 className="font-bold text-sm">Najava Kola</h4>
+          <p className="text-[oklch(0.65_0.04_250)] text-xs mt-0.5">
+            Povuci sve utakmice narednog kola sa superliga.rs (sudije, TV prenos, delegat...)
+          </p>
+        </div>
+        <Button
+          size="sm"
+          onClick={handleSyncRound}
+          disabled={syncingRound}
+          className="bg-[oklch(0.69_0.095_228)] hover:bg-[oklch(0.63_0.095_228)] text-white shrink-0"
+        >
+          <RefreshCw size={14} className={syncingRound ? "animate-spin" : ""} />
+          {syncingRound ? "Sinhronizujem..." : "Sinhronizuj najavu kola"}
         </Button>
       </div>
 
