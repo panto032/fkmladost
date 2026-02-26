@@ -6,7 +6,7 @@ export const getPublished = query({
   handler: async (ctx) => {
     const articles = await ctx.db
       .query("news")
-      .withIndex("by_published", (q) => q.eq("published", true))
+      .withIndex("by_published_and_sort_date", (q) => q.eq("published", true))
       .order("desc")
       .collect();
     return Promise.all(
@@ -28,7 +28,7 @@ export const getLatest = query({
   handler: async (ctx) => {
     const articles = await ctx.db
       .query("news")
-      .withIndex("by_published", (q) => q.eq("published", true))
+      .withIndex("by_published_and_sort_date", (q) => q.eq("published", true))
       .order("desc")
       .take(3);
     return Promise.all(

@@ -26,8 +26,8 @@ import { Skeleton } from "@/components/ui/skeleton.tsx";
 import { Pencil, Trash2, Plus, Eye, EyeOff, Upload, X, ImageIcon, CalendarIcon } from "lucide-react";
 import { toast } from "sonner";
 import { ConvexError } from "convex/values";
-import { format, parse } from "date-fns";
-import { sr } from "date-fns/locale";
+import { format, parse, formatISO } from "date-fns";
+import { srLatn } from "date-fns/locale/sr-Latn";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover.tsx";
 import { Calendar } from "@/components/ui/calendar.tsx";
 import RichTextEditor from "./RichTextEditor.tsx";
@@ -40,6 +40,7 @@ type FormState = {
   content: string;
   category: string;
   date: string;
+  sortDate: string;
   imageUrl: string;
   imageStorageId: Id<"_storage"> | undefined;
   published: boolean;
@@ -51,6 +52,7 @@ const EMPTY_FORM: FormState = {
   content: "",
   category: "Klub",
   date: "",
+  sortDate: "",
   imageUrl: "",
   imageStorageId: undefined,
   published: true,
@@ -60,7 +62,7 @@ const EMPTY_FORM: FormState = {
 function parseFormDate(dateStr: string): Date | undefined {
   if (!dateStr) return undefined;
   try {
-    return parse(dateStr, "d. MMM yyyy.", new Date(), { locale: sr });
+    return parse(dateStr, "d. MMM yyyy.", new Date(), { locale: srLatn });
   } catch {
     return undefined;
   }
@@ -96,6 +98,7 @@ export default function AdminNews() {
       content: item.content,
       category: item.category,
       date: item.date,
+      sortDate: item.sortDate,
       imageUrl: item.imageUrl,
       imageStorageId: item.imageStorageId,
       published: item.published,
@@ -140,7 +143,7 @@ export default function AdminNews() {
   };
 
   const handleSave = async () => {
-    if (!form.title || !form.date) {
+    if (!form.title || !form.date || !form.sortDate) {
       toast.error("Naslov i datum su obavezni");
       return;
     }
@@ -312,11 +315,12 @@ export default function AdminNews() {
                         if (date) {
                           setForm({
                             ...form,
-                            date: format(date, "d. MMM yyyy.", { locale: sr }),
+                            date: format(date, "d. MMM yyyy.", { locale: srLatn }),
+                            sortDate: formatISO(date, { representation: "date" }),
                           });
                         }
                       }}
-                      locale={sr}
+                      locale={srLatn}
                     />
                   </PopoverContent>
                 </Popover>

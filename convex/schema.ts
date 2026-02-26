@@ -15,10 +15,13 @@ export default defineSchema({
     content: v.string(),
     category: v.string(),
     date: v.string(),
+    sortDate: v.optional(v.string()),
     imageUrl: v.string(),
     imageStorageId: v.optional(v.id("_storage")),
     published: v.boolean(),
-  }).index("by_published", ["published"]),
+  })
+    .index("by_published", ["published"])
+    .index("by_published_and_sort_date", ["published", "sortDate"]),
 
   matches: defineTable({
     type: v.union(v.literal("next"), v.literal("last")),
