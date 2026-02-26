@@ -5,11 +5,9 @@ import {
   ArrowRight,
   Trophy,
   Newspaper,
-  Users,
   Handshake,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton.tsx";
-import { Link } from "react-router-dom";
 
 const FALLBACK_STANDINGS = [
   { position: 1, team: "Crvena zvezda", played: 22, wins: 19, draws: 2, losses: 1, goalDifference: "+45", points: 59, isHighlighted: false },
@@ -28,13 +26,11 @@ export default function BentoGridSection() {
   const news = useQuery(api.news.getLatest);
   const standings = useQuery(api.standings.getAll);
   const partners = useQuery(api.partners.getAll);
-  const players = useQuery(api.players.getAll);
 
   const isLoading =
     news === undefined ||
     standings === undefined ||
-    partners === undefined ||
-    players === undefined;
+    partners === undefined;
 
   if (isLoading) {
     return <BentoSkeleton />;
@@ -44,7 +40,6 @@ export default function BentoGridSection() {
     standings.length > 0 ? standings : FALLBACK_STANDINGS;
   const featuredNews = news.length > 0 ? news[0] : null;
   const smallNews = news.slice(1, 3);
-  const featuredPlayers = players.slice(0, 3);
 
   return (
     <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-14">
@@ -260,8 +255,8 @@ export default function BentoGridSection() {
           </div>
         )}
 
-        {/* ── CELL: PARTNERI & SPONZORI ─────────────────── col 1-5, row 3 */}
-        <div className="lg:col-start-1 lg:col-end-6 lg:row-start-3 lg:row-end-4 rounded-2xl bg-gradient-to-br from-[oklch(0.22_0.045_252)] to-[oklch(0.18_0.04_252)] border border-[oklch(0.30_0.045_252)] shadow-lg p-5 text-white flex flex-col">
+        {/* ── CELL: PARTNERI & SPONZORI ─────────────────── col 1-12, row 3 */}
+        <div className="lg:col-span-12 lg:row-start-3 lg:row-end-4 rounded-2xl bg-gradient-to-br from-[oklch(0.22_0.045_252)] to-[oklch(0.18_0.04_252)] border border-[oklch(0.30_0.045_252)] shadow-lg p-5 text-white">
           {/* Header */}
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
@@ -269,25 +264,25 @@ export default function BentoGridSection() {
                 <Handshake size={16} className="text-[oklch(0.69_0.07_228)]" />
               </div>
               <h3 className="text-base font-extrabold uppercase tracking-tight">
-                Partneri
+                Partneri & Sponzori
               </h3>
             </div>
           </div>
 
           {/* Partner items */}
           {partners.length === 0 ? (
-            <div className="flex-1 flex items-center justify-center">
+            <div className="flex items-center justify-center py-6">
               <p className="text-[oklch(0.50_0.03_252)] text-sm">
                 Partneri uskoro
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-3 flex-1">
+            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3">
               {partners.map((p, i) =>
                 i === 0 ? (
                   <div
                     key={p._id}
-                    className="col-span-2 bg-white/8 rounded-xl p-4 flex items-center justify-between border border-white/10 hover:bg-white/12 transition-colors cursor-pointer group"
+                    className="col-span-2 sm:col-span-1 bg-white/8 rounded-xl p-4 flex items-center justify-between border border-white/10 hover:bg-white/12 transition-colors cursor-pointer group"
                   >
                     <div>
                       <span className="text-[oklch(0.69_0.07_228)] text-[10px] font-bold uppercase tracking-wider block mb-0.5">
@@ -318,69 +313,6 @@ export default function BentoGridSection() {
             </div>
           )}
         </div>
-
-        {/* ── CELL: IGRAČI HIGHLIGHT ────────────────────── col 6-12, row 3 */}
-        <div className="lg:col-start-6 lg:col-end-13 lg:row-start-3 lg:row-end-4 rounded-2xl bg-[oklch(0.16_0.035_252)] border border-[oklch(0.26_0.04_252)] shadow-lg p-5 text-white flex flex-col">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
-                <Users size={16} className="text-[oklch(0.77_0.10_225)]" />
-              </div>
-              <h3 className="text-base font-extrabold uppercase tracking-tight">
-                Prvi Tim
-              </h3>
-            </div>
-            <Link
-              to="/prvi-tim"
-              className="text-[11px] text-[oklch(0.77_0.10_225)] font-semibold flex items-center hover:text-white transition-colors gap-1"
-            >
-              Svi igrači <ArrowRight size={11} />
-            </Link>
-          </div>
-
-          {/* Players */}
-          {featuredPlayers.length === 0 ? (
-            <div className="flex-1 flex items-center justify-center">
-              <p className="text-[oklch(0.50_0.03_252)] text-sm">
-                Roster uskoro
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-3 gap-3 flex-1">
-              {featuredPlayers.map((player) => (
-                <Link
-                  to="/prvi-tim"
-                  key={player._id}
-                  className="group cursor-pointer"
-                >
-                  <div className="relative overflow-hidden rounded-xl bg-[oklch(0.20_0.04_252)] aspect-[3/4]">
-                    <img
-                      src={player.imageUrl}
-                      alt={player.name}
-                      className="w-full h-full object-cover grayscale group-hover:grayscale-0 group-hover:scale-110 transition-all duration-500"
-                    />
-                    {/* Gradient overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-[oklch(0.12_0.03_252)] via-transparent to-transparent opacity-90" />
-                    {/* Number badge */}
-                    <div className="absolute bottom-0 right-0 bg-[oklch(0.55_0.12_240)] text-white font-black text-lg p-1.5 px-2.5 rounded-tl-xl shadow-lg">
-                      {player.number}
-                    </div>
-                    {/* Name */}
-                    <div className="absolute bottom-0 left-0 right-0 p-3 pr-12">
-                      <h5 className="font-bold text-sm leading-tight truncate">
-                        {player.name}
-                      </h5>
-                      <p className="text-[oklch(0.77_0.10_225)] text-[11px]">
-                        {player.position}
-                      </p>
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          )}
-        </div>
       </div>
     </section>
   );
@@ -396,8 +328,7 @@ function BentoSkeleton() {
         <Skeleton className="lg:col-start-6 lg:col-end-13 lg:row-start-1 lg:row-end-2 h-[280px] rounded-2xl" />
         <Skeleton className="lg:col-start-6 lg:col-end-10 lg:row-start-2 lg:row-end-3 h-[200px] rounded-2xl" />
         <Skeleton className="lg:col-start-10 lg:col-end-13 lg:row-start-2 lg:row-end-3 h-[200px] rounded-2xl" />
-        <Skeleton className="lg:col-start-1 lg:col-end-6 h-[200px] rounded-2xl" />
-        <Skeleton className="lg:col-start-6 lg:col-end-13 h-[200px] rounded-2xl" />
+        <Skeleton className="lg:col-span-12 h-[120px] rounded-2xl" />
       </div>
     </section>
   );
