@@ -30,7 +30,7 @@ export const getLatest = query({
       .query("news")
       .withIndex("by_published_and_sort_date", (q) => q.eq("published", true))
       .order("desc")
-      .take(3);
+      .take(6);
     return Promise.all(
       articles.map(async (article) => {
         const resolvedImageUrl = article.imageStorageId

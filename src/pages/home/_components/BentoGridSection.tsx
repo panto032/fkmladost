@@ -10,6 +10,52 @@ import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton.tsx";
 import StandingsTable from "./StandingsTable.tsx";
 
+/* ─────────────────── Small News Card (reusable) ─────────────────── */
+
+function SmallNewsCard({
+  article,
+  className = "",
+}: {
+  article: {
+    _id: string;
+    title: string;
+    category: string;
+    date: string;
+    resolvedImageUrl?: string | null;
+  };
+  className?: string;
+}) {
+  return (
+    <Link
+      to={`/vesti/${article._id}`}
+      className={`rounded-2xl overflow-hidden border border-border shadow-lg group cursor-pointer bg-card flex flex-col ${className}`}
+    >
+      <div className="relative h-36 overflow-hidden flex-shrink-0">
+        {article.resolvedImageUrl && (
+          <img
+            src={article.resolvedImageUrl}
+            alt={article.title}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          />
+        )}
+        <div className="absolute top-3 left-3">
+          <span className="bg-accent text-accent-foreground text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">
+            {article.category}
+          </span>
+        </div>
+      </div>
+      <div className="p-4 flex-1 flex flex-col justify-between">
+        <h4 className="text-sm font-bold text-card-foreground leading-snug group-hover:text-accent transition-colors line-clamp-2">
+          {article.title}
+        </h4>
+        <p className="text-muted-foreground text-[11px] mt-2 flex items-center">
+          <Calendar size={10} className="mr-1" /> {article.date}
+        </p>
+      </div>
+    </Link>
+  );
+}
+
 /* ─────────────────────────── Main Component ─────────────────────────── */
 
 export default function BentoGridSection() {
@@ -27,7 +73,8 @@ export default function BentoGridSection() {
   }
 
   const featuredNews = news.length > 0 ? news[0] : null;
-  const smallNews = news.slice(1, 3);
+  const row2News = news.slice(1, 3); // 2 items for row 2
+  const row3News = news.slice(3, 6); // up to 3 items for row 3
 
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
@@ -40,7 +87,10 @@ export default function BentoGridSection() {
 
         {/* ── CELL: FEATURED NEWS ───────────────────────── col 5-12, row 1 */}
         {featuredNews ? (
-          <Link to={`/vesti/${featuredNews._id}`} className="lg:col-start-5 lg:col-end-13 lg:row-start-1 lg:row-end-2 rounded-2xl overflow-hidden border border-border shadow-lg relative group cursor-pointer min-h-[280px] lg:min-h-0">
+          <Link
+            to={`/vesti/${featuredNews._id}`}
+            className="lg:col-start-5 lg:col-end-13 lg:row-start-1 lg:row-end-2 rounded-2xl overflow-hidden border border-border shadow-lg relative group cursor-pointer min-h-[280px] lg:min-h-0"
+          >
             <img
               src={featuredNews.resolvedImageUrl}
               alt={featuredNews.title}
@@ -77,61 +127,53 @@ export default function BentoGridSection() {
         )}
 
         {/* ── CELL: NEWS 2 ──────────────────────────────── col 5-8, row 2 */}
-        {smallNews.length > 0 ? (
-          <Link to={`/vesti/${smallNews[0]._id}`} className="lg:col-start-5 lg:col-end-9 lg:row-start-2 lg:row-end-3 rounded-2xl overflow-hidden border border-border shadow-lg group cursor-pointer bg-card flex flex-col">
-            <div className="relative h-36 overflow-hidden flex-shrink-0">
-              <img
-                src={smallNews[0].resolvedImageUrl}
-                alt={smallNews[0].title}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-              />
-              <div className="absolute top-3 left-3">
-                <span className="bg-accent text-accent-foreground text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">
-                  {smallNews[0].category}
-                </span>
-              </div>
-            </div>
-            <div className="p-4 flex-1 flex flex-col justify-between">
-              <h4 className="text-sm font-bold text-card-foreground leading-snug group-hover:text-accent transition-colors line-clamp-2">
-                {smallNews[0].title}
-              </h4>
-              <p className="text-muted-foreground text-[11px] mt-2 flex items-center">
-                <Calendar size={10} className="mr-1" /> {smallNews[0].date}
-              </p>
-            </div>
-          </Link>
+        {row2News.length > 0 ? (
+          <SmallNewsCard
+            article={row2News[0]}
+            className="lg:col-start-5 lg:col-end-9 lg:row-start-2 lg:row-end-3"
+          />
         ) : (
           <div className="lg:col-start-5 lg:col-end-9 lg:row-start-2 lg:row-end-3 rounded-2xl bg-card border border-border shadow-lg flex items-center justify-center p-6">
             <p className="text-muted-foreground text-sm">Još vesti uskoro</p>
           </div>
         )}
 
-        {/* ── CELL: NEWS 3 / "Sve Vesti" CTA ────────────── col 9-12, row 2 */}
-        {smallNews.length > 1 ? (
-          <Link to={`/vesti/${smallNews[1]._id}`} className="lg:col-start-9 lg:col-end-13 lg:row-start-2 lg:row-end-3 rounded-2xl overflow-hidden border border-border shadow-lg group cursor-pointer bg-card flex flex-col">
-            <div className="relative h-36 overflow-hidden flex-shrink-0">
-              <img
-                src={smallNews[1].resolvedImageUrl}
-                alt={smallNews[1].title}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-              />
-              <div className="absolute top-3 left-3">
-                <span className="bg-accent text-accent-foreground text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">
-                  {smallNews[1].category}
-                </span>
-              </div>
-            </div>
-            <div className="p-4 flex-1 flex flex-col justify-between">
-              <h4 className="text-sm font-bold text-card-foreground leading-snug group-hover:text-accent transition-colors line-clamp-2">
-                {smallNews[1].title}
-              </h4>
-              <p className="text-muted-foreground text-[11px] mt-2 flex items-center">
-                <Calendar size={10} className="mr-1" /> {smallNews[1].date}
-              </p>
-            </div>
-          </Link>
+        {/* ── CELL: NEWS 3 ──────────────────────────────── col 9-12, row 2 */}
+        {row2News.length > 1 ? (
+          <SmallNewsCard
+            article={row2News[1]}
+            className="lg:col-start-9 lg:col-end-13 lg:row-start-2 lg:row-end-3"
+          />
         ) : (
-          <Link to="/vesti" className="lg:col-start-9 lg:col-end-13 lg:row-start-2 lg:row-end-3 rounded-2xl bg-gradient-to-br from-[oklch(0.50_0.12_240)] to-[oklch(0.40_0.10_245)] border border-[oklch(0.55_0.10_238)] shadow-lg flex flex-col items-center justify-center p-6 text-white text-center cursor-pointer group">
+          <div className="lg:col-start-9 lg:col-end-13 lg:row-start-2 lg:row-end-3 rounded-2xl bg-card border border-border shadow-lg flex items-center justify-center p-6">
+            <p className="text-muted-foreground text-sm">Još vesti uskoro</p>
+          </div>
+        )}
+
+        {/* ── ROW 3: NEWS 4, 5, 6 ─────────────────────── col 1-12, row 3 */}
+        {row3News.length >= 1 && (
+          <SmallNewsCard
+            article={row3News[0]}
+            className="lg:col-start-1 lg:col-end-5 lg:row-start-3 lg:row-end-4"
+          />
+        )}
+        {row3News.length >= 2 && (
+          <SmallNewsCard
+            article={row3News[1]}
+            className="lg:col-start-5 lg:col-end-9 lg:row-start-3 lg:row-end-4"
+          />
+        )}
+        {row3News.length >= 3 ? (
+          <SmallNewsCard
+            article={row3News[2]}
+            className="lg:col-start-9 lg:col-end-13 lg:row-start-3 lg:row-end-4"
+          />
+        ) : (
+          /* "Sve vesti" CTA fills the remaining row 3 space */
+          <Link
+            to="/vesti"
+            className={`${row3News.length === 0 ? "lg:col-span-12" : row3News.length === 1 ? "lg:col-start-5 lg:col-end-13" : "lg:col-start-9 lg:col-end-13"} lg:row-start-3 lg:row-end-4 rounded-2xl bg-gradient-to-br from-[oklch(0.50_0.12_240)] to-[oklch(0.40_0.10_245)] border border-[oklch(0.55_0.10_238)] shadow-lg flex flex-col items-center justify-center p-6 text-white text-center cursor-pointer group`}
+          >
             <Newspaper
               size={28}
               className="text-white/60 mb-2 group-hover:scale-110 transition-transform"
@@ -145,8 +187,8 @@ export default function BentoGridSection() {
           </Link>
         )}
 
-        {/* ── CELL: PARTNERI & SPONZORI ─────────────────── col 1-12, row 3 */}
-        <div className="lg:col-span-12 lg:row-start-3 lg:row-end-4 rounded-2xl bg-gradient-to-br from-[oklch(0.22_0.045_252)] to-[oklch(0.18_0.04_252)] border border-[oklch(0.30_0.045_252)] shadow-lg p-5 text-white">
+        {/* ── CELL: PARTNERI & SPONZORI ─────────────────── full width, row 4 */}
+        <div className="lg:col-span-12 rounded-2xl bg-gradient-to-br from-[oklch(0.22_0.045_252)] to-[oklch(0.18_0.04_252)] border border-[oklch(0.30_0.045_252)] shadow-lg p-5 text-white">
           {/* Header */}
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
@@ -218,6 +260,9 @@ function BentoSkeleton() {
         <Skeleton className="lg:col-start-5 lg:col-end-13 lg:row-start-1 lg:row-end-2 h-[280px] rounded-2xl" />
         <Skeleton className="lg:col-start-5 lg:col-end-9 lg:row-start-2 lg:row-end-3 h-[200px] rounded-2xl" />
         <Skeleton className="lg:col-start-9 lg:col-end-13 lg:row-start-2 lg:row-end-3 h-[200px] rounded-2xl" />
+        <Skeleton className="lg:col-start-1 lg:col-end-5 lg:row-start-3 lg:row-end-4 h-[200px] rounded-2xl" />
+        <Skeleton className="lg:col-start-5 lg:col-end-9 lg:row-start-3 lg:row-end-4 h-[200px] rounded-2xl" />
+        <Skeleton className="lg:col-start-9 lg:col-end-13 lg:row-start-3 lg:row-end-4 h-[200px] rounded-2xl" />
         <Skeleton className="lg:col-span-12 h-[120px] rounded-2xl" />
       </div>
     </section>
