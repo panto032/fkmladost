@@ -45,12 +45,9 @@ export default function Header() {
               />
             </div>
             <div className="hidden sm:block">
-              <h1 className="text-lg font-black uppercase tracking-wider leading-none">
-                FK Mladost
+              <h1 className="text-xl font-black uppercase tracking-widest leading-none text-white drop-shadow-[0_1px_6px_rgba(0,0,0,0.4)]">
+                FK Mladost Lučani
               </h1>
-              <span className="text-white/60 text-[11px] tracking-widest uppercase">
-                Lučani 1952
-              </span>
             </div>
           </Link>
 
