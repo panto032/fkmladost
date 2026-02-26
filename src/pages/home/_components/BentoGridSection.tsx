@@ -3,22 +3,11 @@ import { api } from "@/convex/_generated/api.js";
 import {
   Calendar,
   ArrowRight,
-  Trophy,
   Newspaper,
   Handshake,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton.tsx";
-
-const FALLBACK_STANDINGS = [
-  { position: 1, team: "Crvena zvezda", played: 22, wins: 19, draws: 2, losses: 1, goalDifference: "+45", points: 59, isHighlighted: false },
-  { position: 2, team: "Partizan", played: 22, wins: 17, draws: 3, losses: 2, goalDifference: "+32", points: 54, isHighlighted: false },
-  { position: 3, team: "TSC", played: 22, wins: 12, draws: 7, losses: 3, goalDifference: "+18", points: 43, isHighlighted: false },
-  { position: 4, team: "Čukarički", played: 22, wins: 10, draws: 5, losses: 7, goalDifference: "+8", points: 35, isHighlighted: false },
-  { position: 5, team: "FK Mladost", played: 22, wins: 10, draws: 3, losses: 9, goalDifference: "-2", points: 33, isHighlighted: true },
-  { position: 6, team: "Vojvodina", played: 22, wins: 8, draws: 7, losses: 7, goalDifference: "0", points: 31, isHighlighted: false },
-  { position: 7, team: "Novi Pazar", played: 22, wins: 9, draws: 3, losses: 10, goalDifference: "-4", points: 30, isHighlighted: false },
-  { position: 8, team: "Radnički 1923", played: 22, wins: 9, draws: 2, losses: 11, goalDifference: "-5", points: 29, isHighlighted: false },
-];
+import StandingsTable from "./StandingsTable.tsx";
 
 /* ─────────────────────────── Main Component ─────────────────────────── */
 
@@ -36,8 +25,6 @@ export default function BentoGridSection() {
     return <BentoSkeleton />;
   }
 
-  const standingsRows =
-    standings.length > 0 ? standings : FALLBACK_STANDINGS;
   const featuredNews = news.length > 0 ? news[0] : null;
   const smallNews = news.slice(1, 3);
 
@@ -46,106 +33,8 @@ export default function BentoGridSection() {
       {/* Grid — 12 columns on desktop */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         {/* ── CELL: STANDINGS TABLE ─────────────────────── col 1-5, row 1-2 */}
-        <div className="lg:col-start-1 lg:col-end-6 lg:row-start-1 lg:row-end-3 bg-card rounded-2xl overflow-hidden border border-border shadow-lg flex flex-col">
-          {/* Header */}
-          <div className="px-5 pt-5 pb-3 border-b border-border flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center">
-                <Trophy size={16} className="text-accent" />
-              </div>
-              <h3 className="text-base font-extrabold text-foreground uppercase tracking-tight">
-                Tabela Superlige
-              </h3>
-            </div>
-            <button className="text-[11px] text-accent font-semibold flex items-center hover:text-accent/80 transition-colors gap-1">
-              Kompletna <ArrowRight size={11} />
-            </button>
-          </div>
-
-          {/* Table */}
-          <div className="flex-1 overflow-auto">
-            <table className="w-full text-sm">
-              <thead className="text-[10px] text-muted-foreground uppercase bg-muted/40 sticky top-0">
-                <tr>
-                  <th className="px-3 py-2.5 text-center w-8 font-bold">#</th>
-                  <th className="px-3 py-2.5 text-left font-bold">Klub</th>
-                  <th className="px-3 py-2.5 text-center hidden sm:table-cell font-bold">
-                    OM
-                  </th>
-                  <th className="px-3 py-2.5 text-center hidden md:table-cell font-bold">
-                    POB
-                  </th>
-                  <th className="px-3 py-2.5 text-center hidden sm:table-cell font-bold">
-                    GR
-                  </th>
-                  <th className="px-3 py-2.5 text-center font-black text-foreground">
-                    BOD
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {standingsRows.map((row) => (
-                  <tr
-                    key={row.position}
-                    className={`border-b border-border/30 transition-colors hover:bg-muted/30 ${
-                      row.isHighlighted ? "bg-accent/5 relative" : ""
-                    }`}
-                  >
-                    {row.isHighlighted && (
-                      <td className="absolute left-0 top-0 bottom-0 w-[3px] bg-accent rounded-r-full" />
-                    )}
-                    <td
-                      className={`px-3 py-3 text-center text-xs font-bold ${
-                        row.isHighlighted
-                          ? "text-accent"
-                          : "text-muted-foreground"
-                      }`}
-                    >
-                      {row.position}.
-                    </td>
-                    <td
-                      className={`px-3 py-3 ${
-                        row.isHighlighted
-                          ? "text-foreground font-black"
-                          : "text-foreground font-medium"
-                      }`}
-                    >
-                      <div className="flex items-center text-xs">
-                        <div
-                          className={`w-5 h-5 rounded-full mr-2 flex items-center justify-center text-[7px] font-bold text-white flex-shrink-0 ${
-                            row.isHighlighted
-                              ? "bg-accent"
-                              : "bg-muted-foreground/30"
-                          }`}
-                        >
-                          {row.team.substring(0, 2).toUpperCase()}
-                        </div>
-                        <span className="truncate">{row.team}</span>
-                      </div>
-                    </td>
-                    <td className="px-3 py-3 text-center text-xs hidden sm:table-cell text-muted-foreground">
-                      {row.played}
-                    </td>
-                    <td className="px-3 py-3 text-center text-xs hidden md:table-cell text-muted-foreground">
-                      {row.wins}
-                    </td>
-                    <td className="px-3 py-3 text-center text-xs hidden sm:table-cell text-muted-foreground">
-                      {row.goalDifference}
-                    </td>
-                    <td
-                      className={`px-3 py-3 text-center font-black text-sm ${
-                        row.isHighlighted
-                          ? "text-accent bg-accent/5"
-                          : "text-foreground bg-muted/20"
-                      }`}
-                    >
-                      {row.points}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+        <div className="lg:col-start-1 lg:col-end-6 lg:row-start-1 lg:row-end-3">
+          <StandingsTable standings={standings} />
         </div>
 
         {/* ── CELL: FEATURED NEWS ───────────────────────── col 6-12, row 1 */}

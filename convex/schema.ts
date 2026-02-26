@@ -51,6 +51,10 @@ export default defineSchema({
     goalDifference: v.string(),
     points: v.number(),
     isHighlighted: v.boolean(),
+    logoUrl: v.optional(v.string()),
+    form: v.optional(v.string()),
+    goalsFor: v.optional(v.number()),
+    goalsAgainst: v.optional(v.number()),
   }).index("by_position", ["position"]),
 
   players: defineTable({

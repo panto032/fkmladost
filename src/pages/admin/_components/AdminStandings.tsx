@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery, useMutation } from "convex/react";
+import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "@/convex/_generated/api.js";
 import type { Doc } from "@/convex/_generated/dataModel.d.ts";
 import { Button } from "@/components/ui/button.tsx";
@@ -22,7 +22,7 @@ import {
   TableRow,
 } from "@/components/ui/table.tsx";
 import { Skeleton } from "@/components/ui/skeleton.tsx";
-import { Pencil, Trash2, Plus } from "lucide-react";
+import { Pencil, Trash2, Plus, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { ConvexError } from "convex/values";
 
@@ -45,11 +45,13 @@ export default function AdminStandings() {
   const createStanding = useMutation(api.admin.standings.create);
   const updateStanding = useMutation(api.admin.standings.update);
   const removeStanding = useMutation(api.admin.standings.remove);
+  const syncAll = useAction(api.sync.fetchFromApi.syncAll);
 
   const [isOpen, setIsOpen] = useState(false);
   const [editing, setEditing] = useState<StandingItem | null>(null);
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
+  const [syncing, setSyncing] = useState(false);
 
   const openCreate = () => {
     setEditing(null);
@@ -114,6 +116,25 @@ export default function AdminStandings() {
     }
   };
 
+  const handleSync = async () => {
+    setSyncing(true);
+    try {
+      const result = await syncAll();
+      toast.success(
+        `Sinhronizacija uspešna! Učitano ${result.standings} timova i ${result.matches} utakmica iz API-Football`,
+      );
+    } catch (error) {
+      if (error instanceof ConvexError) {
+        const { message } = error.data as { code: string; message: string };
+        toast.error(`Greška pri sinhronizaciji: ${message}`);
+      } else {
+        toast.error("Greška pri sinhronizaciji sa API-Football");
+      }
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   if (standings === undefined) {
     return (
       <div className="space-y-3">
@@ -126,6 +147,25 @@ export default function AdminStandings() {
 
   return (
     <div>
+      {/* ── Sync banner ── */}
+      <div className="bg-[oklch(0.22_0.06_250)] text-white rounded-xl p-4 mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div>
+          <h4 className="font-bold text-sm">API-Football Sinhronizacija</h4>
+          <p className="text-[oklch(0.65_0.04_250)] text-xs mt-0.5">
+            Povuci najnovije podatke za tabelu i mečeve direktno iz API-Football
+          </p>
+        </div>
+        <Button
+          size="sm"
+          onClick={handleSync}
+          disabled={syncing}
+          className="bg-[oklch(0.55_0.18_250)] hover:bg-[oklch(0.50_0.18_250)] text-white shrink-0"
+        >
+          <RefreshCw size={14} className={syncing ? "animate-spin" : ""} />
+          {syncing ? "Sinhronizujem..." : "Sinhronizuj sada"}
+        </Button>
+      </div>
+
       <div className="flex justify-between items-center mb-6">
         <h3 className="text-lg font-bold">
           Tabela Superlige ({standings.length} timova)
@@ -163,7 +203,16 @@ export default function AdminStandings() {
                 <TableCell
                   className={`font-medium ${item.isHighlighted ? "text-accent font-bold" : ""}`}
                 >
-                  {item.team}
+                  <div className="flex items-center gap-2">
+                    {item.logoUrl && (
+                      <img
+                        src={item.logoUrl}
+                        alt={item.team}
+                        className="w-5 h-5 object-contain"
+                      />
+                    )}
+                    {item.team}
+                  </div>
                 </TableCell>
                 <TableCell className="hidden sm:table-cell">
                   {item.played}
