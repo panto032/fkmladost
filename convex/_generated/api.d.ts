@@ -29,8 +29,10 @@ import type * as standings from "../standings.js";
 import type * as sync_fetchFromApi from "../sync/fetchFromApi.js";
 import type * as sync_saveData from "../sync/saveData.js";
 import type * as sync_saveSuperLeagueData from "../sync/saveSuperLeagueData.js";
+import type * as sync_saveYouthLeagueData from "../sync/saveYouthLeagueData.js";
 import type * as sync_scrapeFromWeb from "../sync/scrapeFromWeb.js";
 import type * as sync_scrapeSuperLeague from "../sync/scrapeSuperLeague.js";
+import type * as sync_scrapeYouthLeague from "../sync/scrapeYouthLeague.js";
 import type * as users from "../users.js";
 
 import type {
@@ -61,8 +63,10 @@ declare const fullApi: ApiFromModules<{
   "sync/fetchFromApi": typeof sync_fetchFromApi;
   "sync/saveData": typeof sync_saveData;
   "sync/saveSuperLeagueData": typeof sync_saveSuperLeagueData;
+  "sync/saveYouthLeagueData": typeof sync_saveYouthLeagueData;
   "sync/scrapeFromWeb": typeof sync_scrapeFromWeb;
   "sync/scrapeSuperLeague": typeof sync_scrapeSuperLeague;
+  "sync/scrapeYouthLeague": typeof sync_scrapeYouthLeague;
   users: typeof users;
 }>;
 

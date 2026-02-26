@@ -330,7 +330,7 @@ function StandingsTable({ data }: { data: StandingRow[] }) {
     <div>
       <h2 className="text-2xl font-extrabold text-[oklch(0.22_0.045_252)] mb-6 flex items-center gap-3">
         <Trophy size={24} className="text-[oklch(0.69_0.095_228)]" />
-        Tabela — 18. kolo
+        Tabela {data.length > 0 && data[0].played > 0 ? `— ${data[0].played}. kolo` : ""}
       </h2>
 
       <div className="bg-white rounded-2xl shadow-lg border border-[oklch(0.92_0.01_228)] overflow-hidden">
@@ -434,7 +434,7 @@ function StandingsTable({ data }: { data: StandingRow[] }) {
       </div>
 
       <p className="text-xs text-[oklch(0.55_0.03_252)] mt-4 text-right">
-        Izvor: fss.rs · Poslednje ažuriranje: 23. feb 2026
+        Izvor: fss.rs
       </p>
     </div>
   );
