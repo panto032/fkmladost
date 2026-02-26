@@ -45,7 +45,7 @@ export default function Header() {
                   className="relative h-16 w-auto object-contain drop-shadow-[0_2px_16px_rgba(0,0,0,0.6)]"
                 />
               </div>
-              <h1 className="hidden sm:block text-2xl font-black uppercase tracking-widest leading-none text-[oklch(0.82_0.09_225)] drop-shadow-[0_1px_8px_rgba(0,0,0,0.4)]">
+              <h1 className="hidden sm:block text-2xl font-bold uppercase tracking-wide leading-none text-white drop-shadow-[0_1px_8px_rgba(0,0,0,0.4)]" style={{ fontFamily: "'Inter', sans-serif" }}>
                 FK Mladost
               </h1>
             </Link>
