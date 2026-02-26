@@ -7,8 +7,6 @@ const NAV_LINKS = [
   { label: "Početna", href: "/" },
   { label: "Vesti", href: "/vesti" },
   { label: "Prvi Tim", href: "/prvi-tim" },
-  { label: "Najava Kola", href: "/najava-kola" },
-  { label: "Analitika Rivala", href: "/analitika-rivala" },
   { label: "Istorijat", href: "/istorija-kluba" },
   { label: "Omladinska Škola", href: "/omladinska-skola" },
 ];
