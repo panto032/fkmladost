@@ -64,3 +64,15 @@ export const remove = mutation({
     await ctx.db.delete(args.id);
   },
 });
+
+export const removeAll = mutation({
+  args: {},
+  handler: async (ctx) => {
+    await requireAdmin(ctx);
+    const all = await ctx.db.query("players").collect();
+    for (const player of all) {
+      await ctx.db.delete(player._id);
+    }
+    return { deleted: all.length };
+  },
+});

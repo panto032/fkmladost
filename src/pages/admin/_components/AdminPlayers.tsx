@@ -29,7 +29,7 @@ import {
 } from "@/components/ui/select.tsx";
 import { Skeleton } from "@/components/ui/skeleton.tsx";
 import { Switch } from "@/components/ui/switch.tsx";
-import { Pencil, Trash2, Plus, RefreshCw } from "lucide-react";
+import { Pencil, Trash2, Plus, RefreshCw, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { ConvexError } from "convex/values";
 
@@ -53,6 +53,7 @@ export default function AdminPlayers() {
   const createPlayer = useMutation(api.admin.players.create);
   const updatePlayer = useMutation(api.admin.players.update);
   const removePlayer = useMutation(api.admin.players.remove);
+  const removeAllPlayers = useMutation(api.admin.players.removeAll);
   const scrapePlayers = useAction(api.sync.scrapeFromWeb.scrapePlayers);
 
   const [isOpen, setIsOpen] = useState(false);
@@ -60,6 +61,26 @@ export default function AdminPlayers() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [syncing, setSyncing] = useState(false);
+  const [showDeleteAll, setShowDeleteAll] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDeleteAll = async () => {
+    setDeleting(true);
+    try {
+      const result = await removeAllPlayers();
+      toast.success(`Obrisano ${result.deleted} igrača`);
+      setShowDeleteAll(false);
+    } catch (error) {
+      if (error instanceof ConvexError) {
+        const { message } = error.data as { code: string; message: string };
+        toast.error(message);
+      } else {
+        toast.error("Greška pri brisanju");
+      }
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   const handleSync = async () => {
     setSyncing(true);
@@ -172,9 +193,19 @@ export default function AdminPlayers() {
 
       <div className="flex justify-between items-center mb-6">
         <h3 className="text-lg font-bold">Igrači ({players.length})</h3>
-        <Button onClick={openCreate} size="sm">
-          <Plus size={16} /> Dodaj igrača
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() => setShowDeleteAll(true)}
+            disabled={players.length === 0}
+          >
+            <Trash2 size={14} /> Obriši sve
+          </Button>
+          <Button onClick={openCreate} size="sm">
+            <Plus size={16} /> Dodaj igrača
+          </Button>
+        </div>
       </div>
 
       <div className="border rounded-xl overflow-hidden">
@@ -326,6 +357,27 @@ export default function AdminPlayers() {
             <Button variant="ghost" onClick={() => setIsOpen(false)}>Otkaži</Button>
             <Button onClick={handleSave} disabled={saving}>
               {saving ? "Čuvanje..." : editing ? "Sačuvaj" : "Dodaj"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete all confirmation dialog */}
+      <Dialog open={showDeleteAll} onOpenChange={setShowDeleteAll}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertTriangle size={20} /> Obriši sve igrače?
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Ovo će obrisati <span className="font-bold">{players.length}</span> igrača iz baze. 
+            Posle toga možeš kliknuti "Sinhronizuj" da učitaš aktuelni roster sa superliga.rs.
+          </p>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setShowDeleteAll(false)}>Otkaži</Button>
+            <Button variant="destructive" onClick={handleDeleteAll} disabled={deleting}>
+              {deleting ? "Brisanje..." : "Da, obriši sve"}
             </Button>
           </DialogFooter>
         </DialogContent>
