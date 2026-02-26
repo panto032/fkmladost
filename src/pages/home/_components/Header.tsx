@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
+import { Link } from "react-router-dom";
 import { toast } from "sonner";
 
 const NAV_LINKS = [
@@ -48,7 +49,7 @@ export default function Header() {
           </a>
 
           {/* Desktop nav */}
-          <nav className="hidden md:flex space-x-8">
+          <nav className="hidden md:flex space-x-8 items-center">
             {NAV_LINKS.map((link) => (
               <button
                 key={link.label}
@@ -62,6 +63,12 @@ export default function Header() {
                 {link.label}
               </button>
             ))}
+            <Link
+              to="/admin"
+              className="text-yellow-300 hover:text-yellow-100 font-medium transition-colors border-b-2 border-transparent hover:border-yellow-300 py-2"
+            >
+              Admin
+            </Link>
           </nav>
 
           {/* Mobile toggle */}
@@ -93,6 +100,13 @@ export default function Header() {
                 {link.label}
               </button>
             ))}
+            <Link
+              to="/admin"
+              className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-yellow-300 hover:bg-[oklch(0.25_0.06_250)]"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Admin
+            </Link>
           </div>
         </div>
       )}
