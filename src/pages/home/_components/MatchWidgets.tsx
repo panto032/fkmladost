@@ -106,13 +106,13 @@ export default function MatchWidgets() {
             </div>
           </div>
         ) : lastMatch ? (
-          <div className="flex-1 bg-gradient-to-br from-[oklch(0.32_0.05_250)] to-[oklch(0.27_0.045_252)] text-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-[oklch(0.38_0.04_250)] relative overflow-hidden group">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-[oklch(0.36_0.04_250)]/30 rounded-bl-full -z-10 transition-transform duration-700 group-hover:scale-110" />
+          <div className="flex-1 bg-gradient-to-br from-[oklch(0.55_0.12_240)] to-[oklch(0.45_0.10_245)] text-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-[oklch(0.60_0.10_238)] relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-[oklch(0.60_0.10_238)]/25 rounded-bl-full -z-10 transition-transform duration-700 group-hover:scale-110" />
             <div className="flex justify-between items-center mb-6">
-              <span className="bg-[oklch(0.36_0.04_250)]/80 backdrop-blur-sm text-[oklch(0.82_0.08_225)] text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider border border-[oklch(0.42_0.04_250)]">
+              <span className="bg-[oklch(0.48_0.10_242)]/80 backdrop-blur-sm text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider border border-[oklch(0.62_0.08_238)]">
                 Prethodni Meč
               </span>
-              <span className="text-xs font-medium text-[oklch(0.68_0.06_228)]">
+              <span className="text-xs font-medium text-white/75">
                 {lastMatch.competition}
               </span>
             </div>
@@ -128,13 +128,13 @@ export default function MatchWidgets() {
                 </span>
               </div>
               <div className="w-4/12 text-center px-1">
-                <div className="bg-[oklch(0.24_0.04_252)]/60 backdrop-blur-md rounded-2xl py-3 px-4 sm:px-6 inline-block shadow-inner border border-[oklch(0.38_0.04_250)]/60 transform group-hover:scale-105 transition-transform duration-500">
+                <div className="bg-[oklch(0.40_0.10_244)]/60 backdrop-blur-md rounded-2xl py-3 px-4 sm:px-6 inline-block shadow-inner border border-white/15 transform group-hover:scale-105 transition-transform duration-500">
                   <span className="text-3xl sm:text-5xl font-black tracking-widest text-white">
                     {lastMatch.homeScore} : {lastMatch.awayScore}
                   </span>
                 </div>
                 {lastMatch.status && (
-                  <p className="text-[10px] sm:text-xs text-[oklch(0.68_0.08_225)] mt-4 font-bold uppercase tracking-widest">
+                  <p className="text-[10px] sm:text-xs text-white/70 mt-4 font-bold uppercase tracking-widest">
                     {lastMatch.status}
                   </p>
                 )}
@@ -152,8 +152,8 @@ export default function MatchWidgets() {
             </div>
           </div>
         ) : (
-          <div className="flex-1 bg-gradient-to-br from-[oklch(0.32_0.05_250)] to-[oklch(0.27_0.045_252)] text-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-[oklch(0.38_0.04_250)] flex items-center justify-center min-h-[250px]">
-            <p className="text-[oklch(0.68_0.06_228)] font-medium">
+          <div className="flex-1 bg-gradient-to-br from-[oklch(0.55_0.12_240)] to-[oklch(0.45_0.10_245)] text-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-[oklch(0.60_0.10_238)] flex items-center justify-center min-h-[250px]">
+            <p className="text-white/70 font-medium">
               Nema odigranih mečeva
             </p>
           </div>
