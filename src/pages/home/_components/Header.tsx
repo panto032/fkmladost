@@ -35,11 +35,15 @@ export default function Header() {
         <div className="flex justify-between items-center h-20">
           {/* Logo — large & prominent */}
           <Link to="/" className="flex-shrink-0 flex items-center gap-3">
-            <img
-              src="https://cdn.hercules.app/file_HWC8LtMUYR2SOIIbHHdj7L3r"
-              alt="FK Mladost Lučani grb"
-              className="h-14 w-auto object-contain drop-shadow-[0_2px_12px_rgba(0,0,0,0.5)]"
-            />
+            <div className="relative">
+              {/* Glow behind logo */}
+              <div className="absolute inset-0 bg-[oklch(0.55_0.12_240)]/40 blur-xl rounded-full scale-125" />
+              <img
+                src="https://cdn.hercules.app/file_HWC8LtMUYR2SOIIbHHdj7L3r"
+                alt="FK Mladost Lučani grb"
+                className="relative h-16 w-auto object-contain drop-shadow-[0_2px_16px_rgba(0,0,0,0.6)]"
+              />
+            </div>
             <div className="hidden sm:block">
               <h1 className="text-lg font-black uppercase tracking-wider leading-none">
                 FK Mladost

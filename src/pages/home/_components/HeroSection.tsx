@@ -2,7 +2,7 @@ import { ChevronRight } from "lucide-react";
 
 export default function HeroSection() {
   return (
-    <section className="relative bg-[oklch(0.30_0.055_252)] text-white pb-28 md:pb-36">
+    <section className="relative bg-[oklch(0.30_0.055_252)] text-white pb-28 md:pb-36 -mt-20">
       {/* Background image */}
       <div className="absolute inset-0 overflow-hidden">
         <img
@@ -10,15 +10,15 @@ export default function HeroSection() {
           alt="Stadion pozadina"
           className="w-full h-full object-cover opacity-25"
         />
-        {/* Lighter gradient overlay — keeps text readable, lets the hero feel open */}
+        {/* Lighter gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-[oklch(0.28_0.05_252)]/70 via-[oklch(0.35_0.05_252)]/50 to-[oklch(0.40_0.04_228)]/80" />
       </div>
 
       {/* Accent stripe */}
       <div className="absolute top-0 left-0 w-1 h-full bg-[oklch(0.77_0.10_225)]" />
 
-      {/* Content */}
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-12 text-center md:text-left">
+      {/* Content — extra top padding to clear the transparent header */}
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 md:pt-36 pb-12 text-center md:text-left">
         <span className="inline-block py-1.5 px-4 rounded-full bg-white/10 backdrop-blur-sm text-[oklch(0.85_0.08_225)] text-xs sm:text-sm font-bold mb-5 border border-white/15 uppercase tracking-widest">
           Zvanična prezentacija
         </span>
@@ -35,7 +35,7 @@ export default function HeroSection() {
         </button>
       </div>
 
-      {/* Bottom fade into page background for smooth transition */}
+      {/* Bottom fade into page background */}
       <div className="absolute bottom-0 left-0 right-0 h-28 bg-gradient-to-t from-background to-transparent pointer-events-none" />
     </section>
   );
