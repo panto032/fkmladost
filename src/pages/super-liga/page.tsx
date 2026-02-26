@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api.js";
-import { Trophy, Calendar, Star, MapPin } from "lucide-react";
+import { Trophy, Calendar, Star, MapPin, AlertCircle } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton.tsx";
 import Header from "../home/_components/Header.tsx";
 import Footer from "../home/_components/Footer.tsx";
 
 /* ------------------------------------------------------------------ */
-/*  Static fallback data — Super Liga Srbije                          */
-/*  Last update: 26 feb 2026 (season 25/26)                          */
+/*  Types                                                              */
 /* ------------------------------------------------------------------ */
 
 type StandingRow = {
@@ -24,25 +24,6 @@ type StandingRow = {
   _highlighted?: boolean;
 };
 
-const STANDINGS: StandingRow[] = [
-  { pos: 1, club: "Crvena zvezda", played: 24, won: 18, drawn: 3, lost: 3, goalsFor: 72, goalsAgainst: 19, goalDiff: 53, points: 57 },
-  { pos: 2, club: "Partizan", played: 24, won: 17, drawn: 2, lost: 5, goalsFor: 55, goalsAgainst: 30, goalDiff: 25, points: 53 },
-  { pos: 3, club: "Vojvodina", played: 24, won: 15, drawn: 4, lost: 5, goalsFor: 44, goalsAgainst: 24, goalDiff: 20, points: 49 },
-  { pos: 4, club: "Novi Pazar", played: 24, won: 11, drawn: 6, lost: 7, goalsFor: 31, goalsAgainst: 31, goalDiff: 0, points: 39 },
-  { pos: 5, club: "Železničar", played: 24, won: 11, drawn: 5, lost: 8, goalsFor: 29, goalsAgainst: 26, goalDiff: 3, points: 38 },
-  { pos: 6, club: "Radnik", played: 24, won: 9, drawn: 5, lost: 10, goalsFor: 30, goalsAgainst: 29, goalDiff: 1, points: 32 },
-  { pos: 7, club: "Radnički 1923", played: 24, won: 8, drawn: 8, lost: 8, goalsFor: 31, goalsAgainst: 33, goalDiff: -2, points: 32 },
-  { pos: 8, club: "Čukarički", played: 24, won: 8, drawn: 7, lost: 9, goalsFor: 35, goalsAgainst: 38, goalDiff: -3, points: 31 },
-  { pos: 9, club: "OFK Beograd", played: 24, won: 8, drawn: 6, lost: 10, goalsFor: 30, goalsAgainst: 32, goalDiff: -2, points: 30 },
-  { pos: 10, club: "Radnički Niš", played: 24, won: 8, drawn: 5, lost: 11, goalsFor: 30, goalsAgainst: 31, goalDiff: -1, points: 29 },
-  { pos: 11, club: "TSC", played: 24, won: 7, drawn: 8, lost: 9, goalsFor: 22, goalsAgainst: 27, goalDiff: -5, points: 29 },
-  { pos: 12, club: "IMT", played: 24, won: 8, drawn: 4, lost: 12, goalsFor: 27, goalsAgainst: 43, goalDiff: -16, points: 28 },
-  { pos: 13, club: "Mladost", played: 24, won: 6, drawn: 9, lost: 9, goalsFor: 18, goalsAgainst: 34, goalDiff: -16, points: 27 },
-  { pos: 14, club: "Javor Matis", played: 24, won: 6, drawn: 8, lost: 10, goalsFor: 24, goalsAgainst: 34, goalDiff: -10, points: 26 },
-  { pos: 15, club: "Spartak ŽK", played: 24, won: 3, drawn: 8, lost: 13, goalsFor: 27, goalsAgainst: 45, goalDiff: -18, points: 17 },
-  { pos: 16, club: "Napredak", played: 24, won: 2, drawn: 6, lost: 16, goalsFor: 21, goalsAgainst: 50, goalDiff: -29, points: 12 },
-];
-
 type MatchRow = {
   round: number;
   date: string;
@@ -52,22 +33,6 @@ type MatchRow = {
   city?: string;
   isHome: boolean;
 };
-
-const MATCHES: MatchRow[] = [
-  // Kola 1-8: potvrđena sa superliga.rs/sezona/raspored-i-rezultati/
-  { round: 1, date: "20.07.2025", home: "Mladost", away: "IMT", score: "1:1", city: "Lučani", isHome: true },
-  { round: 2, date: "26.07.2025", home: "Radnički Niš", away: "Mladost", score: "3:1", city: "Niš", isHome: false },
-  { round: 3, date: "02.08.2025", home: "Mladost", away: "Radnik", score: "1:0", city: "Lučani", isHome: true },
-  { round: 4, date: "09.08.2025", home: "Spartak ŽK", away: "Mladost", score: "1:1", city: "Subotica", isHome: false },
-  { round: 5, date: "15.08.2025", home: "Mladost", away: "Crvena zvezda", score: "1:4", city: "Lučani", isHome: true },
-  { round: 6, date: "23.08.2025", home: "OFK Beograd", away: "Mladost", score: "1:1", city: "Stara Pazova", isHome: false },
-  { round: 7, date: "30.08.2025", home: "Mladost", away: "Vojvodina", score: "0:0", city: "Lučani", isHome: true },
-  { round: 8, date: "14.09.2025", home: "TSC", away: "Mladost", score: "1:0", city: "Bačka Topola", isHome: false },
-  // Kola 9-23: dodaj kroz admin panel (prethodni podaci bili netačni)
-  // Kolo 24-25: potvrđeno sa superliga.rs/tim/mladost/
-  { round: 24, date: "23.02.2026", home: "Javor Matis", away: "Mladost", score: "0:0", city: "Ivanjica", isHome: false },
-  { round: 25, date: "28.02.2026", home: "Čukarički", away: "Mladost", city: "Beograd", isHome: false },
-];
 
 /* ------------------------------------------------------------------ */
 /*  Tabs                                                               */
@@ -87,30 +52,36 @@ const TABS: { id: Tab; label: string; icon: typeof Trophy }[] = [
 export default function SuperLigaPage() {
   const [activeTab, setActiveTab] = useState<Tab>("tabela");
 
-  // Database queries
+  // Database queries — populated by scraping superliga.rs from admin
   const dbStandings = useQuery(api.admin.superLeague.getStandings);
   const dbMatches = useQuery(api.admin.superLeague.getMatches);
 
-  // Use DB data if present, otherwise fall back to static data
-  const standings: StandingRow[] = (dbStandings && dbStandings.length > 0)
-    ? dbStandings.map((s) => ({
-        pos: s.position,
-        club: s.club,
-        played: s.played,
-        won: s.won,
-        drawn: s.drawn,
-        lost: s.lost,
-        goalsFor: s.goalsFor,
-        goalsAgainst: s.goalsAgainst,
-        goalDiff: s.goalDiff,
-        points: s.points,
-        _highlighted: s.isHighlighted,
-      }))
-    : STANDINGS.map((s) => ({ ...s, _highlighted: s.club === "Mladost" }));
+  const isLoading = dbStandings === undefined || dbMatches === undefined;
 
-  // Use static data directly — DB had stale/incorrect match data
-  // Once correct data is entered via admin, switch back to DB
-  const matches: MatchRow[] = MATCHES;
+  // Map DB data to display types
+  const standings: StandingRow[] = (dbStandings ?? []).map((s) => ({
+    pos: s.position,
+    club: s.club,
+    played: s.played,
+    won: s.won,
+    drawn: s.drawn,
+    lost: s.lost,
+    goalsFor: s.goalsFor,
+    goalsAgainst: s.goalsAgainst,
+    goalDiff: s.goalDiff,
+    points: s.points,
+    _highlighted: s.isHighlighted,
+  }));
+
+  const matches: MatchRow[] = (dbMatches ?? []).map((m) => ({
+    round: m.round,
+    date: m.date,
+    home: m.home,
+    away: m.away,
+    score: m.score,
+    city: m.city,
+    isHome: m.isHome,
+  }));
 
   // Mladost stats for the hero
   const mladostRow = standings.find((r) => r._highlighted) ?? standings.find((r) => r.club.includes("Mladost"));
@@ -207,11 +178,39 @@ export default function SuperLigaPage() {
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
-        {activeTab === "tabela" && <StandingsTable data={standings} />}
-        {activeTab === "utakmice" && <MatchesList data={matches} />}
+        {isLoading ? (
+          <div className="space-y-3">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <Skeleton key={i} className="h-14 w-full rounded-xl" />
+            ))}
+          </div>
+        ) : (
+          <>
+            {activeTab === "tabela" && <StandingsTable data={standings} />}
+            {activeTab === "utakmice" && <MatchesList data={matches} />}
+          </>
+        )}
       </div>
 
       <Footer />
+    </div>
+  );
+}
+
+/* ================================================================== */
+/*  Empty State                                                        */
+/* ================================================================== */
+
+function DataEmpty({ label }: { label: string }) {
+  return (
+    <div className="flex flex-col items-center justify-center py-16 text-center">
+      <AlertCircle size={48} className="text-[oklch(0.65_0.03_228)] mb-4" />
+      <h3 className="text-lg font-bold text-[oklch(0.30_0.04_252)] mb-2">
+        Nema podataka
+      </h3>
+      <p className="text-sm text-[oklch(0.55_0.03_252)] max-w-md">
+        {label} još nisu učitani. Administrator može da ih sinhronizuje sa superliga.rs kroz admin panel.
+      </p>
     </div>
   );
 }
@@ -221,6 +220,8 @@ export default function SuperLigaPage() {
 /* ================================================================== */
 
 function StandingsTable({ data }: { data: StandingRow[] }) {
+  if (data.length === 0) return <DataEmpty label="Podaci tabele" />;
+
   return (
     <div>
       <h2 className="text-2xl font-extrabold text-[oklch(0.22_0.045_252)] mb-6 flex items-center gap-3">
@@ -347,7 +348,6 @@ function getResultColor(match: MatchRow): string {
   const awayGoals = parseInt(parts[1]);
   if (isNaN(homeGoals) || isNaN(awayGoals)) return "";
 
-  // Determine Mladost's result
   if (match.isHome) {
     if (homeGoals > awayGoals) return "text-green-700";
     if (homeGoals < awayGoals) return "text-red-600";
@@ -386,6 +386,8 @@ function getResultBg(label: string): string {
 }
 
 function MatchesList({ data }: { data: MatchRow[] }) {
+  if (data.length === 0) return <DataEmpty label="Podaci o utakmicama" />;
+
   // Sort by round descending (most recent first)
   const sorted = [...data].sort((a, b) => b.round - a.round);
 

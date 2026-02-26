@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery, useMutation } from "convex/react";
+import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "@/convex/_generated/api.js";
 import type { Doc } from "@/convex/_generated/dataModel.d.ts";
 import { Button } from "@/components/ui/button.tsx";
@@ -27,65 +27,6 @@ import { toast } from "sonner";
 import { ConvexError } from "convex/values";
 
 /* ------------------------------------------------------------------ */
-/*  Static seed data (parsed from superliga.rs)                       */
-/*  Used for the "Sinhronizuj" button — populates DB in one click      */
-/* ------------------------------------------------------------------ */
-
-const SEED_STANDINGS = [
-  { position: 1, club: "Crvena zvezda", played: 24, won: 18, drawn: 3, lost: 3, goalsFor: 72, goalsAgainst: 19, goalDiff: 53, points: 57, isHighlighted: false },
-  { position: 2, club: "Partizan", played: 24, won: 17, drawn: 2, lost: 5, goalsFor: 55, goalsAgainst: 30, goalDiff: 25, points: 53, isHighlighted: false },
-  { position: 3, club: "Vojvodina", played: 24, won: 15, drawn: 4, lost: 5, goalsFor: 44, goalsAgainst: 24, goalDiff: 20, points: 49, isHighlighted: false },
-  { position: 4, club: "Novi Pazar", played: 24, won: 11, drawn: 6, lost: 7, goalsFor: 31, goalsAgainst: 31, goalDiff: 0, points: 39, isHighlighted: false },
-  { position: 5, club: "Železničar", played: 24, won: 11, drawn: 5, lost: 8, goalsFor: 29, goalsAgainst: 26, goalDiff: 3, points: 38, isHighlighted: false },
-  { position: 6, club: "Radnik", played: 24, won: 9, drawn: 5, lost: 10, goalsFor: 30, goalsAgainst: 29, goalDiff: 1, points: 32, isHighlighted: false },
-  { position: 7, club: "Radnički 1923", played: 24, won: 8, drawn: 8, lost: 8, goalsFor: 31, goalsAgainst: 33, goalDiff: -2, points: 32, isHighlighted: false },
-  { position: 8, club: "Čukarički", played: 24, won: 8, drawn: 7, lost: 9, goalsFor: 35, goalsAgainst: 38, goalDiff: -3, points: 31, isHighlighted: false },
-  { position: 9, club: "OFK Beograd", played: 24, won: 8, drawn: 6, lost: 10, goalsFor: 30, goalsAgainst: 32, goalDiff: -2, points: 30, isHighlighted: false },
-  { position: 10, club: "Radnički Niš", played: 24, won: 8, drawn: 5, lost: 11, goalsFor: 30, goalsAgainst: 31, goalDiff: -1, points: 29, isHighlighted: false },
-  { position: 11, club: "TSC", played: 24, won: 7, drawn: 8, lost: 9, goalsFor: 22, goalsAgainst: 27, goalDiff: -5, points: 29, isHighlighted: false },
-  { position: 12, club: "IMT", played: 24, won: 8, drawn: 4, lost: 12, goalsFor: 27, goalsAgainst: 43, goalDiff: -16, points: 28, isHighlighted: false },
-  { position: 13, club: "Mladost", played: 24, won: 6, drawn: 9, lost: 9, goalsFor: 18, goalsAgainst: 34, goalDiff: -16, points: 27, isHighlighted: true },
-  { position: 14, club: "Javor Matis", played: 24, won: 6, drawn: 8, lost: 10, goalsFor: 24, goalsAgainst: 34, goalDiff: -10, points: 26, isHighlighted: false },
-  { position: 15, club: "Spartak ŽK", played: 24, won: 3, drawn: 8, lost: 13, goalsFor: 27, goalsAgainst: 45, goalDiff: -18, points: 17, isHighlighted: false },
-  { position: 16, club: "Napredak", played: 24, won: 2, drawn: 6, lost: 16, goalsFor: 21, goalsAgainst: 50, goalDiff: -29, points: 12, isHighlighted: false },
-];
-
-const SEED_MATCHES: Array<{
-  round: number;
-  date: string;
-  home: string;
-  away: string;
-  score?: string;
-  city?: string;
-  isHome: boolean;
-}> = [
-  { round: 1, date: "20.07.2025", home: "Mladost", away: "IMT", score: "1:1", city: "Lučani", isHome: true },
-  { round: 2, date: "26.07.2025", home: "Radnički Niš", away: "Mladost", score: "3:1", city: "Niš", isHome: false },
-  { round: 3, date: "02.08.2025", home: "Mladost", away: "Radnik", score: "1:0", city: "Lučani", isHome: true },
-  { round: 4, date: "09.08.2025", home: "Spartak ŽK", away: "Mladost", score: "1:1", city: "Subotica", isHome: false },
-  { round: 5, date: "15.08.2025", home: "Mladost", away: "Crvena zvezda", score: "1:4", city: "Lučani", isHome: true },
-  { round: 6, date: "23.08.2025", home: "OFK Beograd", away: "Mladost", score: "1:1", city: "Stara Pazova", isHome: false },
-  { round: 7, date: "30.08.2025", home: "Mladost", away: "Vojvodina", score: "0:0", city: "Lučani", isHome: true },
-  { round: 8, date: "13.09.2025", home: "Mladost", away: "Napredak", score: "1:1", city: "Lučani", isHome: true },
-  { round: 9, date: "20.09.2025", home: "Partizan", away: "Mladost", score: "3:0", city: "Beograd", isHome: false },
-  { round: 10, date: "24.09.2025", home: "Novi Pazar", away: "Mladost", score: "0:0", city: "Novi Pazar", isHome: false },
-  { round: 11, date: "27.09.2025", home: "Mladost", away: "TSC", score: "1:0", city: "Lučani", isHome: true },
-  { round: 12, date: "04.10.2025", home: "Železničar", away: "Mladost", score: "2:0", city: "Pančevo", isHome: false },
-  { round: 13, date: "18.10.2025", home: "Mladost", away: "Radnički 1923", score: "0:0", city: "Lučani", isHome: true },
-  { round: 14, date: "25.10.2025", home: "Čukarički", away: "Mladost", score: "2:1", city: "Pančevo", isHome: false },
-  { round: 15, date: "01.11.2025", home: "Mladost", away: "Javor Matis", score: "0:2", city: "Lučani", isHome: true },
-  { round: 16, date: "08.11.2025", home: "IMT", away: "Mladost", score: "3:1", city: "Loznica", isHome: false },
-  { round: 17, date: "22.11.2025", home: "Mladost", away: "Radnički Niš", score: "0:0", city: "Lučani", isHome: true },
-  { round: 18, date: "29.11.2025", home: "Radnik", away: "Mladost", score: "2:0", city: "Surdulica", isHome: false },
-  { round: 19, date: "06.12.2025", home: "Mladost", away: "Spartak ŽK", score: "0:0", city: "Lučani", isHome: true },
-  { round: 20, date: "14.12.2025", home: "Mladost", away: "Spartak ŽK", score: "0:0", city: "Lučani", isHome: true },
-  { round: 21, date: "20.12.2025", home: "Crvena zvezda", away: "Mladost", score: "4:0", city: "Beograd", isHome: false },
-  { round: 22, date: "15.02.2026", home: "Mladost", away: "OFK Beograd", city: "Lučani", isHome: true },
-  { round: 23, date: "22.02.2026", home: "Vojvodina", away: "Mladost", city: "Novi Sad", isHome: false },
-  { round: 24, date: "01.03.2026", home: "Napredak", away: "Mladost", city: "Kruševac", isHome: false },
-];
-
-/* ------------------------------------------------------------------ */
 /*  Sub-tab selector                                                   */
 /* ------------------------------------------------------------------ */
 
@@ -93,25 +34,26 @@ type SubTab = "standings" | "matches";
 
 export default function AdminSuperLeague() {
   const [subTab, setSubTab] = useState<SubTab>("standings");
-  const seedMutation = useMutation(api.admin.superLeague.seedSuperLeague);
+  const scrapeStandings = useAction(api.sync.scrapeSuperLeague.scrapeSuperLeagueStandings);
+  const scrapeMatches = useAction(api.sync.scrapeSuperLeague.scrapeSuperLeagueMatches);
   const [syncing, setSyncing] = useState(false);
 
   const handleSync = async () => {
     setSyncing(true);
     try {
-      const result = await seedMutation({
-        standings: SEED_STANDINGS,
-        matches: SEED_MATCHES,
-      });
+      const [standingsResult, matchesResult] = await Promise.all([
+        scrapeStandings(),
+        scrapeMatches(),
+      ]);
       toast.success(
-        `Uspešno učitano: ${result.standings} klubova, ${result.matches} utakmica`,
+        `Uspešno sa superliga.rs: ${standingsResult.count} klubova, ${matchesResult.count} utakmica`,
       );
     } catch (error) {
       if (error instanceof ConvexError) {
         const { message } = error.data as { code: string; message: string };
         toast.error(message);
       } else {
-        toast.error("Greška pri sinhronizaciji");
+        toast.error("Greška pri sinhronizaciji sa superliga.rs");
       }
     } finally {
       setSyncing(false);
