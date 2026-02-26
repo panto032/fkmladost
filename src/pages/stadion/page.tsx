@@ -202,12 +202,16 @@ function StadionContent({ html }: { html: string }) {
         {sectionId === "history" && (
           <div className="pl-8 mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
             {STADIUM_IMAGES.interior ? (
-              <img src={STADIUM_IMAGES.interior} alt="Tribine stadiona" className="w-full rounded-xl border border-[oklch(0.28_0.04_252)]" />
+              <div className="aspect-video overflow-hidden rounded-xl border border-[oklch(0.28_0.04_252)]">
+                <img src={STADIUM_IMAGES.interior} alt="Tribine stadiona" className="w-full h-full object-cover" />
+              </div>
             ) : (
               <ImageSlot label="Fotografija tribina / reflektora" />
             )}
             {STADIUM_IMAGES.pitch ? (
-              <img src={STADIUM_IMAGES.pitch} alt="Teren stadiona" className="w-full rounded-xl border border-[oklch(0.28_0.04_252)]" />
+              <div className="aspect-video overflow-hidden rounded-xl border border-[oklch(0.28_0.04_252)]">
+                <img src={STADIUM_IMAGES.pitch} alt="Teren stadiona" className="w-full h-full object-cover" />
+              </div>
             ) : (
               <ImageSlot label="Fotografija terena / hibridne trave" />
             )}
