@@ -1,8 +1,11 @@
 import { useState } from "react";
-import { Authenticated, Unauthenticated, AuthLoading } from "convex/react";
+import { Authenticated, Unauthenticated, AuthLoading, useQuery, useAction } from "convex/react";
+import { api } from "@/convex/_generated/api.js";
+import { ConvexError } from "convex/values";
 import { Skeleton } from "@/components/ui/skeleton.tsx";
 import { SignInButton } from "@/components/ui/signin.tsx";
 import { useAuth } from "@/hooks/use-auth.ts";
+import { toast } from "sonner";
 import {
   Newspaper,
   Trophy,
@@ -21,10 +24,15 @@ import {
   Menu,
   X,
   Settings,
+  KeyRound,
+  AlertTriangle,
+  Clock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button.tsx";
+import { Input } from "@/components/ui/input.tsx";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils.ts";
+import { Spinner } from "@/components/ui/spinner.tsx";
 import AdminNews from "./_components/AdminNews.tsx";
 import AdminMatches from "./_components/AdminMatches.tsx";
 import AdminPartners from "./_components/AdminPartners.tsx";
@@ -112,6 +120,191 @@ const CONTENT_MAP: Record<string, React.ReactNode> = {
   settings: <AdminSettings />,
 };
 
+/* ═══════════════════════════════════════════
+   License gate — wraps AdminDashboard
+   ═══════════════════════════════════════════ */
+
+type LicenseWarning = {
+  type: string;
+  message: string;
+  daysRemaining?: number;
+  graceDaysRemaining?: number;
+};
+
+function LicenseGate() {
+  const license = useQuery(api.licenseStore.get);
+  const validateLicense = useAction(api.licenseAction.validateLicense);
+  const [key, setKey] = useState("");
+  const [checking, setChecking] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [warning, setWarning] = useState<LicenseWarning | null>(null);
+  const [validated, setValidated] = useState(false);
+
+  // License is loading from DB
+  if (license === undefined) {
+    return (
+      <AdminLoginShell>
+        <div className="space-y-4 w-full max-w-xs">
+          <Skeleton className="h-10 w-full rounded-lg" />
+          <Skeleton className="h-4 w-3/4 mx-auto rounded" />
+        </div>
+      </AdminLoginShell>
+    );
+  }
+
+  // If we already validated this session, or license exists in DB and hasn't been re-checked yet
+  const needsActivation = !license && !validated;
+  const hasStoredLicense = license !== null;
+
+  // Auto-validate stored license on first load
+  if (hasStoredLicense && !validated && !checking) {
+    setChecking(true);
+    validateLicense({ key: license.key })
+      .then((data) => {
+        if (data.valid) {
+          setValidated(true);
+          if (data.warning) {
+            setWarning(data.warning as LicenseWarning);
+          }
+        } else {
+          setError(data.message || "Licenca nije validna");
+          setValidated(false);
+        }
+      })
+      .catch(() => {
+        // If validation service is down, allow access with stored license
+        setValidated(true);
+      })
+      .finally(() => setChecking(false));
+  }
+
+  // Checking stored license
+  if (hasStoredLicense && checking) {
+    return (
+      <AdminLoginShell>
+        <div className="flex flex-col items-center gap-3">
+          <Spinner />
+          <p className="text-sm text-[oklch(0.55_0.03_252)]">Provera licence...</p>
+        </div>
+      </AdminLoginShell>
+    );
+  }
+
+  // Stored license is invalid
+  if (hasStoredLicense && !validated && error) {
+    // Fall through to activation form
+  }
+
+  // License valid — show dashboard with optional warning
+  if (validated) {
+    return (
+      <>
+        {warning && <LicenseWarningBanner warning={warning} />}
+        <AdminDashboard />
+      </>
+    );
+  }
+
+  // Activation form
+  const handleActivate = async () => {
+    if (!key.trim()) return;
+    setChecking(true);
+    setError(null);
+    try {
+      const data = await validateLicense({ key: key.trim() });
+      if (data.valid) {
+        setValidated(true);
+        if (data.warning) {
+          setWarning(data.warning as LicenseWarning);
+        }
+        toast.success("Licenca aktivirana");
+      } else {
+        const errorMessages: Record<string, string> = {
+          LICENSE_NOT_FOUND: "Licencni ključ ne postoji",
+          LICENSE_EXPIRED: "Licenca je istekla",
+          LICENSE_REVOKED: "Licenca je opozvana",
+          LICENSE_INACTIVE: "Licenca nije aktivna",
+          PRODUCT_INACTIVE: "Proizvod nije aktivan",
+        };
+        setError(errorMessages[data.error ?? ""] || data.message || "Licenca nije validna");
+      }
+    } catch (err) {
+      if (err instanceof ConvexError) {
+        const { message } = err.data as { message: string };
+        setError(message);
+      } else {
+        setError("Greška pri proveri licence");
+      }
+    } finally {
+      setChecking(false);
+    }
+  };
+
+  return (
+    <AdminLoginShell>
+      <div className="flex items-center gap-2">
+        <KeyRound size={20} className="text-[oklch(0.69_0.095_228)]" />
+        <h2 className="text-lg font-bold text-white uppercase tracking-wide">
+          Aktivacija licence
+        </h2>
+      </div>
+      <p className="text-[oklch(0.55_0.03_252)] text-sm max-w-sm text-center leading-relaxed">
+        Unesite licencni ključ da biste aktivirali admin panel.
+      </p>
+
+      <div className="w-full max-w-sm space-y-3">
+        <Input
+          type="text"
+          placeholder="XXXX-XXXX-XXXX-XXXX"
+          value={key}
+          onChange={(e) => { setKey(e.target.value); setError(null); }}
+          onKeyDown={(e) => { if (e.key === "Enter") handleActivate(); }}
+          className="text-center tracking-widest font-mono bg-[oklch(0.18_0.03_252)] border-[oklch(0.28_0.04_252)] text-white placeholder:text-[oklch(0.35_0.03_252)]"
+        />
+        {error && (
+          <p className="text-sm text-red-400 text-center">{error}</p>
+        )}
+        <Button
+          onClick={handleActivate}
+          disabled={!key.trim() || checking}
+          className="w-full gap-2"
+        >
+          {checking ? <Spinner /> : <KeyRound size={16} />}
+          {checking ? "Provera..." : "Aktiviraj"}
+        </Button>
+      </div>
+
+      <Link
+        to="/"
+        className="inline-flex items-center gap-1.5 text-sm text-[oklch(0.55_0.03_252)] hover:text-white transition-colors mt-2"
+      >
+        <ArrowLeft size={14} />
+        Nazad na početnu
+      </Link>
+    </AdminLoginShell>
+  );
+}
+
+/** Warning banner for expiring/grace period licenses */
+function LicenseWarningBanner({ warning }: { warning: LicenseWarning }) {
+  const isGrace = warning.type === "GRACE_PERIOD";
+  return (
+    <div className={cn(
+      "px-4 py-2.5 text-sm flex items-center justify-center gap-2 text-center",
+      isGrace
+        ? "bg-red-500/10 text-red-400 border-b border-red-500/20"
+        : "bg-amber-500/10 text-amber-400 border-b border-amber-500/20"
+    )}>
+      {isGrace ? <AlertTriangle size={16} /> : <Clock size={16} />}
+      <span>{warning.message}</span>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════
+   Admin Dashboard (unchanged layout)
+   ═══════════════════════════════════════════ */
+
 function AdminDashboard() {
   const { user, removeUser } = useAuth();
   const [activeSection, setActiveSection] = useState("news");
@@ -128,7 +321,6 @@ function AdminDashboard() {
         <div className="px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-14">
             <div className="flex items-center gap-3">
-              {/* Mobile menu toggle */}
               <button
                 className="lg:hidden text-[oklch(0.7_0.05_250)] hover:text-white p-1"
                 onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -204,8 +396,6 @@ function AdminDashboard() {
                 </div>
               ))}
             </div>
-
-
           </nav>
         </aside>
 
@@ -247,6 +437,10 @@ function AdminDashboard() {
   );
 }
 
+/* ═══════════════════════════════════════════
+   Main export — Auth → License → Dashboard
+   ═══════════════════════════════════════════ */
+
 export default function AdminPage() {
   return (
     <>
@@ -277,13 +471,13 @@ export default function AdminPage() {
         </AdminLoginShell>
       </Unauthenticated>
       <Authenticated>
-        <AdminDashboard />
+        <LicenseGate />
       </Authenticated>
     </>
   );
 }
 
-/** Shared login screen shell with branding */
+/** Shared login/activation screen shell with branding */
 function AdminLoginShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen flex flex-col bg-[oklch(0.14_0.03_252)] relative overflow-hidden">

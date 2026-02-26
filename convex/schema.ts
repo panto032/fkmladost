@@ -307,4 +307,15 @@ export default defineSchema({
     invitedBy: v.id("users"),
     accepted: v.boolean(),
   }).index("by_email", ["email"]),
+
+  /** Licenca za admin panel */
+  license: defineTable({
+    key: v.string(),
+    status: v.string(),
+    customerName: v.optional(v.string()),
+    customerEmail: v.optional(v.string()),
+    expiresAt: v.optional(v.string()),
+    productName: v.optional(v.string()),
+    lastChecked: v.string(),
+  }),
 });
