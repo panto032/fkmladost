@@ -155,48 +155,36 @@ function PlayerBioModal({
                 Statistika sezone
               </h4>
               <div className="grid grid-cols-3 gap-2">
-                {player.appearances !== undefined && (
-                  <StatItem
-                    icon={<Footprints size={18} />}
-                    label="Nastupi"
-                    value={player.appearances}
-                  />
-                )}
-                {player.minutes !== undefined && (
-                  <StatItem
-                    icon={<Clock size={18} />}
-                    label="Minuti"
-                    value={player.minutes}
-                  />
-                )}
-                {player.goals !== undefined && (
-                  <StatItem
-                    icon={<Target size={18} />}
-                    label="Golovi"
-                    value={player.goals}
-                  />
-                )}
-                {player.assists !== undefined && (
-                  <StatItem
-                    icon={<Trophy size={18} />}
-                    label="Asistencije"
-                    value={player.assists}
-                  />
-                )}
-                {player.goalsConceded !== undefined && (
-                  <StatItem
-                    icon={<Shield size={18} />}
-                    label="Primljeni"
-                    value={player.goalsConceded}
-                  />
-                )}
-                {player.yellowCards !== undefined && (
-                  <StatItem
-                    icon={<SquareSlash size={18} />}
-                    label="Žuti kartoni"
-                    value={player.yellowCards}
-                  />
-                )}
+                <StatItem
+                  icon={<Footprints size={18} />}
+                  label="Nastupi"
+                  value={player.appearances ?? 0}
+                />
+                <StatItem
+                  icon={<Clock size={18} />}
+                  label="Minuti"
+                  value={player.minutes ?? 0}
+                />
+                <StatItem
+                  icon={<Target size={18} />}
+                  label="Golovi"
+                  value={player.goals ?? 0}
+                />
+                <StatItem
+                  icon={<Trophy size={18} />}
+                  label="Asistencije"
+                  value={player.assists ?? 0}
+                />
+                <StatItem
+                  icon={<Shield size={18} />}
+                  label="Primljeni"
+                  value={player.goalsConceded ?? 0}
+                />
+                <StatItem
+                  icon={<SquareSlash size={18} />}
+                  label="Žuti kartoni"
+                  value={player.yellowCards ?? 0}
+                />
               </div>
             </div>
           )}
