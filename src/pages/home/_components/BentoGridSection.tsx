@@ -29,17 +29,17 @@ export default function BentoGridSection() {
   const smallNews = news.slice(1, 3);
 
   return (
-    <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
       {/* Grid — 12 columns on desktop */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-        {/* ── CELL: STANDINGS TABLE ─────────────────────── col 1-5, row 1-2 */}
-        <div className="lg:col-start-1 lg:col-end-6 lg:row-start-1 lg:row-end-3">
+        {/* ── CELL: STANDINGS TABLE ─────────────────────── col 1-4, row 1-2 */}
+        <div className="lg:col-start-1 lg:col-end-5 lg:row-start-1 lg:row-end-3">
           <StandingsTable standings={standings} />
         </div>
 
-        {/* ── CELL: FEATURED NEWS ───────────────────────── col 6-12, row 1 */}
+        {/* ── CELL: FEATURED NEWS ───────────────────────── col 5-12, row 1 */}
         {featuredNews ? (
-          <div className="lg:col-start-6 lg:col-end-13 lg:row-start-1 lg:row-end-2 rounded-2xl overflow-hidden border border-border shadow-lg relative group cursor-pointer min-h-[280px] lg:min-h-0">
+          <div className="lg:col-start-5 lg:col-end-13 lg:row-start-1 lg:row-end-2 rounded-2xl overflow-hidden border border-border shadow-lg relative group cursor-pointer min-h-[280px] lg:min-h-0">
             <img
               src={featuredNews.imageUrl}
               alt={featuredNews.title}
@@ -70,14 +70,14 @@ export default function BentoGridSection() {
             </div>
           </div>
         ) : (
-          <div className="lg:col-start-6 lg:col-end-13 lg:row-start-1 lg:row-end-2 rounded-2xl bg-card border border-border shadow-lg min-h-[280px] flex items-center justify-center">
+          <div className="lg:col-start-5 lg:col-end-13 lg:row-start-1 lg:row-end-2 rounded-2xl bg-card border border-border shadow-lg min-h-[280px] flex items-center justify-center">
             <p className="text-muted-foreground">Nema objavljenih vesti</p>
           </div>
         )}
 
-        {/* ── CELL: NEWS 2 ──────────────────────────────── col 6-9, row 2 */}
+        {/* ── CELL: NEWS 2 ──────────────────────────────── col 5-8, row 2 */}
         {smallNews.length > 0 ? (
-          <div className="lg:col-start-6 lg:col-end-10 lg:row-start-2 lg:row-end-3 rounded-2xl overflow-hidden border border-border shadow-lg group cursor-pointer bg-card flex flex-col">
+          <div className="lg:col-start-5 lg:col-end-9 lg:row-start-2 lg:row-end-3 rounded-2xl overflow-hidden border border-border shadow-lg group cursor-pointer bg-card flex flex-col">
             <div className="relative h-36 overflow-hidden flex-shrink-0">
               <img
                 src={smallNews[0].imageUrl}
@@ -100,14 +100,14 @@ export default function BentoGridSection() {
             </div>
           </div>
         ) : (
-          <div className="lg:col-start-6 lg:col-end-10 lg:row-start-2 lg:row-end-3 rounded-2xl bg-card border border-border shadow-lg flex items-center justify-center p-6">
+          <div className="lg:col-start-5 lg:col-end-9 lg:row-start-2 lg:row-end-3 rounded-2xl bg-card border border-border shadow-lg flex items-center justify-center p-6">
             <p className="text-muted-foreground text-sm">Još vesti uskoro</p>
           </div>
         )}
 
-        {/* ── CELL: NEWS 3 / "Sve Vesti" CTA ────────────── col 10-12, row 2 */}
+        {/* ── CELL: NEWS 3 / "Sve Vesti" CTA ────────────── col 9-12, row 2 */}
         {smallNews.length > 1 ? (
-          <div className="lg:col-start-10 lg:col-end-13 lg:row-start-2 lg:row-end-3 rounded-2xl overflow-hidden border border-border shadow-lg group cursor-pointer bg-card flex flex-col">
+          <div className="lg:col-start-9 lg:col-end-13 lg:row-start-2 lg:row-end-3 rounded-2xl overflow-hidden border border-border shadow-lg group cursor-pointer bg-card flex flex-col">
             <div className="relative h-36 overflow-hidden flex-shrink-0">
               <img
                 src={smallNews[1].imageUrl}
@@ -130,7 +130,7 @@ export default function BentoGridSection() {
             </div>
           </div>
         ) : (
-          <div className="lg:col-start-10 lg:col-end-13 lg:row-start-2 lg:row-end-3 rounded-2xl bg-gradient-to-br from-[oklch(0.50_0.12_240)] to-[oklch(0.40_0.10_245)] border border-[oklch(0.55_0.10_238)] shadow-lg flex flex-col items-center justify-center p-6 text-white text-center cursor-pointer group">
+          <div className="lg:col-start-9 lg:col-end-13 lg:row-start-2 lg:row-end-3 rounded-2xl bg-gradient-to-br from-[oklch(0.50_0.12_240)] to-[oklch(0.40_0.10_245)] border border-[oklch(0.55_0.10_238)] shadow-lg flex flex-col items-center justify-center p-6 text-white text-center cursor-pointer group">
             <Newspaper
               size={28}
               className="text-white/60 mb-2 group-hover:scale-110 transition-transform"
@@ -211,12 +211,12 @@ export default function BentoGridSection() {
 
 function BentoSkeleton() {
   return (
-    <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-        <Skeleton className="lg:col-start-1 lg:col-end-6 lg:row-start-1 lg:row-end-3 h-[420px] rounded-2xl" />
-        <Skeleton className="lg:col-start-6 lg:col-end-13 lg:row-start-1 lg:row-end-2 h-[280px] rounded-2xl" />
-        <Skeleton className="lg:col-start-6 lg:col-end-10 lg:row-start-2 lg:row-end-3 h-[200px] rounded-2xl" />
-        <Skeleton className="lg:col-start-10 lg:col-end-13 lg:row-start-2 lg:row-end-3 h-[200px] rounded-2xl" />
+        <Skeleton className="lg:col-start-1 lg:col-end-5 lg:row-start-1 lg:row-end-3 h-[420px] rounded-2xl" />
+        <Skeleton className="lg:col-start-5 lg:col-end-13 lg:row-start-1 lg:row-end-2 h-[280px] rounded-2xl" />
+        <Skeleton className="lg:col-start-5 lg:col-end-9 lg:row-start-2 lg:row-end-3 h-[200px] rounded-2xl" />
+        <Skeleton className="lg:col-start-9 lg:col-end-13 lg:row-start-2 lg:row-end-3 h-[200px] rounded-2xl" />
         <Skeleton className="lg:col-span-12 h-[120px] rounded-2xl" />
       </div>
     </section>
