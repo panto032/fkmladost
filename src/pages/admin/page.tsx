@@ -20,6 +20,7 @@ import {
   ChevronRight,
   Menu,
   X,
+  Settings,
 } from "lucide-react";
 import { Button } from "@/components/ui/button.tsx";
 import { Link } from "react-router-dom";
@@ -35,6 +36,7 @@ import AdminCadetLeague from "./_components/AdminCadetLeague.tsx";
 import AdminPioneerLeague from "./_components/AdminPioneerLeague.tsx";
 import AdminSuperLeague from "./_components/AdminSuperLeague.tsx";
 import AdminContactMessages from "./_components/AdminContactMessages.tsx";
+import AdminSettings from "./_components/AdminSettings.tsx";
 
 type NavItem = {
   id: string;
@@ -83,6 +85,16 @@ const NAV_GROUPS: NavGroup[] = [
       },
     ],
   },
+  {
+    title: "Podešavanja",
+    items: [
+      {
+        id: "settings",
+        label: "Tim",
+        icon: <Settings size={18} />,
+      },
+    ],
+  },
 ];
 
 const CONTENT_MAP: Record<string, React.ReactNode> = {
@@ -97,6 +109,7 @@ const CONTENT_MAP: Record<string, React.ReactNode> = {
   pioneer: <AdminPioneerLeague />,
   superleague: <AdminSuperLeague />,
   messages: <AdminContactMessages />,
+  settings: <AdminSettings />,
 };
 
 function AdminDashboard() {

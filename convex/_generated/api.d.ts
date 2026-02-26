@@ -36,6 +36,7 @@ import type * as sync_scrapeCadetLeague from "../sync/scrapeCadetLeague.js";
 import type * as sync_scrapeFromWeb from "../sync/scrapeFromWeb.js";
 import type * as sync_scrapeSuperLeague from "../sync/scrapeSuperLeague.js";
 import type * as sync_scrapeYouthLeague from "../sync/scrapeYouthLeague.js";
+import type * as team from "../team.js";
 import type * as users from "../users.js";
 
 import type {
@@ -73,6 +74,7 @@ declare const fullApi: ApiFromModules<{
   "sync/scrapeFromWeb": typeof sync_scrapeFromWeb;
   "sync/scrapeSuperLeague": typeof sync_scrapeSuperLeague;
   "sync/scrapeYouthLeague": typeof sync_scrapeYouthLeague;
+  team: typeof team;
   users: typeof users;
 }>;
 
