@@ -260,54 +260,79 @@ export default function BentoGridSection() {
 
         {/* ── CELL: EXPLORE CLUB PAGES ─────────────────── full width */}
         <div className="lg:col-span-12 grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {/* Istorija Kluba */}
           <Link
             to="/istorija-kluba"
-            className="group relative rounded-2xl overflow-hidden border border-[oklch(0.30_0.045_252)] bg-gradient-to-br from-[oklch(0.20_0.04_252)] to-[oklch(0.16_0.035_252)] p-6 flex flex-col justify-between min-h-[140px] shadow-lg hover:border-[oklch(0.69_0.095_228)]/50 transition-all duration-300"
+            className="group relative rounded-2xl overflow-hidden min-h-[260px] shadow-xl cursor-pointer"
           >
-            <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-[oklch(0.69_0.095_228)]/5 blur-2xl -translate-y-1/2 translate-x-1/4 group-hover:scale-150 transition-transform duration-500" />
-            <div>
-              <div className="w-10 h-10 rounded-xl bg-[oklch(0.69_0.095_228)]/10 border border-[oklch(0.69_0.095_228)]/20 flex items-center justify-center mb-3 group-hover:bg-[oklch(0.69_0.095_228)]/20 transition-colors">
-                <Landmark size={20} className="text-[oklch(0.69_0.095_228)]" />
+            {/* Background image */}
+            <img
+              src="https://images.unsplash.com/photo-1580831800257-f83135932664?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NzIwMTN8MHwxfHNlYXJjaHwxfHxmb290YmFsbCUyMGNsdWIlMjBoaXN0b3J5JTIwdmludGFnZSUyMHNvY2NlciUyMHRyb3BoeXxlbnwwfHx8fDE3NzIxMzIxOTB8MA&ixlib=rb-4.1.0&q=80&w=1080"
+              alt="Istorija Kluba"
+              className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+            />
+            {/* Dark gradient overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/20 group-hover:from-black/95 group-hover:via-black/60 transition-all duration-500" />
+            {/* Accent glow on hover */}
+            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-t from-[oklch(0.69_0.095_228)]/20 to-transparent" />
+            {/* Content */}
+            <div className="relative h-full flex flex-col justify-end p-6">
+              <div className="w-11 h-11 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center mb-4 group-hover:bg-[oklch(0.69_0.095_228)]/30 group-hover:border-[oklch(0.69_0.095_228)]/40 transition-all duration-300">
+                <Landmark size={22} className="text-white" />
               </div>
-              <h4 className="text-white font-extrabold text-lg tracking-tight">Istorija Kluba</h4>
-              <p className="text-[oklch(0.50_0.03_252)] text-xs mt-1">Od 1952. godine do danas</p>
-            </div>
-            <div className="flex items-center text-[oklch(0.69_0.095_228)] text-xs font-semibold mt-3 group-hover:translate-x-1 transition-transform">
-              Saznaj više <ArrowRight size={14} className="ml-1" />
+              <h4 className="text-white font-extrabold text-xl tracking-tight leading-tight">Istorija Kluba</h4>
+              <p className="text-white/60 text-sm mt-1.5 leading-relaxed">Od 1952. godine do danas</p>
+              <div className="flex items-center text-[oklch(0.69_0.095_228)] text-sm font-semibold mt-4 group-hover:translate-x-1.5 transition-transform duration-300">
+                Saznaj više <ArrowRight size={16} className="ml-1.5 group-hover:ml-2.5 transition-all duration-300" />
+              </div>
             </div>
           </Link>
 
+          {/* Omladinska Škola */}
           <Link
             to="/omladinska-skola"
-            className="group relative rounded-2xl overflow-hidden border border-[oklch(0.30_0.045_252)] bg-gradient-to-br from-[oklch(0.20_0.04_252)] to-[oklch(0.16_0.035_252)] p-6 flex flex-col justify-between min-h-[140px] shadow-lg hover:border-[oklch(0.69_0.095_228)]/50 transition-all duration-300"
+            className="group relative rounded-2xl overflow-hidden min-h-[260px] shadow-xl cursor-pointer"
           >
-            <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-[oklch(0.77_0.10_225)]/5 blur-2xl -translate-y-1/2 translate-x-1/4 group-hover:scale-150 transition-transform duration-500" />
-            <div>
-              <div className="w-10 h-10 rounded-xl bg-[oklch(0.77_0.10_225)]/10 border border-[oklch(0.77_0.10_225)]/20 flex items-center justify-center mb-3 group-hover:bg-[oklch(0.77_0.10_225)]/20 transition-colors">
-                <GraduationCap size={20} className="text-[oklch(0.77_0.10_225)]" />
+            <img
+              src="https://images.unsplash.com/photo-1765372674571-afef5d3771b2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NzIwMTN8MHwxfHNlYXJjaHwxfHx5b3V0aCUyMHNvY2NlciUyMGFjYWRlbXklMjB0cmFpbmluZyUyMGtpZHMlMjBmb290YmFsbHxlbnwwfHx8fDE3NzIxMzIxOTF8MA&ixlib=rb-4.1.0&q=80&w=1080"
+              alt="Omladinska Škola"
+              className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/20 group-hover:from-black/95 group-hover:via-black/60 transition-all duration-500" />
+            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-t from-[oklch(0.77_0.10_225)]/20 to-transparent" />
+            <div className="relative h-full flex flex-col justify-end p-6">
+              <div className="w-11 h-11 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center mb-4 group-hover:bg-[oklch(0.77_0.10_225)]/30 group-hover:border-[oklch(0.77_0.10_225)]/40 transition-all duration-300">
+                <GraduationCap size={22} className="text-white" />
               </div>
-              <h4 className="text-white font-extrabold text-lg tracking-tight">Omladinska Škola</h4>
-              <p className="text-[oklch(0.50_0.03_252)] text-xs mt-1">Rasadnik talenata od 1962.</p>
-            </div>
-            <div className="flex items-center text-[oklch(0.77_0.10_225)] text-xs font-semibold mt-3 group-hover:translate-x-1 transition-transform">
-              Saznaj više <ArrowRight size={14} className="ml-1" />
+              <h4 className="text-white font-extrabold text-xl tracking-tight leading-tight">Omladinska Škola</h4>
+              <p className="text-white/60 text-sm mt-1.5 leading-relaxed">Rasadnik talenata od 1962.</p>
+              <div className="flex items-center text-[oklch(0.77_0.10_225)] text-sm font-semibold mt-4 group-hover:translate-x-1.5 transition-transform duration-300">
+                Saznaj više <ArrowRight size={16} className="ml-1.5 group-hover:ml-2.5 transition-all duration-300" />
+              </div>
             </div>
           </Link>
 
+          {/* Stadion */}
           <Link
             to="/stadion"
-            className="group relative rounded-2xl overflow-hidden border border-[oklch(0.30_0.045_252)] bg-gradient-to-br from-[oklch(0.20_0.04_252)] to-[oklch(0.16_0.035_252)] p-6 flex flex-col justify-between min-h-[140px] shadow-lg hover:border-[oklch(0.69_0.095_228)]/50 transition-all duration-300"
+            className="group relative rounded-2xl overflow-hidden min-h-[260px] shadow-xl cursor-pointer"
           >
-            <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-[oklch(0.55_0.12_240)]/5 blur-2xl -translate-y-1/2 translate-x-1/4 group-hover:scale-150 transition-transform duration-500" />
-            <div>
-              <div className="w-10 h-10 rounded-xl bg-[oklch(0.55_0.12_240)]/10 border border-[oklch(0.55_0.12_240)]/20 flex items-center justify-center mb-3 group-hover:bg-[oklch(0.55_0.12_240)]/20 transition-colors">
-                <MapPin size={20} className="text-[oklch(0.55_0.12_240)]" />
+            <img
+              src="https://images.unsplash.com/photo-1716745559715-282bb61e3012?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NzIwMTN8MHwxfHNlYXJjaHwxfHxmb290YmFsbCUyMHN0YWRpdW0lMjBmaWVsZCUyMGFlcmlhbCUyMHZpZXclMjBncmVlbiUyMGdyYXNzfGVufDB8fHx8MTc3MjEzMjE5MXww&ixlib=rb-4.1.0&q=80&w=1080"
+              alt="Stadion"
+              className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/20 group-hover:from-black/95 group-hover:via-black/60 transition-all duration-500" />
+            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-t from-[oklch(0.55_0.12_240)]/20 to-transparent" />
+            <div className="relative h-full flex flex-col justify-end p-6">
+              <div className="w-11 h-11 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center mb-4 group-hover:bg-[oklch(0.55_0.12_240)]/30 group-hover:border-[oklch(0.55_0.12_240)]/40 transition-all duration-300">
+                <MapPin size={22} className="text-white" />
               </div>
-              <h4 className="text-white font-extrabold text-lg tracking-tight">Stadion</h4>
-              <p className="text-[oklch(0.50_0.03_252)] text-xs mt-1">SRC "mr Radoš Milovanović"</p>
-            </div>
-            <div className="flex items-center text-[oklch(0.55_0.12_240)] text-xs font-semibold mt-3 group-hover:translate-x-1 transition-transform">
-              Saznaj više <ArrowRight size={14} className="ml-1" />
+              <h4 className="text-white font-extrabold text-xl tracking-tight leading-tight">Stadion</h4>
+              <p className="text-white/60 text-sm mt-1.5 leading-relaxed">SRC "mr Radoš Milovanović"</p>
+              <div className="flex items-center text-[oklch(0.55_0.12_240)] text-sm font-semibold mt-4 group-hover:translate-x-1.5 transition-transform duration-300">
+                Saznaj više <ArrowRight size={16} className="ml-1.5 group-hover:ml-2.5 transition-all duration-300" />
+              </div>
             </div>
           </Link>
         </div>
