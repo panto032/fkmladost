@@ -323,7 +323,7 @@ function PreviousMatches({ analytics }: { analytics: AnalyticsData }) {
 
       <div className="divide-y divide-[oklch(0.93_0.01_228)]">
         {previousMatches.map((match, i) => {
-          const parts = match.score.split(/[:\-]/);
+          const parts = match.score.split(/[:-]/);
           const homeGoals = parseInt(parts[0]?.trim() ?? "", 10);
           const awayGoals = parseInt(parts[1]?.trim() ?? "", 10);
           const isMladostHome = match.homeTeam

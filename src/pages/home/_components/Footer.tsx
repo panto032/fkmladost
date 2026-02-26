@@ -59,14 +59,14 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-white transition-colors">
-                  Uprava
-                </a>
+                <Link to="/najava-kola" className="hover:text-white transition-colors">
+                  Najava kola
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-white transition-colors">
-                  Sponzori i Partneri
-                </a>
+                <Link to="/analitika-rivala" className="hover:text-white transition-colors">
+                  Analitika rivala
+                </Link>
               </li>
             </ul>
           </div>
@@ -91,11 +91,6 @@ export default function Footer() {
                 <Link to="/omladinska-skola" className="hover:text-white transition-colors">
                   Omladinska Škola
                 </Link>
-              </li>
-              <li>
-                <a href="#" className="hover:text-white transition-colors">
-                  Tabela i Rezultati
-                </a>
               </li>
             </ul>
           </div>
