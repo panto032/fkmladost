@@ -108,17 +108,9 @@ export default function SuperLigaPage() {
       }))
     : STANDINGS.map((s) => ({ ...s, _highlighted: s.club === "Mladost" }));
 
-  const matches: MatchRow[] = (dbMatches && dbMatches.length > 0)
-    ? dbMatches.map((m) => ({
-        round: m.round,
-        date: m.date,
-        home: m.home,
-        away: m.away,
-        score: m.score,
-        city: m.city,
-        isHome: m.isHome,
-      }))
-    : MATCHES;
+  // Use static data directly — DB had stale/incorrect match data
+  // Once correct data is entered via admin, switch back to DB
+  const matches: MatchRow[] = MATCHES;
 
   // Mladost stats for the hero
   const mladostRow = standings.find((r) => r._highlighted) ?? standings.find((r) => r.club.includes("Mladost"));
