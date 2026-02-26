@@ -20,6 +20,7 @@ import type * as players from "../players.js";
 import type * as standings from "../standings.js";
 import type * as sync_fetchFromApi from "../sync/fetchFromApi.js";
 import type * as sync_saveData from "../sync/saveData.js";
+import type * as sync_scrapeFromWeb from "../sync/scrapeFromWeb.js";
 import type * as users from "../users.js";
 
 import type {
@@ -41,6 +42,7 @@ declare const fullApi: ApiFromModules<{
   standings: typeof standings;
   "sync/fetchFromApi": typeof sync_fetchFromApi;
   "sync/saveData": typeof sync_saveData;
+  "sync/scrapeFromWeb": typeof sync_scrapeFromWeb;
   users: typeof users;
 }>;
 

@@ -45,7 +45,7 @@ export default function AdminStandings() {
   const createStanding = useMutation(api.admin.standings.create);
   const updateStanding = useMutation(api.admin.standings.update);
   const removeStanding = useMutation(api.admin.standings.remove);
-  const syncAll = useAction(api.sync.fetchFromApi.syncAll);
+  const scrapeStandings = useAction(api.sync.scrapeFromWeb.scrapeStandings);
 
   const [isOpen, setIsOpen] = useState(false);
   const [editing, setEditing] = useState<StandingItem | null>(null);
@@ -119,16 +119,16 @@ export default function AdminStandings() {
   const handleSync = async () => {
     setSyncing(true);
     try {
-      const result = await syncAll();
+      const result = await scrapeStandings();
       toast.success(
-        `Sinhronizacija uspešna! Učitano ${result.standings} timova i ${result.matches} utakmica iz API-Football`,
+        `Sinhronizacija uspešna! Učitano ${result.standings} timova sa superliga.rs`,
       );
     } catch (error) {
       if (error instanceof ConvexError) {
         const { message } = error.data as { code: string; message: string };
         toast.error(`Greška pri sinhronizaciji: ${message}`);
       } else {
-        toast.error("Greška pri sinhronizaciji sa API-Football");
+        toast.error("Greška pri sinhronizaciji sa superliga.rs");
       }
     } finally {
       setSyncing(false);
@@ -150,9 +150,9 @@ export default function AdminStandings() {
       {/* ── Sync banner ── */}
       <div className="bg-[oklch(0.22_0.06_250)] text-white rounded-xl p-4 mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
-          <h4 className="font-bold text-sm">API-Football Sinhronizacija</h4>
+          <h4 className="font-bold text-sm">SuperLiga.rs Sinhronizacija</h4>
           <p className="text-[oklch(0.65_0.04_250)] text-xs mt-0.5">
-            Povuci najnovije podatke za tabelu i mečeve direktno iz API-Football
+            Povuci najnovije podatke za tabelu direktno sa zvaničnog sajta superliga.rs
           </p>
         </div>
         <Button
