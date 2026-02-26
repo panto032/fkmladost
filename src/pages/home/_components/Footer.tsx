@@ -54,8 +54,8 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link to="/vesti" className="hover:text-white transition-colors">
-                  Vesti
+                <Link to="/strucni-stab" className="hover:text-white transition-colors">
+                  Stručni štab
                 </Link>
               </li>
               <li>
