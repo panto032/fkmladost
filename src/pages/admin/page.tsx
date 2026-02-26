@@ -45,6 +45,7 @@ import AdminPioneerLeague from "./_components/AdminPioneerLeague.tsx";
 import AdminSuperLeague from "./_components/AdminSuperLeague.tsx";
 import AdminContactMessages from "./_components/AdminContactMessages.tsx";
 import AdminSettings from "./_components/AdminSettings.tsx";
+import AdminLicense from "./_components/AdminLicense.tsx";
 
 type NavItem = {
   id: string;
@@ -101,6 +102,11 @@ const NAV_GROUPS: NavGroup[] = [
         label: "Tim",
         icon: <Settings size={18} />,
       },
+      {
+        id: "license",
+        label: "Licenca",
+        icon: <KeyRound size={18} />,
+      },
     ],
   },
 ];
@@ -118,6 +124,7 @@ const CONTENT_MAP: Record<string, React.ReactNode> = {
   superleague: <AdminSuperLeague />,
   messages: <AdminContactMessages />,
   settings: <AdminSettings />,
+  license: <AdminLicense />,
 };
 
 /* ═══════════════════════════════════════════
