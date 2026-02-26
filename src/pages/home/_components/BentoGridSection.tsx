@@ -29,40 +29,34 @@ function SmallNewsCard({
   return (
     <Link
       to={`/vesti/${article._id}`}
-      className={`rounded-2xl overflow-hidden border border-border shadow-lg group cursor-pointer bg-card flex flex-row h-[130px] ${className}`}
+      className={`rounded-2xl overflow-hidden border border-border shadow-lg group cursor-pointer bg-card flex flex-col ${className}`}
     >
-      {/* Thumbnail - left side */}
-      <div className="relative w-[130px] min-w-[130px] overflow-hidden flex-shrink-0">
-        {article.resolvedImageUrl ? (
+      <div className="relative h-36 overflow-hidden flex-shrink-0">
+        {article.resolvedImageUrl && (
           <img
             src={article.resolvedImageUrl}
             alt={article.title}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
-        ) : (
-          <div className="w-full h-full bg-muted flex items-center justify-center">
-            <Newspaper size={20} className="text-muted-foreground" />
-          </div>
         )}
-        <div className="absolute top-2 left-2">
-          <span className="bg-accent text-accent-foreground text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase">
+        <div className="absolute top-3 left-3">
+          <span className="bg-accent text-accent-foreground text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">
             {article.category}
           </span>
         </div>
       </div>
-      {/* Text content - right side */}
-      <div className="p-3 flex-1 flex flex-col justify-between min-w-0">
+      <div className="p-4 flex-1 flex flex-col justify-between">
         <div>
           <h4 className="text-sm font-bold text-card-foreground leading-snug group-hover:text-accent transition-colors line-clamp-2">
             {article.title}
           </h4>
           {article.excerpt && (
-            <p className="text-muted-foreground text-xs mt-1 line-clamp-2 leading-relaxed">
+            <p className="text-muted-foreground text-xs mt-1.5 line-clamp-3 leading-relaxed">
               {article.excerpt}
             </p>
           )}
         </div>
-        <p className="text-muted-foreground text-[11px] mt-1.5 flex items-center">
+        <p className="text-muted-foreground text-[11px] mt-2 flex items-center">
           <Calendar size={10} className="mr-1" /> {article.date}
         </p>
       </div>
