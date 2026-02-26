@@ -281,3 +281,107 @@ export const scrapeMatches = action({
     return { matches: matches.length };
   },
 });
+
+/**
+ * Position name mapping from superliga.rs section headers
+ * to our internal position values.
+ */
+const POSITION_MAP: Record<string, string> = {
+  golmani: "Golman",
+  odbrana: "Odbrana",
+  defanzivci: "Odbrana",
+  "vezni igrači": "Vezni red",
+  vezni: "Vezni red",
+  "napadači": "Napad",
+  napad: "Napad",
+};
+
+const NO_PLAYER_IMG_MARKER = "no-player-img";
+
+/**
+ * Scrapes first-team player data for FK Mladost from superliga.rs.
+ * Extracts name, jersey number, position and photo for each player.
+ * Uses upsert logic: updates existing players by name, inserts new ones.
+ */
+export const scrapePlayers = action({
+  args: {},
+  handler: async (ctx): Promise<{ players: number }> => {
+    const res = await fetch(TEAM_PAGE_URL, {
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (compatible; FKMladostBot/1.0; +https://fkmladost.rs)",
+        Accept: "text/html",
+      },
+    });
+
+    if (!res.ok) {
+      throw new ConvexError({
+        code: "EXTERNAL_SERVICE_ERROR",
+        message: `Greška pri učitavanju stranice tima: ${res.status}`,
+      });
+    }
+
+    const html = await res.text();
+    const $ = cheerio.load(html);
+
+    const players: Array<{
+      name: string;
+      number: number;
+      position: string;
+      imageUrl: string;
+    }> = [];
+
+    // Each position group has a .team-stat-title with <h3> followed by
+    // a sibling .row containing an .owl-carousel with player cards.
+    $(".team-stat-title").each((_, el) => {
+      const h3 = $(el).find("h3.title");
+      if (h3.length === 0) return;
+
+      const headerText = h3.text().trim().toLowerCase();
+      const position = POSITION_MAP[headerText];
+      if (!position) return; // skip non-position headers
+
+      // Carousel is in the next .row sibling
+      const titleRow = $(el).closest(".row");
+      const carouselRow = titleRow.next();
+      const carousel = carouselRow.find(".owl-carousel");
+      if (carousel.length === 0) return;
+
+      carousel.find("a[href*='/sezona/igrac/']").each((_, link) => {
+        // Jersey number
+        const numberText = $(link)
+          .find(".blog-name-left span")
+          .text()
+          .trim();
+        const number = parseInt(numberText, 10) || 0;
+
+        // Name from <img alt="...">
+        const img = $(link).find("img.img-fluid");
+        const name = (img.attr("alt") ?? "").trim();
+        let imageUrl = (img.attr("src") ?? "").trim();
+
+        // Make URL absolute if relative
+        if (imageUrl && !imageUrl.startsWith("http")) {
+          imageUrl = `https://www.superliga.rs${imageUrl}`;
+        }
+
+        if (name) {
+          players.push({ name, number, position, imageUrl });
+        }
+      });
+    });
+
+    if (players.length === 0) {
+      throw new ConvexError({
+        code: "NOT_FOUND",
+        message:
+          "Nisu pronađeni podaci o igračima na superliga.rs",
+      });
+    }
+
+    // Upsert into database
+    await ctx.runMutation(internal.sync.saveData.savePlayers, { players });
+
+    return { players: players.length };
+  },
+});

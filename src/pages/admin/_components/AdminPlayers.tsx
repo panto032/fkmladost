@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery, useMutation } from "convex/react";
+import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "@/convex/_generated/api.js";
 import type { Doc } from "@/convex/_generated/dataModel.d.ts";
 import { Button } from "@/components/ui/button.tsx";
@@ -29,7 +29,7 @@ import {
 } from "@/components/ui/select.tsx";
 import { Skeleton } from "@/components/ui/skeleton.tsx";
 import { Switch } from "@/components/ui/switch.tsx";
-import { Pencil, Trash2, Plus } from "lucide-react";
+import { Pencil, Trash2, Plus, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { ConvexError } from "convex/values";
 
@@ -53,11 +53,32 @@ export default function AdminPlayers() {
   const createPlayer = useMutation(api.admin.players.create);
   const updatePlayer = useMutation(api.admin.players.update);
   const removePlayer = useMutation(api.admin.players.remove);
+  const scrapePlayers = useAction(api.sync.scrapeFromWeb.scrapePlayers);
 
   const [isOpen, setIsOpen] = useState(false);
   const [editing, setEditing] = useState<PlayerItem | null>(null);
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+
+  const handleSync = async () => {
+    setSyncing(true);
+    try {
+      const result = await scrapePlayers();
+      toast.success(
+        `Sinhronizacija završena: ${result.players} igrača učitano sa superliga.rs`,
+      );
+    } catch (error) {
+      if (error instanceof ConvexError) {
+        const { message } = error.data as { code: string; message: string };
+        toast.error(message);
+      } else {
+        toast.error("Greška pri sinhronizaciji igrača");
+      }
+    } finally {
+      setSyncing(false);
+    }
+  };
 
   const openCreate = () => {
     setEditing(null);
@@ -133,6 +154,22 @@ export default function AdminPlayers() {
 
   return (
     <div>
+      {/* Sync banner */}
+      <div className="flex items-center justify-between rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 mb-6 dark:border-blue-900 dark:bg-blue-950/40">
+        <div className="text-sm text-blue-800 dark:text-blue-200">
+          Sinhronizuj igrače sa <span className="font-semibold">superliga.rs</span> — ažurira broj dresa, poziciju i sliku.
+        </div>
+        <Button
+          size="sm"
+          variant="secondary"
+          onClick={handleSync}
+          disabled={syncing}
+        >
+          <RefreshCw size={14} className={syncing ? "animate-spin" : ""} />
+          {syncing ? "Učitavanje..." : "Sinhronizuj"}
+        </Button>
+      </div>
+
       <div className="flex justify-between items-center mb-6">
         <h3 className="text-lg font-bold">Igrači ({players.length})</h3>
         <Button onClick={openCreate} size="sm">

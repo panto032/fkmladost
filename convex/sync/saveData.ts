@@ -65,3 +65,60 @@ export const saveMatches = internalMutation({
     }
   },
 });
+
+const NO_PLAYER_IMG = "no-player-img";
+
+/**
+ * Upsert players scraped from superliga.rs:
+ * – If a player with the same name exists, update number/position/imageUrl
+ * – If not, insert a new player record
+ * – Never deletes existing players (manual additions are preserved)
+ */
+export const savePlayers = internalMutation({
+  args: {
+    players: v.array(
+      v.object({
+        name: v.string(),
+        number: v.number(),
+        position: v.string(),
+        imageUrl: v.string(),
+      }),
+    ),
+  },
+  handler: async (ctx, args) => {
+    const existing = await ctx.db.query("players").collect();
+    const existingByName = new Map(
+      existing.map((p) => [p.name.toLowerCase(), p]),
+    );
+
+    let nextSortOrder = existing.length;
+
+    for (const scraped of args.players) {
+      const match = existingByName.get(scraped.name.toLowerCase());
+
+      if (match) {
+        // Update existing player – only overwrite imageUrl if real photo
+        const hasRealImage =
+          scraped.imageUrl && !scraped.imageUrl.includes(NO_PLAYER_IMG);
+        await ctx.db.patch(match._id, {
+          number: scraped.number,
+          position: scraped.position,
+          ...(hasRealImage ? { imageUrl: scraped.imageUrl } : {}),
+        });
+      } else {
+        // Insert new player
+        nextSortOrder++;
+        const hasRealImage =
+          scraped.imageUrl && !scraped.imageUrl.includes(NO_PLAYER_IMG);
+        await ctx.db.insert("players", {
+          name: scraped.name,
+          number: scraped.number,
+          position: scraped.position,
+          imageUrl: hasRealImage ? scraped.imageUrl : "",
+          sortOrder: nextSortOrder,
+          isActive: true,
+        });
+      }
+    }
+  },
+});
