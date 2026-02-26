@@ -29,7 +29,7 @@ export default function BentoGridSection() {
   const smallNews = news.slice(1, 3);
 
   return (
-    <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-14">
+    <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
       {/* Grid — 12 columns on desktop */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         {/* ── CELL: STANDINGS TABLE ─────────────────────── col 1-5, row 1-2 */}
@@ -211,7 +211,7 @@ export default function BentoGridSection() {
 
 function BentoSkeleton() {
   return (
-    <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-14">
+    <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         <Skeleton className="lg:col-start-1 lg:col-end-6 lg:row-start-1 lg:row-end-3 h-[420px] rounded-2xl" />
         <Skeleton className="lg:col-start-6 lg:col-end-13 lg:row-start-1 lg:row-end-2 h-[280px] rounded-2xl" />

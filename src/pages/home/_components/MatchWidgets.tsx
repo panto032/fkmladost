@@ -127,11 +127,11 @@ export default function MatchWidgets() {
                   {lastMatch.home}
                 </span>
               </div>
-              <div className="w-4/12 text-center px-1">
-                <div className="bg-[oklch(0.40_0.10_244)]/60 backdrop-blur-md rounded-2xl py-3 px-4 sm:px-6 inline-block shadow-inner border border-white/15 transform group-hover:scale-105 transition-transform duration-500">
-                  <span className="text-3xl sm:text-5xl font-black tracking-widest text-white">
-                    {lastMatch.homeScore} : {lastMatch.awayScore}
-                  </span>
+              <div className="w-4/12 text-center px-1 flex flex-col items-center justify-center">
+                <div className="bg-[oklch(0.40_0.10_244)]/60 backdrop-blur-md rounded-2xl py-3 px-3 sm:px-6 inline-flex items-center justify-center gap-1 sm:gap-2 shadow-inner border border-white/15 transform group-hover:scale-105 transition-transform duration-500 whitespace-nowrap">
+                  <span className="text-3xl sm:text-5xl font-black text-white">{lastMatch.homeScore}</span>
+                  <span className="text-2xl sm:text-4xl font-bold text-white/60">:</span>
+                  <span className="text-3xl sm:text-5xl font-black text-white">{lastMatch.awayScore}</span>
                 </div>
                 {lastMatch.status && (
                   <p className="text-[10px] sm:text-xs text-white/70 mt-4 font-bold uppercase tracking-widest">

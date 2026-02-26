@@ -18,7 +18,7 @@ export default function HeroSection() {
       <div className="absolute top-0 left-0 w-1 h-full bg-[oklch(0.77_0.10_225)]" />
 
       {/* Content — extra top padding to clear the transparent header */}
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 md:pt-36 pb-12 text-center md:text-left">
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-40 sm:pt-44 md:pt-48 pb-12 text-center md:text-left">
         <span className="inline-block py-1.5 px-4 rounded-full bg-white/10 backdrop-blur-sm text-[oklch(0.85_0.08_225)] text-xs sm:text-sm font-bold mb-5 border border-white/15 uppercase tracking-widest">
           Zvanična prezentacija
         </span>
