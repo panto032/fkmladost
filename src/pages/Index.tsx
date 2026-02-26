@@ -4,6 +4,8 @@ import MatchWidgets from "./home/_components/MatchWidgets.tsx";
 import NewsSection from "./home/_components/NewsSection.tsx";
 import PartnersSection from "./home/_components/PartnersSection.tsx";
 import StandingsSection from "./home/_components/StandingsSection.tsx";
+import TeamSection from "./home/_components/TeamSection.tsx";
+import SponsorsBottomSection from "./home/_components/SponsorsBottomSection.tsx";
 import Footer from "./home/_components/Footer.tsx";
 
 export default function Index() {
@@ -26,6 +28,12 @@ export default function Index() {
           </div>
         </div>
       </section>
+
+      {/* Prvi Tim */}
+      <TeamSection />
+
+      {/* Sponzori i Prijatelji */}
+      <SponsorsBottomSection />
 
       <Footer />
     </div>

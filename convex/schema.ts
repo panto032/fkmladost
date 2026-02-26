@@ -52,4 +52,18 @@ export default defineSchema({
     points: v.number(),
     isHighlighted: v.boolean(),
   }).index("by_position", ["position"]),
+
+  players: defineTable({
+    name: v.string(),
+    number: v.number(),
+    position: v.string(),
+    imageUrl: v.string(),
+    nationality: v.optional(v.string()),
+    birthDate: v.optional(v.string()),
+    sortOrder: v.number(),
+    isActive: v.boolean(),
+  })
+    .index("by_sort_order", ["sortOrder"])
+    .index("by_position", ["position"])
+    .index("by_active_and_sort", ["isActive", "sortOrder"]),
 });

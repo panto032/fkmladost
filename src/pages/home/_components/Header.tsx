@@ -1,18 +1,19 @@
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 const NAV_LINKS = [
   { label: "Početna", href: "/", active: true },
   { label: "Vesti", href: "#vesti" },
-  { label: "Prvi Tim", href: "#" },
+  { label: "Prvi Tim", href: "/prvi-tim" },
   { label: "Klub", href: "#partneri" },
   { label: "Omladinska Škola", href: "#" },
 ];
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
 
   const handleNavClick = (href: string, label: string) => {
     setIsMobileMenuOpen(false);
@@ -25,6 +26,8 @@ export default function Header() {
       el?.scrollIntoView({ behavior: "smooth" });
       return;
     }
+    // Page navigation
+    navigate(href);
   };
 
   return (
@@ -32,7 +35,7 @@ export default function Header() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
           {/* Logo */}
-          <a href="/" className="flex-shrink-0 flex items-center">
+          <Link to="/" className="flex-shrink-0 flex items-center">
             <img
               src="https://cdn.hercules.app/file_axTcoMfvHwfbwT3EXxUl4neg"
               alt="FK Mladost Lučani grb"
@@ -46,7 +49,7 @@ export default function Header() {
                 Lučani 1952
               </span>
             </div>
-          </a>
+          </Link>
 
           {/* Desktop nav */}
           <nav className="hidden md:flex space-x-8 items-center">

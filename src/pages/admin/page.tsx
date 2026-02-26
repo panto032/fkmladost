@@ -3,13 +3,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs.t
 import { Skeleton } from "@/components/ui/skeleton.tsx";
 import { SignInButton } from "@/components/ui/signin.tsx";
 import { useAuth } from "@/hooks/use-auth.ts";
-import { Newspaper, Trophy, Handshake, TableProperties, ArrowLeft, LogOut } from "lucide-react";
+import { Newspaper, Trophy, Handshake, TableProperties, ArrowLeft, LogOut, Users } from "lucide-react";
 import { Button } from "@/components/ui/button.tsx";
 import { Link } from "react-router-dom";
 import AdminNews from "./_components/AdminNews.tsx";
 import AdminMatches from "./_components/AdminMatches.tsx";
 import AdminPartners from "./_components/AdminPartners.tsx";
 import AdminStandings from "./_components/AdminStandings.tsx";
+import AdminPlayers from "./_components/AdminPlayers.tsx";
 
 function AdminDashboard() {
   const { user, removeUser } = useAuth();
@@ -67,6 +68,10 @@ function AdminDashboard() {
               <Newspaper size={14} />
               <span className="hidden sm:inline">Vesti</span>
             </TabsTrigger>
+            <TabsTrigger value="players" className="gap-1.5">
+              <Users size={14} />
+              <span className="hidden sm:inline">Igrači</span>
+            </TabsTrigger>
             <TabsTrigger value="matches" className="gap-1.5">
               <Trophy size={14} />
               <span className="hidden sm:inline">Mečevi</span>
@@ -83,6 +88,9 @@ function AdminDashboard() {
 
           <TabsContent value="news">
             <AdminNews />
+          </TabsContent>
+          <TabsContent value="players">
+            <AdminPlayers />
           </TabsContent>
           <TabsContent value="matches">
             <AdminMatches />
