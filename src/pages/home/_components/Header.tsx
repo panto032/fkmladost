@@ -31,28 +31,25 @@ export default function Header() {
 
   return (
     <>
-      {/* Fixed logo — always visible at top-left */}
-      <Link
-        to="/"
-        className="fixed top-3 left-4 sm:left-6 lg:left-8 z-[60] flex items-center gap-3"
-      >
-        <div className="relative">
-          <div className="absolute inset-0 bg-[oklch(0.55_0.12_240)]/40 blur-xl rounded-full scale-125" />
-          <img
-            src="https://cdn.hercules.app/file_HWC8LtMUYR2SOIIbHHdj7L3r"
-            alt="FK Mladost Lučani grb"
-            className="relative h-16 w-auto object-contain drop-shadow-[0_2px_16px_rgba(0,0,0,0.6)]"
-          />
-        </div>
-        <h1 className="hidden sm:block text-2xl font-black uppercase tracking-widest leading-none text-[oklch(0.82_0.09_225)] drop-shadow-[0_1px_8px_rgba(0,0,0,0.4)]">
-          FK Mladost
-        </h1>
-      </Link>
-
-      {/* Header with nav — scrolls with the page */}
-      <header className="bg-transparent text-white relative z-50">
+      {/* Fixed header — logo + nav always visible */}
+      <header className="fixed top-0 left-0 right-0 z-[60] bg-transparent text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-end items-center h-20">
+          <div className="flex justify-between items-center h-20">
+            {/* Logo */}
+            <Link to="/" className="flex items-center gap-3">
+              <div className="relative">
+                <div className="absolute inset-0 bg-[oklch(0.55_0.12_240)]/40 blur-xl rounded-full scale-125" />
+                <img
+                  src="https://cdn.hercules.app/file_HWC8LtMUYR2SOIIbHHdj7L3r"
+                  alt="FK Mladost Lučani grb"
+                  className="relative h-16 w-auto object-contain drop-shadow-[0_2px_16px_rgba(0,0,0,0.6)]"
+                />
+              </div>
+              <h1 className="hidden sm:block text-2xl font-black uppercase tracking-widest leading-none text-[oklch(0.82_0.09_225)] drop-shadow-[0_1px_8px_rgba(0,0,0,0.4)]">
+                FK Mladost
+              </h1>
+            </Link>
+
             {/* Desktop nav — capsule */}
             <nav className="hidden md:flex items-center bg-black/30 backdrop-blur-md rounded-full px-2 py-1.5 border border-white/15">
               {NAV_LINKS.map((link) => (
