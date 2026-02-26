@@ -124,6 +124,26 @@ export default function Footer() {
           </div>
         </div>
 
+        {/* League logos */}
+        <div className="border-t border-[oklch(0.26_0.04_252)] pt-8 pb-8">
+          <p className="text-[oklch(0.40_0.03_252)] text-[11px] font-semibold uppercase tracking-widest text-center mb-5">
+            Član lige
+          </p>
+          <div className="flex items-center justify-center gap-8 flex-wrap">
+            <img
+              src="https://cdn.hercules.app/file_dqOXXSNAxrK08T7IquGfAAtu"
+              alt="Mozzart Bet SuperLiga"
+              className="h-10 object-contain"
+            />
+            <div className="w-px h-8 bg-[oklch(0.28_0.04_252)] hidden sm:block" />
+            <img
+              src="https://cdn.hercules.app/file_usixoQAS2hJa8900TJh3WrYo"
+              alt="Zajednica SuperLige i Prve Lige"
+              className="h-10 object-contain brightness-0 invert opacity-70"
+            />
+          </div>
+        </div>
+
         {/* Bottom bar */}
         <div className="border-t border-[oklch(0.26_0.04_252)] pt-8 flex flex-col md:flex-row justify-between items-center text-xs text-[oklch(0.50_0.03_252)]">
           <p>
