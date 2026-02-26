@@ -166,4 +166,39 @@ export default defineSchema({
       }),
     ),
   }).index("by_round", ["roundNumber"]),
+
+  /** Omladinska Liga Srbije — youth league standings */
+  youthStandings: defineTable({
+    position: v.number(),
+    club: v.string(),
+    played: v.number(),
+    won: v.number(),
+    drawn: v.number(),
+    lost: v.number(),
+    goalsFor: v.number(),
+    goalsAgainst: v.number(),
+    goalDiff: v.number(),
+    points: v.number(),
+    isHighlighted: v.boolean(),
+  }).index("by_position", ["position"]),
+
+  /** Omladinska Liga — Mladost match results & upcoming schedule */
+  youthMatches: defineTable({
+    round: v.number(),
+    date: v.string(),
+    home: v.string(),
+    away: v.string(),
+    score: v.optional(v.string()),
+    city: v.optional(v.string()),
+    isHome: v.boolean(),
+  }).index("by_round", ["round"]),
+
+  /** Omladinska Liga — top scorers */
+  youthScorers: defineTable({
+    rank: v.number(),
+    name: v.string(),
+    club: v.string(),
+    goals: v.string(),
+    isHighlighted: v.boolean(),
+  }).index("by_rank", ["rank"]),
 });

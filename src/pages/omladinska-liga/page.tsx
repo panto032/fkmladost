@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api.js";
 import { Trophy, Target, Calendar, ChevronLeft, ChevronRight, Star } from "lucide-react";
 import Header from "../home/_components/Header.tsx";
 import Footer from "../home/_components/Footer.tsx";
@@ -20,6 +21,7 @@ type StandingRow = {
   goalsAgainst: number;
   goalDiff: number;
   points: number;
+  _highlighted?: boolean;
 };
 
 const STANDINGS: StandingRow[] = [
@@ -76,6 +78,7 @@ type TopScorer = {
   name: string;
   club: string;
   goals: string;
+  _highlighted?: boolean;
 };
 
 const TOP_SCORERS: TopScorer[] = [
@@ -159,8 +162,61 @@ const TABS: { id: Tab; label: string; icon: typeof Trophy }[] = [
 export default function OmladinskaLigaPage() {
   const [activeTab, setActiveTab] = useState<Tab>("tabela");
 
+  // Database queries — public (no auth required)
+  const dbStandings = useQuery(api.admin.youthLeague.getStandings);
+  const dbMatches = useQuery(api.admin.youthLeague.getMatches);
+  const dbScorers = useQuery(api.admin.youthLeague.getScorers);
+
+  // Use DB data if present, otherwise fall back to static data
+  const standings: StandingRow[] = (dbStandings && dbStandings.length > 0)
+    ? dbStandings.map((s) => ({
+        pos: s.position,
+        club: s.club,
+        played: s.played,
+        won: s.won,
+        drawn: s.drawn,
+        lost: s.lost,
+        goalsFor: s.goalsFor,
+        goalsAgainst: s.goalsAgainst,
+        goalDiff: s.goalDiff,
+        points: s.points,
+        _highlighted: s.isHighlighted,
+      }))
+    : STANDINGS.map((s) => ({ ...s, _highlighted: s.club === "Mladost Lučani" }));
+
+  const playedMatches: MatchResult[] = (dbMatches && dbMatches.length > 0)
+    ? dbMatches.filter((m) => !!m.score).map((m) => ({
+        round: m.round,
+        date: m.date,
+        home: m.home,
+        away: m.away,
+        score: m.score ?? "",
+        isHome: m.isHome,
+      }))
+    : MLADOST_RESULTS;
+
+  const upcomingMatches: UpcomingMatch[] = (dbMatches && dbMatches.length > 0)
+    ? dbMatches.filter((m) => !m.score).map((m) => ({
+        round: m.round,
+        date: m.date,
+        home: m.home,
+        away: m.away,
+        city: m.city ?? "",
+      }))
+    : UPCOMING_MATCHES;
+
+  const scorers: TopScorer[] = (dbScorers && dbScorers.length > 0)
+    ? dbScorers.map((s) => ({
+        rank: s.rank,
+        name: s.name,
+        club: s.club,
+        goals: s.goals,
+        _highlighted: s.isHighlighted,
+      }))
+    : TOP_SCORERS.map((s) => ({ ...s, _highlighted: s.club === "Mladost L" }));
+
   // Mladost stats for the hero
-  const mladostRow = STANDINGS.find((r) => r.club === "Mladost Lučani");
+  const mladostRow = standings.find((r) => r._highlighted) ?? standings.find((r) => r.club.includes("Mladost"));
 
   return (
     <div className="min-h-screen bg-[oklch(0.96_0.01_228)] text-foreground">
@@ -254,10 +310,10 @@ export default function OmladinskaLigaPage() {
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
-        {activeTab === "tabela" && <StandingsTable />}
-        {activeTab === "rezultati" && <ResultsList />}
-        {activeTab === "strelci" && <ScorersList />}
-        {activeTab === "raspored" && <ScheduleList />}
+        {activeTab === "tabela" && <StandingsTable data={standings} />}
+        {activeTab === "rezultati" && <ResultsList data={playedMatches} />}
+        {activeTab === "strelci" && <ScorersList data={scorers} />}
+        {activeTab === "raspored" && <ScheduleList data={upcomingMatches} />}
       </div>
 
       <Footer />
@@ -269,7 +325,7 @@ export default function OmladinskaLigaPage() {
 /*  Standings Table                                                    */
 /* ================================================================== */
 
-function StandingsTable() {
+function StandingsTable({ data }: { data: StandingRow[] }) {
   return (
     <div>
       <h2 className="text-2xl font-extrabold text-[oklch(0.22_0.045_252)] mb-6 flex items-center gap-3">
@@ -296,8 +352,8 @@ function StandingsTable() {
               </tr>
             </thead>
             <tbody>
-              {STANDINGS.map((row) => {
-                const isMladost = row.club === "Mladost Lučani";
+              {data.map((row) => {
+                const isMladost = row._highlighted ?? row.club.includes("Mladost");
                 return (
                   <tr
                     key={row.pos}
@@ -344,8 +400,8 @@ function StandingsTable() {
 
         {/* Mobile cards */}
         <div className="md:hidden divide-y divide-[oklch(0.94_0.01_228)]">
-          {STANDINGS.map((row) => {
-            const isMladost = row.club === "Mladost Lučani";
+          {data.map((row) => {
+            const isMladost = row._highlighted ?? row.club.includes("Mladost");
             return (
               <div
                 key={row.pos}
@@ -388,11 +444,11 @@ function StandingsTable() {
 /*  Mladost Results                                                    */
 /* ================================================================== */
 
-function ResultsList() {
+function ResultsList({ data }: { data: MatchResult[] }) {
   const PAGE_SIZE = 6;
   const [page, setPage] = useState(0);
-  const totalPages = Math.ceil(MLADOST_RESULTS.length / PAGE_SIZE);
-  const visible = MLADOST_RESULTS.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+  const totalPages = Math.ceil(data.length / PAGE_SIZE);
+  const visible = data.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
 
   return (
     <div>
@@ -404,7 +460,7 @@ function ResultsList() {
       {/* Form strip */}
       <div className="flex items-center gap-2 mb-6 flex-wrap">
         <span className="text-sm font-semibold text-[oklch(0.40_0.04_252)] mr-1">Forma:</span>
-        {MLADOST_RESULTS.map((m) => {
+        {data.map((m) => {
           const res = mladostResult(m.score, m.isHome);
           return (
             <span
@@ -505,7 +561,7 @@ function ResultsList() {
 /*  Top scorers                                                        */
 /* ================================================================== */
 
-function ScorersList() {
+function ScorersList({ data }: { data: TopScorer[] }) {
   return (
     <div>
       <h2 className="text-2xl font-extrabold text-[oklch(0.22_0.045_252)] mb-6 flex items-center gap-3">
@@ -515,8 +571,8 @@ function ScorersList() {
 
       <div className="bg-white rounded-2xl shadow-lg border border-[oklch(0.92_0.01_228)] overflow-hidden">
         <div className="divide-y divide-[oklch(0.94_0.01_228)]">
-          {TOP_SCORERS.map((s) => {
-            const isMladost = s.club === "Mladost L";
+          {data.map((s) => {
+            const isMladost = s._highlighted ?? s.club === "Mladost L";
             return (
               <div
                 key={s.name}
@@ -572,7 +628,7 @@ function ScorersList() {
 /*  Upcoming schedule                                                  */
 /* ================================================================== */
 
-function ScheduleList() {
+function ScheduleList({ data }: { data: UpcomingMatch[] }) {
   return (
     <div>
       <h2 className="text-2xl font-extrabold text-[oklch(0.22_0.045_252)] mb-6 flex items-center gap-3">
@@ -581,7 +637,7 @@ function ScheduleList() {
       </h2>
 
       <div className="space-y-3">
-        {UPCOMING_MATCHES.map((m) => {
+        {data.map((m) => {
           const isHome = m.home.includes("Mladost");
           return (
             <div
