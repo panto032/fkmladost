@@ -1,4 +1,5 @@
 import { Facebook, Instagram, Twitter, MapPin, Mail } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export default function Footer() {
   return (
@@ -48,9 +49,9 @@ export default function Footer() {
             </h5>
             <ul className="space-y-2 text-[oklch(0.55_0.03_252)] text-sm">
               <li>
-                <a href="#" className="hover:text-white transition-colors">
+                <Link to="/istorija-kluba" className="hover:text-white transition-colors">
                   Istorijat kluba
-                </a>
+                </Link>
               </li>
               <li>
                 <a href="#" className="hover:text-white transition-colors">
@@ -77,9 +78,9 @@ export default function Footer() {
             </h5>
             <ul className="space-y-2 text-[oklch(0.55_0.03_252)] text-sm">
               <li>
-                <a href="#" className="hover:text-white transition-colors">
+                <Link to="/prvi-tim" className="hover:text-white transition-colors">
                   Prvi Tim
-                </a>
+                </Link>
               </li>
               <li>
                 <a href="#" className="hover:text-white transition-colors">
@@ -87,9 +88,9 @@ export default function Footer() {
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-white transition-colors">
+                <Link to="/omladinska-skola" className="hover:text-white transition-colors">
                   Omladinska Škola
-                </a>
+                </Link>
               </li>
               <li>
                 <a href="#" className="hover:text-white transition-colors">

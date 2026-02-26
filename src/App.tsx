@@ -7,6 +7,7 @@ import PrviTimPage from "./pages/prvi-tim/page.tsx";
 import VestiPage from "./pages/vesti/page.tsx";
 import NewsDetailPage from "./pages/vesti/detail/page.tsx";
 import OmladinskaSkola from "./pages/omladinska-skola/page.tsx";
+import IstorijaKluba from "./pages/istorija-kluba/page.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 export default function App() {
@@ -20,6 +21,7 @@ export default function App() {
           <Route path="/vesti" element={<VestiPage />} />
           <Route path="/vesti/:id" element={<NewsDetailPage />} />
           <Route path="/omladinska-skola" element={<OmladinskaSkola />} />
+          <Route path="/istorija-kluba" element={<IstorijaKluba />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

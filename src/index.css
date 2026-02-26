@@ -165,3 +165,19 @@
   border-top: 1px solid oklch(0.25 0.04 252);
   margin: 2rem 0;
 }
+
+/* Editorial variant for Istorija kluba — slightly larger, more serif-like feel */
+.prose-page-editorial p {
+  font-size: 1.05rem;
+  line-height: 1.95;
+  margin-bottom: 1rem;
+}
+.prose-page-editorial p:first-of-type::first-letter {
+  font-size: 2.8rem;
+  font-weight: 800;
+  float: left;
+  line-height: 1;
+  margin-right: 0.5rem;
+  margin-top: 0.1rem;
+  color: oklch(0.69 0.095 228);
+}
