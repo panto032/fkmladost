@@ -155,40 +155,57 @@ function AdminDashboard() {
         {/* Sidebar */}
         <aside
           className={cn(
-            "w-60 flex-shrink-0 bg-[oklch(0.16_0.035_252)] border-r border-[oklch(0.26_0.04_252)] overflow-y-auto transition-transform duration-200",
+            "w-60 flex-shrink-0 bg-[oklch(0.16_0.035_252)] border-r border-[oklch(0.26_0.04_252)] overflow-y-auto transition-transform duration-200 flex flex-col",
             "fixed lg:static inset-y-0 left-0 z-40 top-14",
             sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
           )}
         >
-          <nav className="py-4">
-            {NAV_GROUPS.map((group) => (
-              <div key={group.title} className="mb-2">
-                <p className="px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-[oklch(0.45_0.03_252)]">
-                  {group.title}
-                </p>
-                {group.items.map((item) => (
-                  <button
-                    key={item.id}
-                    onClick={() => {
-                      setActiveSection(item.id);
-                      setSidebarOpen(false);
-                    }}
-                    className={cn(
-                      "w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium transition-colors",
-                      activeSection === item.id
-                        ? "bg-[oklch(0.69_0.095_228)]/15 text-[oklch(0.77_0.10_225)] border-r-2 border-[oklch(0.69_0.095_228)]"
-                        : "text-[oklch(0.55_0.03_252)] hover:text-white hover:bg-[oklch(0.20_0.04_252)]"
-                    )}
-                  >
-                    {item.icon}
-                    {item.label}
-                    {activeSection === item.id && (
-                      <ChevronRight size={14} className="ml-auto" />
-                    )}
-                  </button>
-                ))}
-              </div>
-            ))}
+          <nav className="py-4 flex flex-col h-full">
+            <div className="flex-1">
+              {NAV_GROUPS.map((group) => (
+                <div key={group.title} className="mb-2">
+                  <p className="px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-[oklch(0.45_0.03_252)]">
+                    {group.title}
+                  </p>
+                  {group.items.map((item) => (
+                    <button
+                      key={item.id}
+                      onClick={() => {
+                        setActiveSection(item.id);
+                        setSidebarOpen(false);
+                      }}
+                      className={cn(
+                        "w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium transition-colors",
+                        activeSection === item.id
+                          ? "bg-[oklch(0.69_0.095_228)]/15 text-[oklch(0.77_0.10_225)] border-r-2 border-[oklch(0.69_0.095_228)]"
+                          : "text-[oklch(0.55_0.03_252)] hover:text-white hover:bg-[oklch(0.20_0.04_252)]"
+                      )}
+                    >
+                      {item.icon}
+                      {item.label}
+                      {activeSection === item.id && (
+                        <ChevronRight size={14} className="ml-auto" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              ))}
+            </div>
+
+            {/* Copyright */}
+            <div className="px-4 py-4 border-t border-[oklch(0.26_0.04_252)] mt-4 text-[10px] text-[oklch(0.40_0.03_252)] leading-relaxed">
+              <p>&copy; {new Date().getFullYear()} FK Mladost Lučani</p>
+              <p className="mt-1">
+                Kreirao{" "}
+                <a href="https://impulsee.cloud/" target="_blank" rel="noopener noreferrer" className="hover:text-white font-medium">
+                  IMPULSE
+                </a>
+                {" "}part of{" "}
+                <a href="https://impuls-tech.rs/" target="_blank" rel="noopener noreferrer" className="hover:text-white font-medium">
+                  IMPULS TECH DOO
+                </a>
+              </p>
+            </div>
           </nav>
         </aside>
 
