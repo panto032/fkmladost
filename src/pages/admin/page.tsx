@@ -192,20 +192,7 @@ function AdminDashboard() {
               ))}
             </div>
 
-            {/* Copyright */}
-            <div className="px-4 py-4 border-t border-[oklch(0.26_0.04_252)] mt-4 text-[10px] text-[oklch(0.40_0.03_252)] leading-relaxed">
-              <p>&copy; {new Date().getFullYear()} FK Mladost Lučani</p>
-              <p className="mt-1">
-                Kreirao{" "}
-                <a href="https://impulsee.cloud/" target="_blank" rel="noopener noreferrer" className="hover:text-white font-medium">
-                  IMPULSE
-                </a>
-                {" "}part of{" "}
-                <a href="https://impuls-tech.rs/" target="_blank" rel="noopener noreferrer" className="hover:text-white font-medium">
-                  IMPULS TECH DOO
-                </a>
-              </p>
-            </div>
+
           </nav>
         </aside>
 
@@ -218,13 +205,29 @@ function AdminDashboard() {
         )}
 
         {/* Main content */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 flex flex-col">
           <div className="mb-6">
             <h2 className="text-2xl font-extrabold text-foreground uppercase tracking-tight">
               {activeLabel}
             </h2>
           </div>
-          {CONTENT_MAP[activeSection]}
+          <div className="flex-1">
+            {CONTENT_MAP[activeSection]}
+          </div>
+          {/* Copyright */}
+          <div className="text-center text-[11px] text-muted-foreground/60 py-6 mt-8 border-t border-border/30">
+            <p>&copy; {new Date().getFullYear()} FK Mladost Lučani. Sva prava zadržana.</p>
+            <p className="mt-1">
+              Kreirao{" "}
+              <a href="https://impulsee.cloud/" target="_blank" rel="noopener noreferrer" className="hover:text-foreground font-medium transition-colors">
+                IMPULSE
+              </a>
+              {" "}part of{" "}
+              <a href="https://impuls-tech.rs/" target="_blank" rel="noopener noreferrer" className="hover:text-foreground font-medium transition-colors">
+                IMPULS TECH DOO
+              </a>
+            </p>
+          </div>
         </main>
       </div>
     </div>
