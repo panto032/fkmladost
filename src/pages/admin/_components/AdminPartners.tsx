@@ -21,7 +21,7 @@ import {
   TableRow,
 } from "@/components/ui/table.tsx";
 import { Skeleton } from "@/components/ui/skeleton.tsx";
-import { Pencil, Trash2, Plus } from "lucide-react";
+import { Pencil, Trash2, Plus, ImageIcon, Info } from "lucide-react";
 import { toast } from "sonner";
 import { ConvexError } from "convex/values";
 
@@ -115,11 +115,21 @@ export default function AdminPartners() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-center mb-4">
         <h3 className="text-lg font-bold">Partneri ({partners.length})</h3>
         <Button onClick={openCreate} size="sm">
           <Plus size={16} /> Dodaj partnera
         </Button>
+      </div>
+
+      {/* Recommended image size hint */}
+      <div className="flex items-start gap-2 bg-muted/50 border border-border rounded-lg px-4 py-3 mb-6 text-sm text-muted-foreground">
+        <Info size={16} className="mt-0.5 flex-shrink-0 text-[oklch(0.55_0.18_250)]" />
+        <div>
+          <strong className="text-foreground">Preporučena dimenzija logoa:</strong>{" "}
+          PNG sa providnom pozadinom, širina <strong>300–600px</strong>, visina <strong>120–200px</strong> (horizontalan format).
+          Logo se prikazuje na svetloj pozadini u sekciji "Prijatelji Kluba i Sponzori" na početnoj stranici.
+        </div>
       </div>
 
       <div className="border rounded-xl overflow-hidden">
@@ -127,6 +137,7 @@ export default function AdminPartners() {
           <TableHeader>
             <TableRow>
               <TableHead className="w-16">#</TableHead>
+              <TableHead className="w-20">Logo</TableHead>
               <TableHead>Ime</TableHead>
               <TableHead>Nivo</TableHead>
               <TableHead className="w-24 text-right">Akcije</TableHead>
@@ -137,6 +148,19 @@ export default function AdminPartners() {
               <TableRow key={item._id}>
                 <TableCell className="text-muted-foreground">
                   {item.sortOrder}
+                </TableCell>
+                <TableCell>
+                  {item.logoUrl ? (
+                    <img
+                      src={item.logoUrl}
+                      alt={item.name}
+                      className="h-8 max-w-[60px] object-contain"
+                    />
+                  ) : (
+                    <div className="h-8 w-12 bg-muted rounded flex items-center justify-center">
+                      <ImageIcon size={14} className="text-muted-foreground" />
+                    </div>
+                  )}
                 </TableCell>
                 <TableCell className="font-medium">{item.name}</TableCell>
                 <TableCell className="text-muted-foreground">
@@ -192,7 +216,7 @@ export default function AdminPartners() {
               />
             </div>
             <div className="space-y-2">
-              <Label>Logo (URL) - opciono</Label>
+              <Label>Logo (URL)</Label>
               <Input
                 value={form.logoUrl ?? ""}
                 onChange={(e) =>
@@ -201,8 +225,21 @@ export default function AdminPartners() {
                     logoUrl: e.target.value || undefined,
                   })
                 }
-                placeholder="https://..."
+                placeholder="https://cdn.hercules.app/file_..."
               />
+              <p className="text-xs text-muted-foreground">
+                Preporučeno: PNG, providna pozadina, 300-600 x 120-200px
+              </p>
+              {/* Logo preview */}
+              {form.logoUrl && (
+                <div className="border border-border rounded-lg p-4 bg-card flex items-center justify-center">
+                  <img
+                    src={form.logoUrl}
+                    alt="Pregled logoa"
+                    className="max-h-16 max-w-full object-contain"
+                  />
+                </div>
+              )}
             </div>
             <div className="space-y-2">
               <Label>Redosled prikaza</Label>
