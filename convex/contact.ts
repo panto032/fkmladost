@@ -1,4 +1,4 @@
-import { mutation } from "./_generated/server";
+import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 
 export const send = mutation({
@@ -16,5 +16,26 @@ export const send = mutation({
       message: args.message,
       isRead: false,
     });
+  },
+});
+
+export const getAll = query({
+  args: {},
+  handler: async (ctx) => {
+    return await ctx.db.query("contactMessages").order("desc").collect();
+  },
+});
+
+export const markAsRead = mutation({
+  args: { id: v.id("contactMessages") },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.id, { isRead: true });
+  },
+});
+
+export const remove = mutation({
+  args: { id: v.id("contactMessages") },
+  handler: async (ctx, args) => {
+    await ctx.db.delete(args.id);
   },
 });
