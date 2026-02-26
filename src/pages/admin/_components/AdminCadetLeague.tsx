@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery, useMutation } from "convex/react";
+import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "@/convex/_generated/api.js";
 import type { Doc } from "@/convex/_generated/dataModel.d.ts";
 import { Button } from "@/components/ui/button.tsx";
@@ -27,78 +27,6 @@ import { toast } from "sonner";
 import { ConvexError } from "convex/values";
 
 /* ------------------------------------------------------------------ */
-/*  Static seed data (parsed from fss.rs — Kadetska liga Srbije)       */
-/*  Used for the "Sinhronizuj" button — populates DB in one click      */
-/* ------------------------------------------------------------------ */
-
-const SEED_STANDINGS = [
-  { position: 1, club: "Vojvodina", played: 14, won: 11, drawn: 1, lost: 2, goalsFor: 36, goalsAgainst: 16, goalDiff: 20, points: 34, isHighlighted: false },
-  { position: 2, club: "Mladost Lučani", played: 14, won: 9, drawn: 3, lost: 2, goalsFor: 39, goalsAgainst: 13, goalDiff: 26, points: 30, isHighlighted: true },
-  { position: 3, club: "Partizan", played: 13, won: 9, drawn: 3, lost: 1, goalsFor: 40, goalsAgainst: 15, goalDiff: 25, points: 30, isHighlighted: false },
-  { position: 4, club: "Teleoptik", played: 14, won: 8, drawn: 2, lost: 4, goalsFor: 26, goalsAgainst: 25, goalDiff: 1, points: 26, isHighlighted: false },
-  { position: 5, club: "Crvena Zvezda", played: 12, won: 8, drawn: 1, lost: 3, goalsFor: 31, goalsAgainst: 8, goalDiff: 23, points: 25, isHighlighted: false },
-  { position: 6, club: "IMT", played: 14, won: 6, drawn: 4, lost: 4, goalsFor: 24, goalsAgainst: 21, goalDiff: 3, points: 22, isHighlighted: false },
-  { position: 7, club: "Real Niš", played: 14, won: 6, drawn: 3, lost: 5, goalsFor: 28, goalsAgainst: 35, goalDiff: -7, points: 21, isHighlighted: false },
-  { position: 8, club: "Čukarički", played: 13, won: 6, drawn: 3, lost: 4, goalsFor: 33, goalsAgainst: 20, goalDiff: 13, points: 21, isHighlighted: false },
-  { position: 9, club: "RFK Grafičar", played: 14, won: 6, drawn: 2, lost: 6, goalsFor: 37, goalsAgainst: 32, goalDiff: 5, points: 20, isHighlighted: false },
-  { position: 10, club: "TSC", played: 13, won: 4, drawn: 4, lost: 5, goalsFor: 20, goalsAgainst: 26, goalDiff: -6, points: 16, isHighlighted: false },
-  { position: 11, club: "011", played: 14, won: 5, drawn: 0, lost: 9, goalsFor: 19, goalsAgainst: 29, goalDiff: -10, points: 15, isHighlighted: false },
-  { position: 12, club: "Spartak", played: 13, won: 5, drawn: 0, lost: 8, goalsFor: 21, goalsAgainst: 33, goalDiff: -12, points: 15, isHighlighted: false },
-  { position: 13, club: "Voždovac", played: 14, won: 3, drawn: 5, lost: 6, goalsFor: 18, goalsAgainst: 27, goalDiff: -9, points: 14, isHighlighted: false },
-  { position: 14, club: "Vošini Klinci", played: 14, won: 4, drawn: 0, lost: 10, goalsFor: 21, goalsAgainst: 31, goalDiff: -10, points: 12, isHighlighted: false },
-  { position: 15, club: "Novi Pazar", played: 14, won: 1, drawn: 2, lost: 11, goalsFor: 9, goalsAgainst: 42, goalDiff: -33, points: 5, isHighlighted: false },
-  { position: 16, club: "OFK Vršac", played: 14, won: 0, drawn: 3, lost: 11, goalsFor: 7, goalsAgainst: 36, goalDiff: -29, points: 3, isHighlighted: false },
-];
-
-const SEED_MATCHES: Array<{
-  round: number;
-  date: string;
-  home: string;
-  away: string;
-  score?: string;
-  city?: string;
-  isHome: boolean;
-}> = [
-  { round: 1, date: "09.08.2025", home: "Mladost", away: "Teleoptik", score: "7:0", city: "Lučani", isHome: true },
-  { round: 2, date: "16.08.2025", home: "TSC", away: "Mladost", score: "1:1", city: "Bačka Topola", isHome: false },
-  { round: 3, date: "24.08.2025", home: "Mladost", away: "RFK Grafičar", score: "3:2", city: "Lučani", isHome: true },
-  { round: 4, date: "27.08.2025", home: "OFK Vršac", away: "Mladost", score: "0:4", city: "Vršac", isHome: false },
-  { round: 5, date: "31.08.2025", home: "Mladost", away: "Spartak", score: "5:1", city: "Lučani", isHome: true },
-  { round: 6, date: "14.09.2025", home: "IMT", away: "Mladost", score: "0:3", city: "Novi Beograd", isHome: false },
-  { round: 7, date: "20.09.2025", home: "Mladost", away: "Novi Pazar", score: "4:0", city: "Lučani", isHome: true },
-  { round: 8, date: "28.09.2025", home: "Partizan", away: "Mladost", score: "2:2", city: "Zemun", isHome: false },
-  { round: 9, date: "05.10.2025", home: "Mladost", away: "Vošini Klinci", score: "2:0", city: "Lučani", isHome: true },
-  { round: 10, date: "18.10.2025", home: "Mladost", away: "Crvena Zvezda", score: "1:0", city: "Lučani", isHome: true },
-  { round: 11, date: "22.10.2025", home: "Real Niš", away: "Mladost", score: "1:1", city: "Niš", isHome: false },
-  { round: 12, date: "26.10.2025", home: "Mladost", away: "Vojvodina", score: "0:1", city: "Lučani", isHome: true },
-  { round: 13, date: "02.11.2025", home: "Čukarički", away: "Mladost", score: "3:1", city: "Beograd", isHome: false },
-  { round: 14, date: "05.11.2025", home: "Mladost", away: "011", score: "5:2", city: "Lučani", isHome: true },
-  { round: 15, date: "22.11.2025", home: "Voždovac", away: "Mladost", score: "1:0", city: "Beograd", isHome: false },
-  { round: 16, date: "29.11.2025", home: "Teleoptik", away: "Mladost", score: "3:1", city: "Zemun", isHome: false },
-  { round: 17, date: "07.12.2025", home: "Mladost", away: "TSC", score: "2:0", city: "Lučani", isHome: true },
-  { round: 18, date: "21.02.2026", home: "RFK Grafičar", away: "Mladost", score: "3:2", city: "Beograd", isHome: false },
-  { round: 19, date: "01.03.2026", home: "Mladost", away: "OFK Vršac", city: "Lučani", isHome: true },
-];
-
-const SEED_SCORERS = [
-  { rank: 1, name: "Tadija Cojić", club: "Real Niš", goals: "15", isHighlighted: false },
-  { rank: 2, name: "Vasilije Guberinić", club: "Mladost L", goals: "14", isHighlighted: true },
-  { rank: 3, name: "Danilo Fekete", club: "Čukarički", goals: "10", isHighlighted: false },
-  { rank: 3, name: "Uroš Zdjelarić", club: "Partizan", goals: "10", isHighlighted: false },
-  { rank: 5, name: "Mihajlo Radović", club: "RFK Grafičar", goals: "9", isHighlighted: false },
-  { rank: 6, name: "Vahid Gicić", club: "TSC", goals: "8", isHighlighted: false },
-  { rank: 7, name: "Damjan Jović", club: "Vojvodina", goals: "7", isHighlighted: false },
-  { rank: 7, name: "Ivan Trailović", club: "Vojvodina", goals: "7", isHighlighted: false },
-  { rank: 7, name: "Luka Trpevski", club: "RFK Grafičar", goals: "7", isHighlighted: false },
-  { rank: 10, name: "Damjan Batak", club: "Partizan", goals: "6", isHighlighted: false },
-  { rank: 10, name: "Matija Delibašić", club: "Vojvodina", goals: "6", isHighlighted: false },
-  { rank: 10, name: "Konstantin Milovanović", club: "Čukarički", goals: "6", isHighlighted: false },
-  { rank: 10, name: "Aleksa Mitić", club: "IMT", goals: "6", isHighlighted: false },
-  { rank: 10, name: "Aleksa Mraović", club: "011", goals: "6", isHighlighted: false },
-  { rank: 10, name: "Uroš Stevanović", club: "Mladost L", goals: "6", isHighlighted: true },
-];
-
-/* ------------------------------------------------------------------ */
 /*  Sub-tab selector                                                   */
 /* ------------------------------------------------------------------ */
 
@@ -106,26 +34,26 @@ type SubTab = "standings" | "matches" | "scorers";
 
 export default function AdminCadetLeague() {
   const [subTab, setSubTab] = useState<SubTab>("standings");
-  const seedMutation = useMutation(api.admin.cadetLeague.seedCadetLeague);
+  const scrapeStandings = useAction(api.sync.scrapeCadetLeague.scrapeCadetLeagueStandings);
+  const scrapeMatches = useAction(api.sync.scrapeCadetLeague.scrapeCadetLeagueMatches);
   const [syncing, setSyncing] = useState(false);
 
   const handleSync = async () => {
     setSyncing(true);
     try {
-      const result = await seedMutation({
-        standings: SEED_STANDINGS,
-        matches: SEED_MATCHES,
-        scorers: SEED_SCORERS,
-      });
+      const [standingsResult, matchesResult] = await Promise.all([
+        scrapeStandings(),
+        scrapeMatches(),
+      ]);
       toast.success(
-        `Uspešno učitano: ${result.standings} klubova, ${result.matches} utakmica, ${result.scorers} strelaca`,
+        `Sinhronizovano: ${standingsResult.count} klubova u tabeli, ${matchesResult.count} utakmica Mladosti`,
       );
     } catch (error) {
       if (error instanceof ConvexError) {
         const { message } = error.data as { code: string; message: string };
         toast.error(message);
       } else {
-        toast.error("Greška pri sinhronizaciji");
+        toast.error("Greška pri sinhronizaciji sa fss.rs");
       }
     } finally {
       setSyncing(false);
@@ -137,7 +65,7 @@ export default function AdminCadetLeague() {
       {/* Sync banner */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6 p-4 rounded-xl bg-accent/10 border border-accent/20">
         <p className="text-sm text-muted-foreground">
-          Povuci podatke iz <span className="font-semibold">fss.rs</span> — tabela, utakmice Mladosti (19 kola) i strelci Kadetske lige.
+          Povuci najnovije podatke sa <span className="font-semibold">fss.rs</span> — tabela i utakmice Mladosti u Kadetskoj ligi.
         </p>
         <Button
           size="sm"
@@ -146,7 +74,7 @@ export default function AdminCadetLeague() {
           className="gap-1.5 flex-shrink-0"
         >
           <RefreshCw size={14} className={syncing ? "animate-spin" : ""} />
-          {syncing ? "Učitavanje..." : "Sinhronizuj"}
+          {syncing ? "Učitavanje..." : "Sinhronizuj sa fss.rs"}
         </Button>
       </div>
 
@@ -506,7 +434,7 @@ function MatchesAdmin() {
               <div className="space-y-2"><Label>Datum</Label><Input value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} placeholder="01.03.2026" /></div>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2"><Label>Domaćin</Label><Input value={form.home} onChange={(e) => setForm({ ...form, home: e.target.value })} placeholder="Mladost L" /></div>
+              <div className="space-y-2"><Label>Domaćin</Label><Input value={form.home} onChange={(e) => setForm({ ...form, home: e.target.value })} placeholder="Mladost" /></div>
               <div className="space-y-2"><Label>Gost</Label><Input value={form.away} onChange={(e) => setForm({ ...form, away: e.target.value })} placeholder="Vojvodina" /></div>
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -659,7 +587,7 @@ function ScorersAdmin() {
               <div className="space-y-2"><Label>Ime</Label><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Vasilije Guberinić" /></div>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2"><Label>Klub</Label><Input value={form.club} onChange={(e) => setForm({ ...form, club: e.target.value })} placeholder="Mladost L" /></div>
+              <div className="space-y-2"><Label>Klub</Label><Input value={form.club} onChange={(e) => setForm({ ...form, club: e.target.value })} placeholder="Mladost" /></div>
               <div className="space-y-2"><Label>Golovi</Label><Input value={form.goals} onChange={(e) => setForm({ ...form, goals: e.target.value })} placeholder="14" /></div>
             </div>
             <div className="flex items-center gap-3">

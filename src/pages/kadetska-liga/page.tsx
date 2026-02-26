@@ -2,12 +2,12 @@ import { useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api.js";
 import { Trophy, Target, Calendar, Star, MapPin } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton.tsx";
 import Header from "../home/_components/Header.tsx";
 import Footer from "../home/_components/Footer.tsx";
 
 /* ------------------------------------------------------------------ */
-/*  Static fallback data — parsed from fss.rs                         */
-/*  Last update: 26 feb 2026 (season 25/26)                          */
+/*  Types                                                              */
 /* ------------------------------------------------------------------ */
 
 type StandingRow = {
@@ -24,25 +24,6 @@ type StandingRow = {
   _highlighted?: boolean;
 };
 
-const STANDINGS: StandingRow[] = [
-  { pos: 1, club: "Vojvodina", played: 14, won: 11, drawn: 1, lost: 2, goalsFor: 36, goalsAgainst: 16, goalDiff: 20, points: 34 },
-  { pos: 2, club: "Mladost Lučani", played: 14, won: 9, drawn: 3, lost: 2, goalsFor: 39, goalsAgainst: 13, goalDiff: 26, points: 30 },
-  { pos: 3, club: "Partizan", played: 13, won: 9, drawn: 3, lost: 1, goalsFor: 40, goalsAgainst: 15, goalDiff: 25, points: 30 },
-  { pos: 4, club: "Teleoptik", played: 14, won: 8, drawn: 2, lost: 4, goalsFor: 26, goalsAgainst: 25, goalDiff: 1, points: 26 },
-  { pos: 5, club: "Crvena Zvezda", played: 12, won: 8, drawn: 1, lost: 3, goalsFor: 31, goalsAgainst: 8, goalDiff: 23, points: 25 },
-  { pos: 6, club: "IMT", played: 14, won: 6, drawn: 4, lost: 4, goalsFor: 24, goalsAgainst: 21, goalDiff: 3, points: 22 },
-  { pos: 7, club: "Real Niš", played: 14, won: 6, drawn: 3, lost: 5, goalsFor: 28, goalsAgainst: 35, goalDiff: -7, points: 21 },
-  { pos: 8, club: "Čukarički", played: 13, won: 6, drawn: 3, lost: 4, goalsFor: 33, goalsAgainst: 20, goalDiff: 13, points: 21 },
-  { pos: 9, club: "RFK Grafičar", played: 14, won: 6, drawn: 2, lost: 6, goalsFor: 37, goalsAgainst: 32, goalDiff: 5, points: 20 },
-  { pos: 10, club: "TSC", played: 13, won: 4, drawn: 4, lost: 5, goalsFor: 20, goalsAgainst: 26, goalDiff: -6, points: 16 },
-  { pos: 11, club: "011", played: 14, won: 5, drawn: 0, lost: 9, goalsFor: 19, goalsAgainst: 29, goalDiff: -10, points: 15 },
-  { pos: 12, club: "Spartak", played: 13, won: 5, drawn: 0, lost: 8, goalsFor: 21, goalsAgainst: 33, goalDiff: -12, points: 15 },
-  { pos: 13, club: "Voždovac", played: 14, won: 3, drawn: 5, lost: 6, goalsFor: 18, goalsAgainst: 27, goalDiff: -9, points: 14 },
-  { pos: 14, club: "Vošini Klinci", played: 14, won: 4, drawn: 0, lost: 10, goalsFor: 21, goalsAgainst: 31, goalDiff: -10, points: 12 },
-  { pos: 15, club: "Novi Pazar", played: 14, won: 1, drawn: 2, lost: 11, goalsFor: 9, goalsAgainst: 42, goalDiff: -33, points: 5 },
-  { pos: 16, club: "OFK Vršac", played: 14, won: 0, drawn: 3, lost: 11, goalsFor: 7, goalsAgainst: 36, goalDiff: -29, points: 3 },
-];
-
 type TopScorer = {
   rank: number;
   name: string;
@@ -50,24 +31,6 @@ type TopScorer = {
   goals: string;
   _highlighted?: boolean;
 };
-
-const TOP_SCORERS: TopScorer[] = [
-  { rank: 1, name: "Tadija Cojić", club: "Real Niš", goals: "15" },
-  { rank: 2, name: "Vasilije Guberinić", club: "Mladost L", goals: "14" },
-  { rank: 3, name: "Danilo Fekete", club: "Čukarički", goals: "10" },
-  { rank: 3, name: "Uroš Zdjelarić", club: "Partizan", goals: "10" },
-  { rank: 5, name: "Mihajlo Radović", club: "RFK Grafičar", goals: "9" },
-  { rank: 6, name: "Vahid Gicić", club: "TSC", goals: "8" },
-  { rank: 7, name: "Damjan Jović", club: "Vojvodina", goals: "7" },
-  { rank: 7, name: "Ivan Trailović", club: "Vojvodina", goals: "7" },
-  { rank: 7, name: "Luka Trpevski", club: "RFK Grafičar", goals: "7" },
-  { rank: 10, name: "Damjan Batak", club: "Partizan", goals: "6" },
-  { rank: 10, name: "Matija Delibašić", club: "Vojvodina", goals: "6" },
-  { rank: 10, name: "Konstantin Milovanović", club: "Čukarički", goals: "6" },
-  { rank: 10, name: "Aleksa Mitić", club: "IMT", goals: "6" },
-  { rank: 10, name: "Aleksa Mraović", club: "011", goals: "6" },
-  { rank: 10, name: "Uroš Stevanović", club: "Mladost L", goals: "6" },
-];
 
 type MatchRow = {
   round: number;
@@ -78,28 +41,6 @@ type MatchRow = {
   city?: string;
   isHome: boolean;
 };
-
-const MATCHES: MatchRow[] = [
-  { round: 1, date: "09.08.2025", home: "Mladost", away: "Teleoptik", score: "7:0", city: "Lučani", isHome: true },
-  { round: 2, date: "16.08.2025", home: "TSC", away: "Mladost", score: "1:1", city: "Bačka Topola", isHome: false },
-  { round: 3, date: "24.08.2025", home: "Mladost", away: "RFK Grafičar", score: "3:2", city: "Lučani", isHome: true },
-  { round: 4, date: "27.08.2025", home: "OFK Vršac", away: "Mladost", score: "0:4", city: "Vršac", isHome: false },
-  { round: 5, date: "31.08.2025", home: "Mladost", away: "Spartak", score: "5:1", city: "Lučani", isHome: true },
-  { round: 6, date: "14.09.2025", home: "IMT", away: "Mladost", score: "0:3", city: "Novi Beograd", isHome: false },
-  { round: 7, date: "20.09.2025", home: "Mladost", away: "Novi Pazar", score: "4:0", city: "Lučani", isHome: true },
-  { round: 8, date: "28.09.2025", home: "Partizan", away: "Mladost", score: "2:2", city: "Zemun", isHome: false },
-  { round: 9, date: "05.10.2025", home: "Mladost", away: "Vošini Klinci", score: "2:0", city: "Lučani", isHome: true },
-  { round: 10, date: "18.10.2025", home: "Mladost", away: "Crvena Zvezda", score: "1:0", city: "Lučani", isHome: true },
-  { round: 11, date: "22.10.2025", home: "Real Niš", away: "Mladost", score: "1:1", city: "Niš", isHome: false },
-  { round: 12, date: "26.10.2025", home: "Mladost", away: "Vojvodina", score: "0:1", city: "Lučani", isHome: true },
-  { round: 13, date: "02.11.2025", home: "Čukarički", away: "Mladost", score: "3:1", city: "Beograd", isHome: false },
-  { round: 14, date: "05.11.2025", home: "Mladost", away: "011", score: "5:2", city: "Lučani", isHome: true },
-  { round: 15, date: "22.11.2025", home: "Voždovac", away: "Mladost", score: "1:0", city: "Beograd", isHome: false },
-  { round: 16, date: "29.11.2025", home: "Teleoptik", away: "Mladost", score: "3:1", city: "Zemun", isHome: false },
-  { round: 17, date: "07.12.2025", home: "Mladost", away: "TSC", score: "2:0", city: "Lučani", isHome: true },
-  { round: 18, date: "21.02.2026", home: "RFK Grafičar", away: "Mladost", score: "3:2", city: "Beograd", isHome: false },
-  { round: 19, date: "01.03.2026", home: "Mladost", away: "OFK Vršac", city: "Lučani", isHome: true },
-];
 
 /* ------------------------------------------------------------------ */
 /*  Tabs                                                               */
@@ -125,44 +66,40 @@ export default function KadetskaLigaPage() {
   const dbScorers = useQuery(api.admin.cadetLeague.getScorers);
   const dbMatches = useQuery(api.admin.cadetLeague.getMatches);
 
-  // Use DB data if present, otherwise fall back to static data
-  const standings: StandingRow[] = (dbStandings && dbStandings.length > 0)
-    ? dbStandings.map((s) => ({
-        pos: s.position,
-        club: s.club,
-        played: s.played,
-        won: s.won,
-        drawn: s.drawn,
-        lost: s.lost,
-        goalsFor: s.goalsFor,
-        goalsAgainst: s.goalsAgainst,
-        goalDiff: s.goalDiff,
-        points: s.points,
-        _highlighted: s.isHighlighted,
-      }))
-    : STANDINGS.map((s) => ({ ...s, _highlighted: s.club === "Mladost Lučani" }));
+  const isLoading = dbStandings === undefined || dbScorers === undefined || dbMatches === undefined;
 
-  const scorers: TopScorer[] = (dbScorers && dbScorers.length > 0)
-    ? dbScorers.map((s) => ({
-        rank: s.rank,
-        name: s.name,
-        club: s.club,
-        goals: s.goals,
-        _highlighted: s.isHighlighted,
-      }))
-    : TOP_SCORERS.map((s) => ({ ...s, _highlighted: s.club === "Mladost L" }));
+  // Map DB data to display types
+  const standings: StandingRow[] = (dbStandings ?? []).map((s) => ({
+    pos: s.position,
+    club: s.club,
+    played: s.played,
+    won: s.won,
+    drawn: s.drawn,
+    lost: s.lost,
+    goalsFor: s.goalsFor,
+    goalsAgainst: s.goalsAgainst,
+    goalDiff: s.goalDiff,
+    points: s.points,
+    _highlighted: s.isHighlighted,
+  }));
 
-  const matches: MatchRow[] = (dbMatches && dbMatches.length > 0)
-    ? dbMatches.map((m) => ({
-        round: m.round,
-        date: m.date,
-        home: m.home,
-        away: m.away,
-        score: m.score,
-        city: m.city,
-        isHome: m.isHome,
-      }))
-    : MATCHES;
+  const scorers: TopScorer[] = (dbScorers ?? []).map((s) => ({
+    rank: s.rank,
+    name: s.name,
+    club: s.club,
+    goals: s.goals,
+    _highlighted: s.isHighlighted,
+  }));
+
+  const matches: MatchRow[] = (dbMatches ?? []).map((m) => ({
+    round: m.round,
+    date: m.date,
+    home: m.home,
+    away: m.away,
+    score: m.score,
+    city: m.city,
+    isHome: m.isHome,
+  }));
 
   // Mladost stats for the hero
   const mladostRow = standings.find((r) => r._highlighted) ?? standings.find((r) => r.club.includes("Mladost"));
@@ -259,12 +196,47 @@ export default function KadetskaLigaPage() {
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
-        {activeTab === "tabela" && <StandingsTable data={standings} />}
-        {activeTab === "utakmice" && <MatchesList data={matches} />}
-        {activeTab === "strelci" && <ScorersList data={scorers} />}
+        {isLoading ? (
+          <div className="space-y-4">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <Skeleton key={i} className="h-14 w-full" />
+            ))}
+          </div>
+        ) : (
+          <>
+            {activeTab === "tabela" && (
+              standings.length > 0
+                ? <StandingsTable data={standings} />
+                : <EmptyMessage text="Tabela još nije sinhronizovana. Pokrenite sinhronizaciju u admin panelu." />
+            )}
+            {activeTab === "utakmice" && (
+              matches.length > 0
+                ? <MatchesList data={matches} />
+                : <EmptyMessage text="Utakmice još nisu sinhronizovane. Pokrenite sinhronizaciju u admin panelu." />
+            )}
+            {activeTab === "strelci" && (
+              scorers.length > 0
+                ? <ScorersList data={scorers} />
+                : <EmptyMessage text="Strelci još nisu uneti. Dodajte ih ručno u admin panelu." />
+            )}
+          </>
+        )}
       </div>
 
       <Footer />
+    </div>
+  );
+}
+
+/* ================================================================== */
+/*  Empty state                                                        */
+/* ================================================================== */
+
+function EmptyMessage({ text }: { text: string }) {
+  return (
+    <div className="bg-white rounded-2xl shadow-lg border border-[oklch(0.92_0.01_228)] p-12 text-center">
+      <Trophy size={40} className="mx-auto text-[oklch(0.75_0.06_228)] mb-4" />
+      <p className="text-[oklch(0.45_0.03_252)] text-sm">{text}</p>
     </div>
   );
 }
@@ -278,7 +250,7 @@ function StandingsTable({ data }: { data: StandingRow[] }) {
     <div>
       <h2 className="text-2xl font-extrabold text-[oklch(0.22_0.045_252)] mb-6 flex items-center gap-3">
         <Trophy size={24} className="text-[oklch(0.69_0.095_228)]" />
-        Tabela — Kadetska liga
+        Tabela — Kadetska liga{data.length > 0 ? ` — ${data[0].played}. kolo` : ""}
       </h2>
 
       <div className="bg-white rounded-2xl shadow-lg border border-[oklch(0.92_0.01_228)] overflow-hidden">
@@ -382,7 +354,7 @@ function StandingsTable({ data }: { data: StandingRow[] }) {
       </div>
 
       <p className="text-xs text-[oklch(0.55_0.03_252)] mt-4 text-right">
-        Izvor: fss.rs · Poslednje ažuriranje: 26. feb 2026
+        Izvor: fss.rs
       </p>
     </div>
   );
