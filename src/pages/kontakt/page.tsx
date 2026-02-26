@@ -23,7 +23,7 @@ const CONTACT_INFO = [
   {
     icon: MapPin,
     label: "Adresa",
-    value: "Radnička bb, 32240 Lučani, Srbija",
+    value: "Mr Radoša Milovanovića bb, 32240 Lučani, Srbija",
     subtext: 'SRC „Mr Radoš Milovanović"',
   },
   {
@@ -211,7 +211,7 @@ export default function KontaktPage() {
                     {'SRC „Mr Radoš Milovanović"'}
                   </p>
                   <p className="text-[oklch(0.50_0.03_252)] text-sm mt-1">
-                    Radnička bb, 32240 Lučani
+                    Mr Radoša Milovanovića bb, 32240 Lučani
                   </p>
                   <Link
                     to="/stadion"

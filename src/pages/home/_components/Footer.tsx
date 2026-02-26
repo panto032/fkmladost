@@ -121,7 +121,7 @@ export default function Footer() {
                   size={16}
                   className="mr-2 text-[oklch(0.69_0.095_228)] mt-1 flex-shrink-0"
                 />
-                <span>Radnička bb, 32240 Lučani, Srbija</span>
+                <span>Mr Radoša Milovanovića bb, 32240 Lučani, Srbija</span>
               </li>
               <li className="flex items-center">
                 <Mail
