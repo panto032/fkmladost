@@ -31,7 +31,7 @@ export default function Header() {
   };
 
   return (
-    <header className="bg-[oklch(0.22_0.045_252)] text-white sticky top-0 z-50 shadow-lg">
+    <header className="bg-[oklch(0.50_0.12_240)] text-white sticky top-0 z-50 shadow-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
           {/* Logo */}
@@ -88,7 +88,7 @@ export default function Header() {
 
       {/* Mobile menu */}
       {isMobileMenuOpen && (
-        <div className="md:hidden bg-[oklch(0.20_0.04_252)] border-t border-[oklch(0.28_0.04_252)]">
+        <div className="md:hidden bg-[oklch(0.45_0.11_242)] border-t border-white/15">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
             {NAV_LINKS.map((link) => (
               <button
@@ -96,8 +96,8 @@ export default function Header() {
                 onClick={() => handleNavClick(link.href, link.label)}
                 className={`block w-full text-left px-3 py-2 rounded-md text-base font-medium ${
                   link.active
-                    ? "text-white bg-[oklch(0.22_0.045_252)]"
-                    : "text-[oklch(0.70_0.04_228)] hover:text-white hover:bg-[oklch(0.26_0.045_252)]"
+                    ? "text-white bg-white/15"
+                    : "text-white/75 hover:text-white hover:bg-white/10"
                 }`}
               >
                 {link.label}
@@ -105,7 +105,7 @@ export default function Header() {
             ))}
             <Link
               to="/admin"
-              className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-yellow-300 hover:bg-[oklch(0.26_0.045_252)]"
+              className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-yellow-300 hover:bg-white/10"
               onClick={() => setIsMobileMenuOpen(false)}
             >
               Admin
