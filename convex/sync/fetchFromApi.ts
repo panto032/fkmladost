@@ -130,16 +130,22 @@ export const syncAll = action({
       });
     }
 
-    const currentSeason = superLiga.seasons.find((s) => s.current);
-    if (!currentSeason) {
+    // Free API plan only supports seasons 2022-2024
+    // Pick the most recent season available within that range
+    const FREE_PLAN_MAX_SEASON = 2024;
+    const availableSeasons = superLiga.seasons
+      .filter((s) => s.year <= FREE_PLAN_MAX_SEASON)
+      .sort((a, b) => b.year - a.year);
+
+    if (availableSeasons.length === 0) {
       throw new ConvexError({
         code: "NOT_FOUND",
-        message: "Trenutna sezona nije pronađena",
+        message: "Nema dostupnih sezona za besplatni plan (2022-2024)",
       });
     }
 
     const leagueId = superLiga.league.id;
-    const season = currentSeason.year;
+    const season = availableSeasons[0].year;
 
     // 2) Fetch standings
     const standingsData = await apiFetch<LeagueStandings[]>(
