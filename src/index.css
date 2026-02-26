@@ -128,3 +128,40 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Rich text page content styling — used by Omladinska škola & Istorija kluba */
+.prose-page h3 {
+  color: oklch(0.95 0.01 228);
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  margin-top: 2.5rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid oklch(0.28 0.04 252);
+}
+.prose-page h3:first-child {
+  margin-top: 0;
+}
+.prose-page p {
+  color: oklch(0.70 0.02 228);
+  font-size: 0.95rem;
+  line-height: 1.85;
+  margin-bottom: 0.75rem;
+}
+.prose-page strong {
+  color: oklch(0.77 0.10 225);
+  font-weight: 700;
+}
+.prose-page img {
+  width: 100%;
+  height: auto;
+  border-radius: 0.75rem;
+  border: 1px solid oklch(0.30 0.045 252);
+  margin: 1.5rem 0;
+}
+.prose-page hr {
+  border: none;
+  border-top: 1px solid oklch(0.25 0.04 252);
+  margin: 2rem 0;
+}

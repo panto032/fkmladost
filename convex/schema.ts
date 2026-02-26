@@ -83,4 +83,11 @@ export default defineSchema({
     .index("by_sort_order", ["sortOrder"])
     .index("by_position", ["position"])
     .index("by_active_and_sort", ["isActive", "sortOrder"]),
+
+  pages: defineTable({
+    slug: v.string(),
+    title: v.string(),
+    content: v.string(),
+    published: v.boolean(),
+  }).index("by_slug", ["slug"]),
 });

@@ -10,11 +10,13 @@
 
 import type * as admin_matches from "../admin/matches.js";
 import type * as admin_news from "../admin/news.js";
+import type * as admin_pages from "../admin/pages.js";
 import type * as admin_partners from "../admin/partners.js";
 import type * as admin_players from "../admin/players.js";
 import type * as admin_standings from "../admin/standings.js";
 import type * as matches from "../matches.js";
 import type * as news from "../news.js";
+import type * as pages from "../pages.js";
 import type * as partners from "../partners.js";
 import type * as players from "../players.js";
 import type * as standings from "../standings.js";
@@ -32,11 +34,13 @@ import type {
 declare const fullApi: ApiFromModules<{
   "admin/matches": typeof admin_matches;
   "admin/news": typeof admin_news;
+  "admin/pages": typeof admin_pages;
   "admin/partners": typeof admin_partners;
   "admin/players": typeof admin_players;
   "admin/standings": typeof admin_standings;
   matches: typeof matches;
   news: typeof news;
+  pages: typeof pages;
   partners: typeof partners;
   players: typeof players;
   standings: typeof standings;
