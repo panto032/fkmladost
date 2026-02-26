@@ -115,25 +115,21 @@ export const savePlayers = internalMutation({
       };
 
       if (match) {
-        // Update existing player – only overwrite imageUrl if real photo
-        const hasRealImage =
-          scraped.imageUrl && !scraped.imageUrl.includes(NO_PLAYER_IMG);
+        // Always overwrite with scraped data
         await ctx.db.patch(match._id, {
           number: scraped.number,
           position: scraped.position,
-          ...(hasRealImage ? { imageUrl: scraped.imageUrl } : {}),
+          imageUrl: scraped.imageUrl,
           ...statFields,
         });
       } else {
         // Insert new player
         nextSortOrder++;
-        const hasRealImage =
-          scraped.imageUrl && !scraped.imageUrl.includes(NO_PLAYER_IMG);
         await ctx.db.insert("players", {
           name: scraped.name,
           number: scraped.number,
           position: scraped.position,
-          imageUrl: hasRealImage ? scraped.imageUrl : "",
+          imageUrl: scraped.imageUrl,
           sortOrder: nextSortOrder,
           isActive: true,
           ...statFields,
