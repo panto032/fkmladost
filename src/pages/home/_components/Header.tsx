@@ -50,16 +50,16 @@ export default function Header() {
               </h1>
             </Link>
 
-            {/* Desktop nav — capsule */}
-            <nav className="hidden md:flex items-center bg-black/30 backdrop-blur-md rounded-full px-2 py-1.5 border border-white/15">
+            {/* Desktop nav */}
+            <nav className="hidden md:flex items-center gap-1">
               {NAV_LINKS.map((link) => (
                 <button
                   key={link.label}
                   onClick={() => handleNavClick(link.href, link.label)}
-                  className={`px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 ${
+                  className={`px-4 py-2 text-sm font-semibold transition-all duration-200 border-b-2 ${
                     link.active
-                      ? "bg-white text-[oklch(0.40_0.12_240)] shadow-sm"
-                      : "text-white/90 hover:text-white hover:bg-white/15"
+                      ? "text-white border-[oklch(0.55_0.12_240)]"
+                      : "text-white/70 border-transparent hover:text-white hover:border-white/30"
                   }`}
                 >
                   {link.label}
@@ -67,7 +67,7 @@ export default function Header() {
               ))}
               <Link
                 to="/admin"
-                className="px-4 py-2 rounded-full text-sm font-semibold text-yellow-300 hover:bg-white/10 transition-all duration-200"
+                className="px-4 py-2 text-sm font-semibold text-yellow-300 border-b-2 border-transparent hover:border-yellow-300/50 transition-all duration-200"
               >
                 Admin
               </Link>
