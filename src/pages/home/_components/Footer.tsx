@@ -2,7 +2,7 @@ import { Facebook, Instagram, Twitter, MapPin, Mail } from "lucide-react";
 
 export default function Footer() {
   return (
-    <footer className="bg-[oklch(0.15_0.04_250)] text-white pt-16 pb-8 border-t-4 border-[oklch(0.55_0.18_250)]">
+    <footer className="bg-[oklch(0.18_0.04_252)] text-white pt-16 pb-8 border-t-4 border-[oklch(0.69_0.095_228)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
           {/* Club info */}
@@ -15,26 +15,26 @@ export default function Footer() {
               />
               <h4 className="text-xl font-bold uppercase">FK Mladost</h4>
             </div>
-            <p className="text-[oklch(0.55_0.03_250)] text-sm mb-6">
+            <p className="text-[oklch(0.55_0.03_252)] text-sm mb-6">
               Zvanična internet prezentacija Fudbalskog kluba Mladost Lučani.
               Tradicija duga od 1952. godine.
             </p>
             <div className="flex space-x-4">
               <a
                 href="#"
-                className="w-10 h-10 rounded-full bg-[oklch(0.22_0.06_250)] flex items-center justify-center hover:bg-[oklch(0.55_0.18_250)] transition-colors"
+                className="w-10 h-10 rounded-full bg-[oklch(0.24_0.045_252)] flex items-center justify-center hover:bg-[oklch(0.69_0.095_228)] transition-colors"
               >
                 <Facebook size={18} />
               </a>
               <a
                 href="#"
-                className="w-10 h-10 rounded-full bg-[oklch(0.22_0.06_250)] flex items-center justify-center hover:bg-[oklch(0.55_0.18_250)] transition-colors"
+                className="w-10 h-10 rounded-full bg-[oklch(0.24_0.045_252)] flex items-center justify-center hover:bg-[oklch(0.69_0.095_228)] transition-colors"
               >
                 <Instagram size={18} />
               </a>
               <a
                 href="#"
-                className="w-10 h-10 rounded-full bg-[oklch(0.22_0.06_250)] flex items-center justify-center hover:bg-[oklch(0.55_0.18_250)] transition-colors"
+                className="w-10 h-10 rounded-full bg-[oklch(0.24_0.045_252)] flex items-center justify-center hover:bg-[oklch(0.69_0.095_228)] transition-colors"
               >
                 <Twitter size={18} />
               </a>
@@ -43,10 +43,10 @@ export default function Footer() {
 
           {/* Club links */}
           <div>
-            <h5 className="font-bold uppercase tracking-wider mb-4 border-b border-[oklch(0.25_0.05_250)] pb-2">
+            <h5 className="font-bold uppercase tracking-wider mb-4 border-b border-[oklch(0.28_0.045_252)] pb-2">
               Klub
             </h5>
-            <ul className="space-y-2 text-[oklch(0.55_0.03_250)] text-sm">
+            <ul className="space-y-2 text-[oklch(0.55_0.03_252)] text-sm">
               <li>
                 <a href="#" className="hover:text-white transition-colors">
                   Istorijat kluba
@@ -72,10 +72,10 @@ export default function Footer() {
 
           {/* Teams links */}
           <div>
-            <h5 className="font-bold uppercase tracking-wider mb-4 border-b border-[oklch(0.25_0.05_250)] pb-2">
+            <h5 className="font-bold uppercase tracking-wider mb-4 border-b border-[oklch(0.28_0.045_252)] pb-2">
               Timovi
             </h5>
-            <ul className="space-y-2 text-[oklch(0.55_0.03_250)] text-sm">
+            <ul className="space-y-2 text-[oklch(0.55_0.03_252)] text-sm">
               <li>
                 <a href="#" className="hover:text-white transition-colors">
                   Prvi Tim
@@ -101,21 +101,21 @@ export default function Footer() {
 
           {/* Contact */}
           <div>
-            <h5 className="font-bold uppercase tracking-wider mb-4 border-b border-[oklch(0.25_0.05_250)] pb-2">
+            <h5 className="font-bold uppercase tracking-wider mb-4 border-b border-[oklch(0.28_0.045_252)] pb-2">
               Kontakt
             </h5>
-            <ul className="space-y-3 text-[oklch(0.55_0.03_250)] text-sm">
+            <ul className="space-y-3 text-[oklch(0.55_0.03_252)] text-sm">
               <li className="flex items-start">
                 <MapPin
                   size={16}
-                  className="mr-2 text-[oklch(0.55_0.18_250)] mt-1 flex-shrink-0"
+                  className="mr-2 text-[oklch(0.69_0.095_228)] mt-1 flex-shrink-0"
                 />
                 <span>Radnička bb, 32240 Lučani, Srbija</span>
               </li>
               <li className="flex items-center">
                 <Mail
                   size={16}
-                  className="mr-2 text-[oklch(0.55_0.18_250)] flex-shrink-0"
+                  className="mr-2 text-[oklch(0.69_0.095_228)] flex-shrink-0"
                 />
                 <span>office@fkmladostlucani.com</span>
               </li>
@@ -124,7 +124,7 @@ export default function Footer() {
         </div>
 
         {/* Bottom bar */}
-        <div className="border-t border-[oklch(0.22_0.05_250)] pt-8 flex flex-col md:flex-row justify-between items-center text-xs text-[oklch(0.45_0.03_250)]">
+        <div className="border-t border-[oklch(0.26_0.04_252)] pt-8 flex flex-col md:flex-row justify-between items-center text-xs text-[oklch(0.50_0.03_252)]">
           <p>
             &copy; {new Date().getFullYear()} FK Mladost Lučani. Sva prava
             zadržana.

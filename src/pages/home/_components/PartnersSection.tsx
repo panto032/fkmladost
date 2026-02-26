@@ -12,7 +12,7 @@ export default function PartnersSection() {
       <div className="mb-2">
         <h3 className="text-3xl font-extrabold text-foreground uppercase tracking-tight">
           Klub &{" "}
-          <span className="text-[oklch(0.55_0.18_250)]">Partneri</span>
+          <span className="text-accent">Partneri</span>
         </h3>
         <p className="text-muted-foreground mt-1">
           Podrška koja nas gura napred
@@ -36,9 +36,9 @@ export default function PartnersSection() {
               return (
                 <div
                   key={p._id}
-                  className="col-span-2 bg-gradient-to-br from-[oklch(0.22_0.06_250)] to-[oklch(0.25_0.07_250)] rounded-3xl p-6 text-white shadow-lg relative overflow-hidden group cursor-pointer border border-[oklch(0.30_0.06_250)]"
+                  className="col-span-2 bg-gradient-to-br from-[oklch(0.22_0.045_252)] to-[oklch(0.26_0.045_252)] rounded-3xl p-6 text-white shadow-lg relative overflow-hidden group cursor-pointer border border-[oklch(0.30_0.045_252)]"
                 >
-                  <span className="text-[oklch(0.65_0.12_250)] text-xs font-bold uppercase tracking-wider mb-2 block">
+                  <span className="text-[oklch(0.69_0.07_228)] text-xs font-bold uppercase tracking-wider mb-2 block">
                     {p.level}
                   </span>
                   <div className="h-24 flex items-center justify-center bg-white/10 rounded-2xl backdrop-blur-sm border border-white/20 mt-3 group-hover:bg-white/20 transition-colors">
@@ -58,7 +58,7 @@ export default function PartnersSection() {
                     {p.level}
                   </span>
                   <div className="h-16 flex items-center justify-center group-hover:scale-105 transition-transform">
-                    <span className="text-lg font-black text-center text-[oklch(0.22_0.06_250)] leading-tight">
+                    <span className="text-lg font-black text-center text-foreground leading-tight">
                       {p.name}
                     </span>
                   </div>
@@ -67,17 +67,17 @@ export default function PartnersSection() {
             return (
               <div
                 key={p._id}
-                className="col-span-2 bg-[oklch(0.18_0.02_250)] text-white rounded-3xl p-6 shadow-lg flex items-center justify-between group cursor-pointer"
+                className="col-span-2 bg-[oklch(0.18_0.04_252)] text-white rounded-3xl p-6 shadow-lg flex items-center justify-between group cursor-pointer"
               >
                 <div>
-                  <span className="text-[oklch(0.50_0.03_250)] text-[10px] font-bold uppercase tracking-wider mb-1 block">
+                  <span className="text-[oklch(0.50_0.03_252)] text-[10px] font-bold uppercase tracking-wider mb-1 block">
                     {p.level}
                   </span>
                   <span className="font-bold text-xl tracking-tight">
                     {p.name}
                   </span>
                 </div>
-                <div className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center group-hover:bg-[oklch(0.55_0.18_250)] transition-all transform group-hover:rotate-45">
+                <div className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center group-hover:bg-accent transition-all transform group-hover:rotate-45">
                   <ArrowRight size={20} />
                 </div>
               </div>

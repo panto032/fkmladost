@@ -25,9 +25,9 @@ export default function StandingsSection() {
       <div className="flex justify-between items-end mb-6 pt-2">
         <h3 className="text-2xl font-extrabold text-foreground uppercase tracking-tight">
           Tabela{" "}
-          <span className="text-[oklch(0.55_0.18_250)] ml-2">Superlige</span>
+          <span className="text-accent ml-2">Superlige</span>
         </h3>
-        <button className="hidden sm:flex items-center text-[oklch(0.55_0.18_250)] font-semibold hover:text-[oklch(0.45_0.18_250)] transition-colors text-sm bg-[oklch(0.94_0.03_250)] px-4 py-2 rounded-full border border-[oklch(0.90_0.04_250)]">
+        <button className="hidden sm:flex items-center text-accent font-semibold hover:text-accent/80 transition-colors text-sm bg-secondary px-4 py-2 rounded-full border border-border">
           Kompletna tabela <ArrowRight size={14} className="ml-1" />
         </button>
       </div>
@@ -65,17 +65,17 @@ export default function StandingsSection() {
                   key={row.position}
                   className={`border-b border-border/50 transition-colors hover:bg-muted/50 group ${
                     row.isHighlighted
-                      ? "bg-[oklch(0.55_0.18_250)]/5 relative"
+                      ? "bg-accent/5 relative"
                       : "bg-card"
                   }`}
                 >
                   {row.isHighlighted && (
-                    <td className="absolute left-0 top-0 bottom-0 w-1 bg-[oklch(0.55_0.18_250)]" />
+                    <td className="absolute left-0 top-0 bottom-0 w-1 bg-accent" />
                   )}
                   <td
                     className={`px-5 py-4 text-center font-bold ${
                       row.isHighlighted
-                        ? "text-[oklch(0.55_0.18_250)]"
+                        ? "text-accent"
                         : "text-muted-foreground"
                     }`}
                   >
@@ -84,14 +84,14 @@ export default function StandingsSection() {
                   <td
                     className={`px-5 py-4 flex items-center ${
                       row.isHighlighted
-                        ? "text-[oklch(0.22_0.06_250)] font-black"
+                        ? "text-foreground font-black"
                         : "text-foreground font-semibold"
                     }`}
                   >
                     <div
                       className={`w-6 h-6 rounded-full mr-3 flex items-center justify-center text-[8px] font-bold text-white shadow-sm ${
                         row.isHighlighted
-                          ? "bg-[oklch(0.55_0.18_250)]"
+                          ? "bg-accent"
                           : "bg-muted-foreground/40"
                       }`}
                     >
@@ -111,7 +111,7 @@ export default function StandingsSection() {
                   <td
                     className={`px-5 py-4 text-center font-black text-lg ${
                       row.isHighlighted
-                        ? "text-[oklch(0.55_0.18_250)] bg-[oklch(0.55_0.18_250)]/5"
+                        ? "text-accent bg-accent/5"
                         : "text-foreground bg-muted/30"
                     }`}
                   >
