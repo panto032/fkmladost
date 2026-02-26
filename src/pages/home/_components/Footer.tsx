@@ -171,14 +171,16 @@ export default function Footer() {
             &copy; {new Date().getFullYear()} FK Mladost Lučani. Sva prava
             zadržana.
           </p>
-          <div className="mt-4 md:mt-0 space-x-4">
-            <a href="#" className="hover:text-white">
-              Politika privatnosti
+          <p className="mt-4 md:mt-0">
+            Kreirao{" "}
+            <a href="https://impulsee.cloud/" target="_blank" rel="noopener noreferrer" className="hover:text-white font-medium">
+              IMPULSE
             </a>
-            <a href="#" className="hover:text-white">
-              Uslovi korišćenja
+            {" "}part of{" "}
+            <a href="https://impuls-tech.rs/" target="_blank" rel="noopener noreferrer" className="hover:text-white font-medium">
+              IMPULS TECH DOO
             </a>
-          </div>
+          </p>
         </div>
       </div>
     </footer>
