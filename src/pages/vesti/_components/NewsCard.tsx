@@ -1,9 +1,17 @@
 import { Link } from "react-router-dom";
 import { Calendar } from "lucide-react";
-import type { Doc } from "@/convex/_generated/dataModel.d.ts";
+
+type NewsArticle = {
+  _id: string;
+  title: string;
+  excerpt: string;
+  category: string;
+  date: string;
+  resolvedImageUrl: string;
+};
 
 type NewsCardProps = {
-  article: Doc<"news">;
+  article: NewsArticle;
   featured?: boolean;
 };
 
@@ -15,7 +23,7 @@ export default function NewsCard({ article, featured = false }: NewsCardProps) {
         className="group block rounded-2xl overflow-hidden border border-border shadow-lg relative min-h-[340px] lg:min-h-[400px]"
       >
         <img
-          src={article.imageUrl}
+          src={article.resolvedImageUrl}
           alt={article.title}
           className="w-full h-full object-cover absolute inset-0 group-hover:scale-105 transition-transform duration-700"
         />
@@ -45,7 +53,7 @@ export default function NewsCard({ article, featured = false }: NewsCardProps) {
     >
       <div className="relative h-48 overflow-hidden">
         <img
-          src={article.imageUrl}
+          src={article.resolvedImageUrl}
           alt={article.title}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         />

@@ -42,7 +42,7 @@ export default function BentoGridSection() {
         {featuredNews ? (
           <Link to={`/vesti/${featuredNews._id}`} className="lg:col-start-5 lg:col-end-13 lg:row-start-1 lg:row-end-2 rounded-2xl overflow-hidden border border-border shadow-lg relative group cursor-pointer min-h-[280px] lg:min-h-0">
             <img
-              src={featuredNews.imageUrl}
+              src={featuredNews.resolvedImageUrl}
               alt={featuredNews.title}
               className="w-full h-full object-cover absolute inset-0 group-hover:scale-105 transition-transform duration-700"
             />
@@ -81,7 +81,7 @@ export default function BentoGridSection() {
           <Link to={`/vesti/${smallNews[0]._id}`} className="lg:col-start-5 lg:col-end-9 lg:row-start-2 lg:row-end-3 rounded-2xl overflow-hidden border border-border shadow-lg group cursor-pointer bg-card flex flex-col">
             <div className="relative h-36 overflow-hidden flex-shrink-0">
               <img
-                src={smallNews[0].imageUrl}
+                src={smallNews[0].resolvedImageUrl}
                 alt={smallNews[0].title}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
               />
@@ -111,7 +111,7 @@ export default function BentoGridSection() {
           <Link to={`/vesti/${smallNews[1]._id}`} className="lg:col-start-9 lg:col-end-13 lg:row-start-2 lg:row-end-3 rounded-2xl overflow-hidden border border-border shadow-lg group cursor-pointer bg-card flex flex-col">
             <div className="relative h-36 overflow-hidden flex-shrink-0">
               <img
-                src={smallNews[1].imageUrl}
+                src={smallNews[1].resolvedImageUrl}
                 alt={smallNews[1].title}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
               />

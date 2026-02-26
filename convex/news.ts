@@ -1,4 +1,4 @@
-import { query } from "./_generated/server";
+import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 
 export const getPublished = query({
@@ -9,7 +9,17 @@ export const getPublished = query({
       .withIndex("by_published", (q) => q.eq("published", true))
       .order("desc")
       .collect();
-    return articles;
+    return Promise.all(
+      articles.map(async (article) => {
+        const resolvedImageUrl = article.imageStorageId
+          ? await ctx.storage.getUrl(article.imageStorageId)
+          : null;
+        return {
+          ...article,
+          resolvedImageUrl: resolvedImageUrl || article.imageUrl,
+        };
+      }),
+    );
   },
 });
 
@@ -21,13 +31,38 @@ export const getLatest = query({
       .withIndex("by_published", (q) => q.eq("published", true))
       .order("desc")
       .take(3);
-    return articles;
+    return Promise.all(
+      articles.map(async (article) => {
+        const resolvedImageUrl = article.imageStorageId
+          ? await ctx.storage.getUrl(article.imageStorageId)
+          : null;
+        return {
+          ...article,
+          resolvedImageUrl: resolvedImageUrl || article.imageUrl,
+        };
+      }),
+    );
   },
 });
 
 export const getById = query({
   args: { id: v.id("news") },
   handler: async (ctx, args) => {
-    return await ctx.db.get(args.id);
+    const article = await ctx.db.get(args.id);
+    if (!article) return null;
+    const resolvedImageUrl = article.imageStorageId
+      ? await ctx.storage.getUrl(article.imageStorageId)
+      : null;
+    return {
+      ...article,
+      resolvedImageUrl: resolvedImageUrl || article.imageUrl,
+    };
+  },
+});
+
+export const generateUploadUrl = mutation({
+  args: {},
+  handler: async (ctx) => {
+    return await ctx.storage.generateUploadUrl();
   },
 });

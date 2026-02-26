@@ -16,6 +16,7 @@ export default defineSchema({
     category: v.string(),
     date: v.string(),
     imageUrl: v.string(),
+    imageStorageId: v.optional(v.id("_storage")),
     published: v.boolean(),
   }).index("by_published", ["published"]),
 

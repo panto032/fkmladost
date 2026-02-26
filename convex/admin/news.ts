@@ -24,6 +24,7 @@ export const create = mutation({
     category: v.string(),
     date: v.string(),
     imageUrl: v.string(),
+    imageStorageId: v.optional(v.id("_storage")),
     published: v.boolean(),
   },
   handler: async (ctx, args) => {
@@ -41,6 +42,7 @@ export const update = mutation({
     category: v.string(),
     date: v.string(),
     imageUrl: v.string(),
+    imageStorageId: v.optional(v.id("_storage")),
     published: v.boolean(),
   },
   handler: async (ctx, args) => {

@@ -28,7 +28,7 @@ export default function NewsDetailPage() {
             {/* Hero image */}
             <div className="relative w-full h-[300px] sm:h-[420px] lg:h-[500px]">
               <img
-                src={article.imageUrl}
+                src={article.resolvedImageUrl}
                 alt={article.title}
                 className="w-full h-full object-cover"
               />
@@ -68,17 +68,21 @@ export default function NewsDetailPage() {
                 {article.excerpt}
               </p>
 
-              {/* Content — render paragraphs */}
+              {/* Content — render HTML or plain text paragraphs */}
               <div className="prose prose-lg max-w-none dark:prose-invert">
-                {article.content.split("\n").map((paragraph, i) => {
-                  const trimmed = paragraph.trim();
-                  if (!trimmed) return null;
-                  return (
-                    <p key={i} className="text-foreground/80 leading-relaxed mb-5">
-                      {trimmed}
-                    </p>
-                  );
-                })}
+                {article.content.startsWith("<") ? (
+                  <div dangerouslySetInnerHTML={{ __html: article.content }} />
+                ) : (
+                  article.content.split("\n").map((paragraph, i) => {
+                    const trimmed = paragraph.trim();
+                    if (!trimmed) return null;
+                    return (
+                      <p key={i} className="text-foreground/80 leading-relaxed mb-5">
+                        {trimmed}
+                      </p>
+                    );
+                  })
+                )}
               </div>
             </div>
           </>
