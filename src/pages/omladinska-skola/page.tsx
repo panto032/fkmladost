@@ -71,21 +71,27 @@ Iz ove generacije Ivan Milošević je postigao veliki uspeh — igranje u prvom 
   },
 ];
 
-/* ─── Image placeholder ─── */
+const SLOT_IMAGES: Record<number, { src: string; alt: string }> = {
+  1: {
+    src: "https://cdn.hercules.app/file_kjevJTuW8Y3zKu7fz0ww5B1T",
+    alt: "Omladinski tim FK Mladost — rana generacija",
+  },
+  2: {
+    src: "https://cdn.hercules.app/file_tm2g2o21E3dxpAyRTQ1TP7y6",
+    alt: "Omladinski tim FK Mladost — generacija 1985/86",
+  },
+};
+
 function ImageSlot({ slotId }: { slotId: number }) {
+  const img = SLOT_IMAGES[slotId];
+  if (!img) return null;
   return (
-    <div className="my-6 rounded-xl overflow-hidden border border-[oklch(0.30_0.045_252)] bg-[oklch(0.14_0.03_252)] flex items-center justify-center aspect-video">
-      <div className="text-center p-8">
-        <div className="w-14 h-14 rounded-full bg-[oklch(0.69_0.095_228)]/15 flex items-center justify-center mx-auto mb-3">
-          <GraduationCap size={28} className="text-[oklch(0.69_0.095_228)]" />
-        </div>
-        <p className="text-[oklch(0.50_0.03_252)] text-sm font-medium">
-          Slika {slotId} — Omladinski pogon
-        </p>
-        <p className="text-[oklch(0.40_0.03_252)] text-xs mt-1">
-          Mesto za fotografiju
-        </p>
-      </div>
+    <div className="my-6 rounded-xl overflow-hidden border border-[oklch(0.30_0.045_252)] bg-[oklch(0.14_0.03_252)]">
+      <img
+        src={img.src}
+        alt={img.alt}
+        className="w-full h-auto object-contain"
+      />
     </div>
   );
 }
