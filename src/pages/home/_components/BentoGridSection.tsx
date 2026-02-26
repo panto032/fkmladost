@@ -10,20 +10,28 @@ import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton.tsx";
 import StandingsTable from "./StandingsTable.tsx";
 
+/* ─── Helper: strip HTML tags to get plain text ─── */
+function stripHtml(html: string): string {
+  return html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+}
+
 /* ─────────────────── Small News Card (reusable) ─────────────────── */
+
+type NewsArticle = {
+  _id: string;
+  title: string;
+  excerpt?: string;
+  content?: string;
+  category: string;
+  date: string;
+  resolvedImageUrl?: string | null;
+};
 
 function SmallNewsCard({
   article,
   className = "",
 }: {
-  article: {
-    _id: string;
-    title: string;
-    excerpt?: string;
-    category: string;
-    date: string;
-    resolvedImageUrl?: string | null;
-  };
+  article: NewsArticle;
   className?: string;
 }) {
   return (
@@ -57,6 +65,53 @@ function SmallNewsCard({
           )}
         </div>
         <p className="text-muted-foreground text-[11px] mt-2 flex items-center">
+          <Calendar size={10} className="mr-1" /> {article.date}
+        </p>
+      </div>
+    </Link>
+  );
+}
+
+/* ────────── Medium News Card (row 2 — image + lots of text) ────────── */
+
+function MediumNewsCard({
+  article,
+  className = "",
+}: {
+  article: NewsArticle;
+  className?: string;
+}) {
+  const plainText = article.content ? stripHtml(article.content) : (article.excerpt ?? "");
+
+  return (
+    <Link
+      to={`/vesti/${article._id}`}
+      className={`rounded-2xl overflow-hidden border border-border shadow-lg group cursor-pointer bg-card flex flex-col ${className}`}
+    >
+      <div className="relative h-40 overflow-hidden flex-shrink-0">
+        {article.resolvedImageUrl && (
+          <img
+            src={article.resolvedImageUrl}
+            alt={article.title}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          />
+        )}
+        <div className="absolute top-3 left-3">
+          <span className="bg-accent text-accent-foreground text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">
+            {article.category}
+          </span>
+        </div>
+      </div>
+      <div className="p-4 flex-1 flex flex-col justify-between">
+        <div>
+          <h4 className="text-sm font-bold text-card-foreground leading-snug group-hover:text-accent transition-colors line-clamp-2">
+            {article.title}
+          </h4>
+          <p className="text-muted-foreground text-xs mt-2 leading-relaxed line-clamp-[8]">
+            {plainText}
+          </p>
+        </div>
+        <p className="text-muted-foreground text-[11px] mt-3 flex items-center">
           <Calendar size={10} className="mr-1" /> {article.date}
         </p>
       </div>
@@ -136,7 +191,7 @@ export default function BentoGridSection() {
 
         {/* ── CELL: NEWS 2 ──────────────────────────────── col 5-8, row 2 */}
         {row2News.length > 0 ? (
-          <SmallNewsCard
+          <MediumNewsCard
             article={row2News[0]}
             className="lg:col-start-5 lg:col-end-9 lg:row-start-2 lg:row-end-3"
           />
@@ -148,7 +203,7 @@ export default function BentoGridSection() {
 
         {/* ── CELL: NEWS 3 ──────────────────────────────── col 9-12, row 2 */}
         {row2News.length > 1 ? (
-          <SmallNewsCard
+          <MediumNewsCard
             article={row2News[1]}
             className="lg:col-start-9 lg:col-end-13 lg:row-start-2 lg:row-end-3"
           />
