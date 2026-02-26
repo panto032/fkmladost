@@ -288,4 +288,13 @@ export default defineSchema({
     city: v.optional(v.string()),
     isHome: v.boolean(),
   }).index("by_round", ["round"]),
+
+  /** Kontakt poruke sa sajta */
+  contactMessages: defineTable({
+    name: v.string(),
+    email: v.string(),
+    subject: v.string(),
+    message: v.string(),
+    isRead: v.boolean(),
+  }),
 });

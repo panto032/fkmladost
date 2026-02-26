@@ -73,6 +73,11 @@ export default function Footer() {
                   Omladinska škola
                 </Link>
               </li>
+              <li>
+                <Link to="/kontakt" className="hover:text-white transition-colors">
+                  Kontakt
+                </Link>
+              </li>
             </ul>
           </div>
 

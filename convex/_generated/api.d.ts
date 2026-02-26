@@ -18,6 +18,7 @@ import type * as admin_players from "../admin/players.js";
 import type * as admin_standings from "../admin/standings.js";
 import type * as admin_superLeague from "../admin/superLeague.js";
 import type * as admin_youthLeague from "../admin/youthLeague.js";
+import type * as contact from "../contact.js";
 import type * as matchAnalytics from "../matchAnalytics.js";
 import type * as matches from "../matches.js";
 import type * as news from "../news.js";
@@ -54,6 +55,7 @@ declare const fullApi: ApiFromModules<{
   "admin/standings": typeof admin_standings;
   "admin/superLeague": typeof admin_superLeague;
   "admin/youthLeague": typeof admin_youthLeague;
+  contact: typeof contact;
   matchAnalytics: typeof matchAnalytics;
   matches: typeof matches;
   news: typeof news;
