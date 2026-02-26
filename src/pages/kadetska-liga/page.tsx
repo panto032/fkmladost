@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api.js";
-import { Trophy, Target, Calendar, Star } from "lucide-react";
+import { Trophy, Target, Calendar, Star, MapPin } from "lucide-react";
 import Header from "../home/_components/Header.tsx";
 import Footer from "../home/_components/Footer.tsx";
 
 /* ------------------------------------------------------------------ */
 /*  Static fallback data — parsed from fss.rs                         */
-/*  Last update: 26 feb 2026 (after round 14)                        */
+/*  Last update: 26 feb 2026 (season 25/26)                          */
 /* ------------------------------------------------------------------ */
 
 type StandingRow = {
@@ -69,14 +69,47 @@ const TOP_SCORERS: TopScorer[] = [
   { rank: 10, name: "Uroš Stevanović", club: "Mladost L", goals: "6" },
 ];
 
+type MatchRow = {
+  round: number;
+  date: string;
+  home: string;
+  away: string;
+  score?: string;
+  city?: string;
+  isHome: boolean;
+};
+
+const MATCHES: MatchRow[] = [
+  { round: 1, date: "09.08.2025", home: "Mladost", away: "Teleoptik", score: "7:0", city: "Lučani", isHome: true },
+  { round: 2, date: "16.08.2025", home: "TSC", away: "Mladost", score: "1:1", city: "Bačka Topola", isHome: false },
+  { round: 3, date: "24.08.2025", home: "Mladost", away: "RFK Grafičar", score: "3:2", city: "Lučani", isHome: true },
+  { round: 4, date: "27.08.2025", home: "OFK Vršac", away: "Mladost", score: "0:4", city: "Vršac", isHome: false },
+  { round: 5, date: "31.08.2025", home: "Mladost", away: "Spartak", score: "5:1", city: "Lučani", isHome: true },
+  { round: 6, date: "14.09.2025", home: "IMT", away: "Mladost", score: "0:3", city: "Novi Beograd", isHome: false },
+  { round: 7, date: "20.09.2025", home: "Mladost", away: "Novi Pazar", score: "4:0", city: "Lučani", isHome: true },
+  { round: 8, date: "28.09.2025", home: "Partizan", away: "Mladost", score: "2:2", city: "Zemun", isHome: false },
+  { round: 9, date: "05.10.2025", home: "Mladost", away: "Vošini Klinci", score: "2:0", city: "Lučani", isHome: true },
+  { round: 10, date: "18.10.2025", home: "Mladost", away: "Crvena Zvezda", score: "1:0", city: "Lučani", isHome: true },
+  { round: 11, date: "22.10.2025", home: "Real Niš", away: "Mladost", score: "1:1", city: "Niš", isHome: false },
+  { round: 12, date: "26.10.2025", home: "Mladost", away: "Vojvodina", score: "0:1", city: "Lučani", isHome: true },
+  { round: 13, date: "02.11.2025", home: "Čukarički", away: "Mladost", score: "3:1", city: "Beograd", isHome: false },
+  { round: 14, date: "05.11.2025", home: "Mladost", away: "011", score: "5:2", city: "Lučani", isHome: true },
+  { round: 15, date: "22.11.2025", home: "Voždovac", away: "Mladost", score: "1:0", city: "Beograd", isHome: false },
+  { round: 16, date: "29.11.2025", home: "Teleoptik", away: "Mladost", score: "3:1", city: "Zemun", isHome: false },
+  { round: 17, date: "07.12.2025", home: "Mladost", away: "TSC", score: "2:0", city: "Lučani", isHome: true },
+  { round: 18, date: "21.02.2026", home: "RFK Grafičar", away: "Mladost", score: "3:2", city: "Beograd", isHome: false },
+  { round: 19, date: "01.03.2026", home: "Mladost", away: "OFK Vršac", city: "Lučani", isHome: true },
+];
+
 /* ------------------------------------------------------------------ */
 /*  Tabs                                                               */
 /* ------------------------------------------------------------------ */
 
-type Tab = "tabela" | "strelci";
+type Tab = "tabela" | "utakmice" | "strelci";
 
 const TABS: { id: Tab; label: string; icon: typeof Trophy }[] = [
   { id: "tabela", label: "Tabela", icon: Trophy },
+  { id: "utakmice", label: "Raspored i rezultati", icon: Calendar },
   { id: "strelci", label: "Strelci", icon: Target },
 ];
 
@@ -90,6 +123,7 @@ export default function KadetskaLigaPage() {
   // Database queries
   const dbStandings = useQuery(api.admin.cadetLeague.getStandings);
   const dbScorers = useQuery(api.admin.cadetLeague.getScorers);
+  const dbMatches = useQuery(api.admin.cadetLeague.getMatches);
 
   // Use DB data if present, otherwise fall back to static data
   const standings: StandingRow[] = (dbStandings && dbStandings.length > 0)
@@ -118,6 +152,18 @@ export default function KadetskaLigaPage() {
       }))
     : TOP_SCORERS.map((s) => ({ ...s, _highlighted: s.club === "Mladost L" }));
 
+  const matches: MatchRow[] = (dbMatches && dbMatches.length > 0)
+    ? dbMatches.map((m) => ({
+        round: m.round,
+        date: m.date,
+        home: m.home,
+        away: m.away,
+        score: m.score,
+        city: m.city,
+        isHome: m.isHome,
+      }))
+    : MATCHES;
+
   // Mladost stats for the hero
   const mladostRow = standings.find((r) => r._highlighted) ?? standings.find((r) => r.club.includes("Mladost"));
 
@@ -142,7 +188,7 @@ export default function KadetskaLigaPage() {
                 Kadetska Liga Srbije
               </h1>
               <p className="text-[oklch(0.65_0.03_228)] text-lg max-w-xl mb-8">
-                Pratite tabelu i statistiku kadetske selekcije FK Mladost Lučani u Kadetskoj ligi Srbije.
+                Pratite tabelu, raspored i statistiku kadetske selekcije FK Mladost Lučani u Kadetskoj ligi Srbije.
               </p>
 
               {/* Quick stats */}
@@ -214,6 +260,7 @@ export default function KadetskaLigaPage() {
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
         {activeTab === "tabela" && <StandingsTable data={standings} />}
+        {activeTab === "utakmice" && <MatchesList data={matches} />}
         {activeTab === "strelci" && <ScorersList data={scorers} />}
       </div>
 
@@ -231,7 +278,7 @@ function StandingsTable({ data }: { data: StandingRow[] }) {
     <div>
       <h2 className="text-2xl font-extrabold text-[oklch(0.22_0.045_252)] mb-6 flex items-center gap-3">
         <Trophy size={24} className="text-[oklch(0.69_0.095_228)]" />
-        Tabela — 14. kolo
+        Tabela — Kadetska liga
       </h2>
 
       <div className="bg-white rounded-2xl shadow-lg border border-[oklch(0.92_0.01_228)] overflow-hidden">
@@ -336,6 +383,199 @@ function StandingsTable({ data }: { data: StandingRow[] }) {
 
       <p className="text-xs text-[oklch(0.55_0.03_252)] mt-4 text-right">
         Izvor: fss.rs · Poslednje ažuriranje: 26. feb 2026
+      </p>
+    </div>
+  );
+}
+
+/* ================================================================== */
+/*  Matches List                                                       */
+/* ================================================================== */
+
+function getResultColor(match: MatchRow): string {
+  if (!match.score) return "";
+  const parts = match.score.split(":");
+  if (parts.length !== 2) return "";
+  const homeGoals = parseInt(parts[0]);
+  const awayGoals = parseInt(parts[1]);
+  if (isNaN(homeGoals) || isNaN(awayGoals)) return "";
+
+  // Determine Mladost's result
+  if (match.isHome) {
+    if (homeGoals > awayGoals) return "text-green-700";
+    if (homeGoals < awayGoals) return "text-red-600";
+    return "text-amber-600";
+  } else {
+    if (awayGoals > homeGoals) return "text-green-700";
+    if (awayGoals < homeGoals) return "text-red-600";
+    return "text-amber-600";
+  }
+}
+
+function getResultLabel(match: MatchRow): string {
+  if (!match.score) return "";
+  const parts = match.score.split(":");
+  if (parts.length !== 2) return "";
+  const homeGoals = parseInt(parts[0]);
+  const awayGoals = parseInt(parts[1]);
+  if (isNaN(homeGoals) || isNaN(awayGoals)) return "";
+
+  if (match.isHome) {
+    if (homeGoals > awayGoals) return "P";
+    if (homeGoals < awayGoals) return "I";
+    return "N";
+  } else {
+    if (awayGoals > homeGoals) return "P";
+    if (awayGoals < homeGoals) return "I";
+    return "N";
+  }
+}
+
+function getResultBg(label: string): string {
+  if (label === "P") return "bg-green-600 text-white";
+  if (label === "I") return "bg-red-600 text-white";
+  if (label === "N") return "bg-amber-500 text-white";
+  return "bg-[oklch(0.94_0.015_228)] text-[oklch(0.45_0.03_252)]";
+}
+
+function MatchesList({ data }: { data: MatchRow[] }) {
+  // Sort by round descending (most recent first)
+  const sorted = [...data].sort((a, b) => b.round - a.round);
+
+  // Calculate W/D/L record
+  const wins = data.filter((m) => getResultLabel(m) === "P").length;
+  const draws = data.filter((m) => getResultLabel(m) === "N").length;
+  const losses = data.filter((m) => getResultLabel(m) === "I").length;
+
+  return (
+    <div>
+      <h2 className="text-2xl font-extrabold text-[oklch(0.22_0.045_252)] mb-2 flex items-center gap-3">
+        <Calendar size={24} className="text-[oklch(0.69_0.095_228)]" />
+        Raspored i rezultati
+      </h2>
+      <p className="text-sm text-[oklch(0.55_0.03_252)] mb-6">
+        Utakmice FK Mladost Lučani u sezoni 2025/26 · <span className="font-semibold text-green-700">{wins}P</span>{" "}
+        <span className="font-semibold text-amber-600">{draws}N</span>{" "}
+        <span className="font-semibold text-red-600">{losses}I</span>
+      </p>
+
+      <div className="bg-white rounded-2xl shadow-lg border border-[oklch(0.92_0.01_228)] overflow-hidden">
+        <div className="divide-y divide-[oklch(0.94_0.01_228)]">
+          {sorted.map((match) => {
+            const resultLabel = getResultLabel(match);
+            const resultColor = getResultColor(match);
+            const isUpcoming = !match.score;
+
+            return (
+              <div
+                key={`${match.round}-${match.home}-${match.away}`}
+                className={`px-4 sm:px-6 py-4 transition-colors ${
+                  isUpcoming
+                    ? "bg-[oklch(0.55_0.12_240/0.06)]"
+                    : "hover:bg-[oklch(0.98_0.005_228)]"
+                }`}
+              >
+                {/* Desktop layout */}
+                <div className="hidden sm:flex items-center gap-4">
+                  {/* Round badge */}
+                  <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-[oklch(0.94_0.015_228)] flex items-center justify-center">
+                    <span className="text-xs font-bold text-[oklch(0.40_0.04_252)]">{match.round}.</span>
+                  </div>
+
+                  {/* Date & city */}
+                  <div className="w-32 flex-shrink-0">
+                    <div className="text-sm font-semibold text-[oklch(0.25_0.04_252)]">{match.date}</div>
+                    {match.city && (
+                      <div className="text-xs text-[oklch(0.55_0.03_252)] flex items-center gap-1 mt-0.5">
+                        <MapPin size={10} />
+                        {match.city}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Teams */}
+                  <div className="flex-1 flex items-center gap-3">
+                    <span className={`text-sm font-semibold text-right flex-1 truncate ${
+                      match.isHome ? "text-[oklch(0.40_0.10_240)] font-extrabold" : "text-[oklch(0.25_0.04_252)]"
+                    }`}>
+                      {match.home}
+                    </span>
+
+                    {/* Score */}
+                    <div className={`w-16 text-center font-extrabold text-lg ${
+                      isUpcoming ? "text-[oklch(0.55_0.03_252)]" : resultColor
+                    }`}>
+                      {match.score || "—"}
+                    </div>
+
+                    <span className={`text-sm font-semibold text-left flex-1 truncate ${
+                      !match.isHome ? "text-[oklch(0.40_0.10_240)] font-extrabold" : "text-[oklch(0.25_0.04_252)]"
+                    }`}>
+                      {match.away}
+                    </span>
+                  </div>
+
+                  {/* Result badge */}
+                  <div className="flex-shrink-0 w-8">
+                    {resultLabel ? (
+                      <span className={`inline-flex items-center justify-center w-8 h-8 rounded-lg text-xs font-bold ${getResultBg(resultLabel)}`}>
+                        {resultLabel}
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-xs font-bold bg-[oklch(0.55_0.12_240/0.15)] text-[oklch(0.40_0.10_240)]">
+                        ?
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Mobile layout */}
+                <div className="sm:hidden">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-bold text-[oklch(0.55_0.03_252)]">{match.round}. kolo</span>
+                    <span className="text-xs text-[oklch(0.55_0.03_252)]">{match.date}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1">
+                      <div className={`text-sm font-semibold truncate ${
+                        match.isHome ? "text-[oklch(0.40_0.10_240)] font-extrabold" : "text-[oklch(0.25_0.04_252)]"
+                      }`}>
+                        {match.home}
+                      </div>
+                      <div className={`text-sm font-semibold truncate ${
+                        !match.isHome ? "text-[oklch(0.40_0.10_240)] font-extrabold" : "text-[oklch(0.25_0.04_252)]"
+                      }`}>
+                        {match.away}
+                      </div>
+                    </div>
+                    <div className={`text-lg font-extrabold ${isUpcoming ? "text-[oklch(0.55_0.03_252)]" : resultColor}`}>
+                      {match.score || "—"}
+                    </div>
+                    {resultLabel ? (
+                      <span className={`w-7 h-7 rounded-lg text-xs font-bold flex items-center justify-center ${getResultBg(resultLabel)}`}>
+                        {resultLabel}
+                      </span>
+                    ) : (
+                      <span className="w-7 h-7 rounded-lg text-xs font-bold flex items-center justify-center bg-[oklch(0.55_0.12_240/0.15)] text-[oklch(0.40_0.10_240)]">
+                        ?
+                      </span>
+                    )}
+                  </div>
+                  {match.city && (
+                    <div className="text-xs text-[oklch(0.55_0.03_252)] flex items-center gap-1 mt-1.5">
+                      <MapPin size={10} />
+                      {match.city}
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <p className="text-xs text-[oklch(0.55_0.03_252)] mt-4 text-right">
+        Izvor: fss.rs · Kadetska liga Srbije 25/26
       </p>
     </div>
   );

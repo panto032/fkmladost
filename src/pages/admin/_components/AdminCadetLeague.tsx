@@ -58,7 +58,27 @@ const SEED_MATCHES: Array<{
   score?: string;
   city?: string;
   isHome: boolean;
-}> = [];
+}> = [
+  { round: 1, date: "09.08.2025", home: "Mladost", away: "Teleoptik", score: "7:0", city: "Lučani", isHome: true },
+  { round: 2, date: "16.08.2025", home: "TSC", away: "Mladost", score: "1:1", city: "Bačka Topola", isHome: false },
+  { round: 3, date: "24.08.2025", home: "Mladost", away: "RFK Grafičar", score: "3:2", city: "Lučani", isHome: true },
+  { round: 4, date: "27.08.2025", home: "OFK Vršac", away: "Mladost", score: "0:4", city: "Vršac", isHome: false },
+  { round: 5, date: "31.08.2025", home: "Mladost", away: "Spartak", score: "5:1", city: "Lučani", isHome: true },
+  { round: 6, date: "14.09.2025", home: "IMT", away: "Mladost", score: "0:3", city: "Novi Beograd", isHome: false },
+  { round: 7, date: "20.09.2025", home: "Mladost", away: "Novi Pazar", score: "4:0", city: "Lučani", isHome: true },
+  { round: 8, date: "28.09.2025", home: "Partizan", away: "Mladost", score: "2:2", city: "Zemun", isHome: false },
+  { round: 9, date: "05.10.2025", home: "Mladost", away: "Vošini Klinci", score: "2:0", city: "Lučani", isHome: true },
+  { round: 10, date: "18.10.2025", home: "Mladost", away: "Crvena Zvezda", score: "1:0", city: "Lučani", isHome: true },
+  { round: 11, date: "22.10.2025", home: "Real Niš", away: "Mladost", score: "1:1", city: "Niš", isHome: false },
+  { round: 12, date: "26.10.2025", home: "Mladost", away: "Vojvodina", score: "0:1", city: "Lučani", isHome: true },
+  { round: 13, date: "02.11.2025", home: "Čukarički", away: "Mladost", score: "3:1", city: "Beograd", isHome: false },
+  { round: 14, date: "05.11.2025", home: "Mladost", away: "011", score: "5:2", city: "Lučani", isHome: true },
+  { round: 15, date: "22.11.2025", home: "Voždovac", away: "Mladost", score: "1:0", city: "Beograd", isHome: false },
+  { round: 16, date: "29.11.2025", home: "Teleoptik", away: "Mladost", score: "3:1", city: "Zemun", isHome: false },
+  { round: 17, date: "07.12.2025", home: "Mladost", away: "TSC", score: "2:0", city: "Lučani", isHome: true },
+  { round: 18, date: "21.02.2026", home: "RFK Grafičar", away: "Mladost", score: "3:2", city: "Beograd", isHome: false },
+  { round: 19, date: "01.03.2026", home: "Mladost", away: "OFK Vršac", city: "Lučani", isHome: true },
+];
 
 const SEED_SCORERS = [
   { rank: 1, name: "Tadija Cojić", club: "Real Niš", goals: "15", isHighlighted: false },
@@ -117,7 +137,7 @@ export default function AdminCadetLeague() {
       {/* Sync banner */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6 p-4 rounded-xl bg-accent/10 border border-accent/20">
         <p className="text-sm text-muted-foreground">
-          Povuci podatke iz <span className="font-semibold">fss.rs</span> — tabela i strelci Kadetske lige (posle 14. kola).
+          Povuci podatke iz <span className="font-semibold">fss.rs</span> — tabela, utakmice Mladosti (19 kola) i strelci Kadetske lige.
         </p>
         <Button
           size="sm"
