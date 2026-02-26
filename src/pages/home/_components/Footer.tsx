@@ -73,6 +73,11 @@ export default function Footer() {
                   Omladinska liga
                 </Link>
               </li>
+              <li>
+                <Link to="/kadetska-liga" className="hover:text-white transition-colors">
+                  Kadetska liga
+                </Link>
+              </li>
             </ul>
           </div>
 

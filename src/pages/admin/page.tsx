@@ -3,7 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs.t
 import { Skeleton } from "@/components/ui/skeleton.tsx";
 import { SignInButton } from "@/components/ui/signin.tsx";
 import { useAuth } from "@/hooks/use-auth.ts";
-import { Newspaper, Trophy, Handshake, TableProperties, ArrowLeft, LogOut, Users, FileText, GraduationCap } from "lucide-react";
+import { Newspaper, Trophy, Handshake, TableProperties, ArrowLeft, LogOut, Users, FileText, GraduationCap, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button.tsx";
 import { Link } from "react-router-dom";
 import AdminNews from "./_components/AdminNews.tsx";
@@ -13,6 +13,7 @@ import AdminStandings from "./_components/AdminStandings.tsx";
 import AdminPlayers from "./_components/AdminPlayers.tsx";
 import AdminPages from "./_components/AdminPages.tsx";
 import AdminYouthLeague from "./_components/AdminYouthLeague.tsx";
+import AdminCadetLeague from "./_components/AdminCadetLeague.tsx";
 
 function AdminDashboard() {
   const { user, removeUser } = useAuth();
@@ -94,6 +95,10 @@ function AdminDashboard() {
               <GraduationCap size={14} />
               <span className="hidden sm:inline">Oml. Liga</span>
             </TabsTrigger>
+            <TabsTrigger value="cadet" className="gap-1.5">
+              <Shield size={14} />
+              <span className="hidden sm:inline">Kad. Liga</span>
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="news">
@@ -116,6 +121,9 @@ function AdminDashboard() {
           </TabsContent>
           <TabsContent value="youth">
             <AdminYouthLeague />
+          </TabsContent>
+          <TabsContent value="cadet">
+            <AdminCadetLeague />
           </TabsContent>
         </Tabs>
       </main>

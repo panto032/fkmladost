@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as admin_cadetLeague from "../admin/cadetLeague.js";
 import type * as admin_matches from "../admin/matches.js";
 import type * as admin_news from "../admin/news.js";
 import type * as admin_pages from "../admin/pages.js";
@@ -35,6 +36,7 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  "admin/cadetLeague": typeof admin_cadetLeague;
   "admin/matches": typeof admin_matches;
   "admin/news": typeof admin_news;
   "admin/pages": typeof admin_pages;
