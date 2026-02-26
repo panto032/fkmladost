@@ -47,7 +47,7 @@ export default function Header() {
               <div className="relative">
                 <div className="absolute inset-0 bg-[oklch(0.55_0.12_240)]/40 blur-xl rounded-full scale-125" />
                 <img
-                  src="https://cdn.hercules.app/file_HWC8LtMUYR2SOIIbHHdj7L3r"
+                  src="https://cdn.hercules.app/file_O3xXQalJmikyjBgRaWY6p4A8"
                   alt="FK Mladost Lučani grb"
                   className="relative h-16 w-auto object-contain drop-shadow-[0_2px_16px_rgba(0,0,0,0.6)]"
                 />

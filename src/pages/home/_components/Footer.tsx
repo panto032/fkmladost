@@ -10,7 +10,7 @@ export default function Footer() {
           <div>
             <div className="flex items-center mb-4">
               <img
-                src="https://cdn.hercules.app/file_axTcoMfvHwfbwT3EXxUl4neg"
+                src="https://cdn.hercules.app/file_O3xXQalJmikyjBgRaWY6p4A8"
                 alt="FK Mladost Lučani"
                 className="w-10 h-10 rounded-full object-cover mr-3"
               />
