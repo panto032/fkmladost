@@ -150,6 +150,17 @@ export default function MatchWidgets() {
                 </span>
               </div>
             </div>
+            <div className="mt-8 flex flex-col sm:flex-row justify-center items-center text-sm font-medium text-white/70 bg-white/10 backdrop-blur-sm p-4 rounded-2xl border border-white/10">
+              <div className="flex items-center">
+                <Clock size={16} className="mr-2 text-white/90" />{" "}
+                {lastMatch.date} u {lastMatch.time}
+              </div>
+              <div className="hidden sm:block text-white/30 mx-4">|</div>
+              <div className="flex items-center mt-2 sm:mt-0">
+                <MapPin size={16} className="mr-2 text-white/90" />{" "}
+                {lastMatch.stadium}
+              </div>
+            </div>
           </div>
         ) : (
           <div className="flex-1 bg-gradient-to-br from-[oklch(0.55_0.12_240)] to-[oklch(0.45_0.10_245)] text-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-[oklch(0.60_0.10_238)] flex items-center justify-center min-h-[250px]">
