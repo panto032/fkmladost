@@ -365,8 +365,46 @@ export const scrapePlayers = action({
           imageUrl = `https://www.superliga.rs${imageUrl}`;
         }
 
+        // Player profile URL
+        const href = $(link).attr("href") ?? "";
+        const superligaUrl = href.startsWith("http")
+          ? href
+          : href
+            ? `https://www.superliga.rs${href}`
+            : "";
+
+        // Stats from the carousel card (appearances, minutes, goals/assists)
+        let appearances: number | undefined;
+        let minutes: number | undefined;
+        let goals: number | undefined;
+        let assists: number | undefined;
+
+        $(link)
+          .find(".d-flex.justify-content-between .p-1")
+          .each((__, statEl) => {
+            const title = $(statEl).find("img").attr("title") ?? "";
+            const val =
+              parseInt($(statEl).find("span").text().trim(), 10) || 0;
+            const t = title.toLowerCase();
+            if (t.includes("nastupi")) appearances = val;
+            else if (t.includes("minut")) minutes = val;
+            else if (t.includes("pogod") || t.includes("pogoc"))
+              goals = val;
+            else if (t.includes("asist")) assists = val;
+          });
+
         if (name) {
-          players.push({ name, number, position, imageUrl });
+          players.push({
+            name,
+            number,
+            position,
+            imageUrl,
+            superligaUrl,
+            appearances,
+            minutes,
+            goals,
+            assists,
+          });
         }
       });
     });

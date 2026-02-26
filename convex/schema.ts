@@ -66,6 +66,13 @@ export default defineSchema({
     birthDate: v.optional(v.string()),
     sortOrder: v.number(),
     isActive: v.boolean(),
+    appearances: v.optional(v.number()),
+    goals: v.optional(v.number()),
+    assists: v.optional(v.number()),
+    minutes: v.optional(v.number()),
+    height: v.optional(v.string()),
+    weight: v.optional(v.string()),
+    superligaUrl: v.optional(v.string()),
   })
     .index("by_sort_order", ["sortOrder"])
     .index("by_position", ["position"])
