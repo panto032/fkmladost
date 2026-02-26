@@ -55,6 +55,13 @@ export default function MatchWidgets() {
                 <span className="text-[oklch(0.88_0.01_228)] font-black text-3xl sm:text-5xl italic tracking-tighter drop-shadow-sm">
                   VS
                 </span>
+                {nextMatch.tvChannelLogoUrl && (
+                  <img
+                    src={nextMatch.tvChannelLogoUrl}
+                    alt={nextMatch.tvChannel ?? "TV"}
+                    className="h-5 sm:h-6 object-contain mt-2 opacity-80"
+                  />
+                )}
               </div>
               <div className="text-center w-4/12 flex flex-col items-center">
                 <img
@@ -79,20 +86,6 @@ export default function MatchWidgets() {
                 <MapPin size={16} className="mr-2 text-accent" />{" "}
                 {nextMatch.stadium}
               </div>
-              {nextMatch.tvChannelLogoUrl && (
-                <>
-                  <div className="hidden sm:block text-[oklch(0.85_0.01_228)] mx-4">
-                    |
-                  </div>
-                  <div className="flex items-center mt-2 sm:mt-0">
-                    <img
-                      src={nextMatch.tvChannelLogoUrl}
-                      alt={nextMatch.tvChannel ?? "TV"}
-                      className="h-5 object-contain"
-                    />
-                  </div>
-                </>
-              )}
             </div>
           </div>
         ) : (
