@@ -139,7 +139,7 @@ export default function Footer() {
             <img
               src="https://cdn.hercules.app/file_usixoQAS2hJa8900TJh3WrYo"
               alt="Zajednica SuperLige i Prve Lige"
-              className="h-20 object-contain brightness-0 invert opacity-70"
+              className="h-24 object-contain brightness-0 invert opacity-70"
             />
           </div>
         </div>
