@@ -56,6 +56,7 @@ export default function AdminMatches() {
   const removeMatch = useMutation(api.admin.matches.remove);
   const scrapeMatches = useAction(api.sync.scrapeFromWeb.scrapeMatches);
   const scrapeRoundPreview = useAction(api.sync.scrapeFromWeb.scrapeRoundPreview);
+  const scrapeAnalytics = useAction(api.sync.scrapeFromWeb.scrapeMatchAnalytics);
 
   const [isOpen, setIsOpen] = useState(false);
   const [editing, setEditing] = useState<MatchItem | null>(null);
@@ -63,6 +64,7 @@ export default function AdminMatches() {
   const [saving, setSaving] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [syncingRound, setSyncingRound] = useState(false);
+  const [syncingAnalytics, setSyncingAnalytics] = useState(false);
 
   const openCreate = () => {
     setEditing(null);
@@ -168,6 +170,25 @@ export default function AdminMatches() {
     }
   };
 
+  const handleSyncAnalytics = async () => {
+    setSyncingAnalytics(true);
+    try {
+      await scrapeAnalytics();
+      toast.success(
+        "Analitika rivala sinhronizovana! H2H, statistika i forma su učitani.",
+      );
+    } catch (error) {
+      if (error instanceof ConvexError) {
+        const { message } = error.data as { code: string; message: string };
+        toast.error(`Greška: ${message}`);
+      } else {
+        toast.error("Greška pri sinhronizaciji analitike");
+      }
+    } finally {
+      setSyncingAnalytics(false);
+    }
+  };
+
   if (matches === undefined) {
     return (
       <div className="space-y-3">
@@ -200,7 +221,7 @@ export default function AdminMatches() {
       </div>
 
       {/* ── Najava kola sync banner ── */}
-      <div className="bg-[oklch(0.18_0.04_252)] text-white rounded-xl p-4 mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border border-[oklch(0.30_0.05_252)]">
+      <div className="bg-[oklch(0.18_0.04_252)] text-white rounded-xl p-4 mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border border-[oklch(0.30_0.05_252)]">
         <div>
           <h4 className="font-bold text-sm">Najava Kola</h4>
           <p className="text-[oklch(0.65_0.04_250)] text-xs mt-0.5">
@@ -215,6 +236,25 @@ export default function AdminMatches() {
         >
           <RefreshCw size={14} className={syncingRound ? "animate-spin" : ""} />
           {syncingRound ? "Sinhronizujem..." : "Sinhronizuj najavu kola"}
+        </Button>
+      </div>
+
+      {/* ── Analitika rivala sync banner ── */}
+      <div className="bg-[oklch(0.18_0.04_252)] text-white rounded-xl p-4 mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border border-[oklch(0.30_0.05_252)]">
+        <div>
+          <h4 className="font-bold text-sm">Analitika Rivala</h4>
+          <p className="text-[oklch(0.65_0.04_250)] text-xs mt-0.5">
+            Povuci H2H, statistiku sezone i formu timova sa izveštaja utakmice Mladosti na superliga.rs
+          </p>
+        </div>
+        <Button
+          size="sm"
+          onClick={handleSyncAnalytics}
+          disabled={syncingAnalytics}
+          className="bg-[oklch(0.77_0.10_225)] hover:bg-[oklch(0.70_0.10_225)] text-[oklch(0.16_0.04_252)] shrink-0"
+        >
+          <RefreshCw size={14} className={syncingAnalytics ? "animate-spin" : ""} />
+          {syncingAnalytics ? "Sinhronizujem..." : "Sinhronizuj analitiku"}
         </Button>
       </div>
 
