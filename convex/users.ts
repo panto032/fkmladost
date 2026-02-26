@@ -20,18 +20,45 @@ export const updateCurrentUser = mutation({
       )
       .unique();
     if (user !== null) {
+      // If user exists but has no role, check for pending invitation
+      if (!user.role && identity.email) {
+        const invitation = await ctx.db
+          .query("invitations")
+          .withIndex("by_email", (q) => q.eq("email", identity.email as string))
+          .first();
+        if (invitation && !invitation.accepted) {
+          await ctx.db.patch(user._id, { role: invitation.role });
+          await ctx.db.patch(invitation._id, { accepted: true });
+        }
+      }
       return user._id;
     }
-    // If it's a new identity, create a new User.
+
+    // Check if there's an invitation for this email
+    let role: "admin" | "editor" | "viewer" | undefined;
+
     // First user gets admin role automatically
     const allUsers = await ctx.db.query("users").take(1);
     const isFirstUser = allUsers.length === 0;
+
+    if (isFirstUser) {
+      role = "admin";
+    } else if (identity.email) {
+      const invitation = await ctx.db
+        .query("invitations")
+        .withIndex("by_email", (q) => q.eq("email", identity.email as string))
+        .first();
+      if (invitation && !invitation.accepted) {
+        role = invitation.role;
+        await ctx.db.patch(invitation._id, { accepted: true });
+      }
+    }
 
     return await ctx.db.insert("users", {
       name: identity.name,
       email: identity.email,
       tokenIdentifier: identity.tokenIdentifier,
-      role: isFirstUser ? "admin" : undefined,
+      role,
     });
   },
 });

@@ -28,12 +28,75 @@ async function requireAdmin(ctx: QueryCtx | MutationCtx) {
   return user;
 }
 
-/** List all registered users (admin only) */
+/** List team members — users with a role (admin only) */
 export const listMembers = query({
   args: {},
   handler: async (ctx): Promise<Doc<"users">[]> => {
     await requireAdmin(ctx);
-    return await ctx.db.query("users").collect();
+    const allUsers = await ctx.db.query("users").collect();
+    return allUsers.filter((u) => u.role !== undefined);
+  },
+});
+
+/** List pending invitations (admin only) */
+export const listInvitations = query({
+  args: {},
+  handler: async (ctx): Promise<Doc<"invitations">[]> => {
+    await requireAdmin(ctx);
+    return await ctx.db.query("invitations").collect();
+  },
+});
+
+/** Send an invitation (admin only) */
+export const sendInvitation = mutation({
+  args: {
+    email: v.string(),
+    role: v.union(v.literal("admin"), v.literal("editor"), v.literal("viewer")),
+  },
+  handler: async (ctx, args) => {
+    const admin = await requireAdmin(ctx);
+
+    const normalizedEmail = args.email.trim().toLowerCase();
+
+    // Check if invitation already exists
+    const existing = await ctx.db
+      .query("invitations")
+      .withIndex("by_email", (q) => q.eq("email", normalizedEmail))
+      .first();
+    if (existing) {
+      throw new ConvexError({
+        message: "Pozivnica za ovaj email već postoji",
+        code: "CONFLICT",
+      });
+    }
+
+    // Check if user already exists with a role
+    const allUsers = await ctx.db.query("users").collect();
+    const existingUser = allUsers.find(
+      (u) => u.email?.toLowerCase() === normalizedEmail && u.role
+    );
+    if (existingUser) {
+      throw new ConvexError({
+        message: "Korisnik sa ovim emailom već ima ulogu",
+        code: "CONFLICT",
+      });
+    }
+
+    await ctx.db.insert("invitations", {
+      email: normalizedEmail,
+      role: args.role,
+      invitedBy: admin._id,
+      accepted: false,
+    });
+  },
+});
+
+/** Cancel/delete an invitation (admin only) */
+export const cancelInvitation = mutation({
+  args: { invitationId: v.id("invitations") },
+  handler: async (ctx, args) => {
+    await requireAdmin(ctx);
+    await ctx.db.delete(args.invitationId);
   },
 });
 
@@ -46,7 +109,6 @@ export const updateRole = mutation({
   handler: async (ctx, args) => {
     const admin = await requireAdmin(ctx);
 
-    // Prevent removing your own admin role
     if (args.userId === admin._id && args.role !== "admin") {
       throw new ConvexError({
         message: "Ne možete ukloniti sopstvenu admin ulogu",
