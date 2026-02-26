@@ -30,7 +30,7 @@ export default function Header() {
   };
 
   return (
-    <header className="bg-[oklch(0.50_0.12_240)] text-white sticky top-0 z-50 shadow-lg">
+    <header className="bg-transparent text-white sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
           {/* Logo — large & prominent */}
@@ -38,7 +38,7 @@ export default function Header() {
             <img
               src="https://cdn.hercules.app/file_HWC8LtMUYR2SOIIbHHdj7L3r"
               alt="FK Mladost Lučani grb"
-              className="h-14 w-auto object-contain drop-shadow-[0_2px_8px_rgba(0,0,0,0.3)]"
+              className="h-14 w-auto object-contain drop-shadow-[0_2px_12px_rgba(0,0,0,0.5)]"
             />
             <div className="hidden sm:block">
               <h1 className="text-lg font-black uppercase tracking-wider leading-none">
@@ -51,7 +51,7 @@ export default function Header() {
           </Link>
 
           {/* Desktop nav — capsule */}
-          <nav className="hidden md:flex items-center bg-white/10 backdrop-blur-sm rounded-full px-2 py-1.5 border border-white/10">
+          <nav className="hidden md:flex items-center bg-black/30 backdrop-blur-md rounded-full px-2 py-1.5 border border-white/15">
             {NAV_LINKS.map((link) => (
               <button
                 key={link.label}
@@ -59,7 +59,7 @@ export default function Header() {
                 className={`px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 ${
                   link.active
                     ? "bg-white text-[oklch(0.40_0.12_240)] shadow-sm"
-                    : "text-white/80 hover:text-white hover:bg-white/10"
+                    : "text-white/90 hover:text-white hover:bg-white/15"
                 }`}
               >
                 {link.label}
