@@ -1,6 +1,6 @@
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api.js";
-import { Calendar, Clock, MapPin, Tv, Scale, Eye, Shield } from "lucide-react";
+import { Calendar, Clock, MapPin, Scale, Eye, Shield } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton.tsx";
 import Header from "../home/_components/Header.tsx";
 import Footer from "../home/_components/Footer.tsx";
@@ -152,13 +152,6 @@ function MatchCard({ match }: { match: RoundMatch }) {
           <MapPin size={12} />
           <span>{match.stadium}</span>
         </div>
-
-        {match.tvChannel && (
-          <div className="flex items-center gap-1.5 mt-1.5 text-[oklch(0.50_0.03_252)] text-xs">
-            <Tv size={12} />
-            <span>{match.tvChannel}</span>
-          </div>
-        )}
       </div>
 
       {/* Officials */}
