@@ -87,6 +87,8 @@ export const savePlayers = internalMutation({
         minutes: v.optional(v.number()),
         goals: v.optional(v.number()),
         assists: v.optional(v.number()),
+        goalsConceded: v.optional(v.number()),
+        yellowCards: v.optional(v.number()),
       }),
     ),
   },
@@ -112,6 +114,12 @@ export const savePlayers = internalMutation({
         ...(scraped.minutes !== undefined ? { minutes: scraped.minutes } : {}),
         ...(scraped.goals !== undefined ? { goals: scraped.goals } : {}),
         ...(scraped.assists !== undefined ? { assists: scraped.assists } : {}),
+        ...(scraped.goalsConceded !== undefined
+          ? { goalsConceded: scraped.goalsConceded }
+          : {}),
+        ...(scraped.yellowCards !== undefined
+          ? { yellowCards: scraped.yellowCards }
+          : {}),
       };
 
       if (match) {

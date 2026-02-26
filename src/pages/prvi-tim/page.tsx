@@ -8,7 +8,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog.tsx";
-import { ArrowLeft, ExternalLink, User, Trophy, Clock, Target, Footprints } from "lucide-react";
+import { ArrowLeft, ExternalLink, User, Trophy, Clock, Target, Footprints, Shield, SquareSlash } from "lucide-react";
 import { Link } from "react-router-dom";
 import Header from "../home/_components/Header.tsx";
 import Footer from "../home/_components/Footer.tsx";
@@ -27,6 +27,8 @@ type Player = {
   goals?: number;
   assists?: number;
   minutes?: number;
+  goalsConceded?: number;
+  yellowCards?: number;
   height?: string;
   weight?: string;
   superligaUrl?: string;
@@ -83,7 +85,9 @@ function PlayerBioModal({
     player.appearances !== undefined ||
     player.goals !== undefined ||
     player.assists !== undefined ||
-    player.minutes !== undefined;
+    player.minutes !== undefined ||
+    player.goalsConceded !== undefined ||
+    player.yellowCards !== undefined;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -91,20 +95,20 @@ function PlayerBioModal({
         className="bg-[oklch(0.20_0.04_252)] border-[oklch(0.28_0.04_252)] text-white p-0 overflow-hidden sm:max-w-xl max-h-[90vh] overflow-y-auto"
         showCloseButton
       >
-        {/* Hero image + jersey overlay */}
-        <div className="relative aspect-[4/3] bg-[oklch(0.14_0.03_252)] overflow-hidden">
+        {/* Hero image — portrait-friendly, no crop */}
+        <div className="relative bg-[oklch(0.14_0.03_252)] overflow-hidden">
           {player.imageUrl ? (
             <img
               src={player.imageUrl}
               alt={player.name}
-              className="w-full h-full object-cover"
+              className="w-full max-h-[50vh] object-contain mx-auto"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center">
+            <div className="w-full h-48 flex items-center justify-center">
               <User size={80} className="text-[oklch(0.30_0.04_252)]" />
             </div>
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-[oklch(0.20_0.04_252)] via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[oklch(0.20_0.04_252)] via-transparent to-transparent pointer-events-none" />
           {/* Jersey number badge */}
           <div className="absolute bottom-3 right-3 bg-[oklch(0.69_0.095_228)] text-white font-black text-3xl md:text-5xl px-4 py-2 rounded-xl shadow-lg">
             {player.number}
@@ -150,12 +154,19 @@ function PlayerBioModal({
               <h4 className="text-xs font-semibold uppercase tracking-widest text-[oklch(0.50_0.03_252)] mb-2">
                 Statistika sezone
               </h4>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <div className="grid grid-cols-3 gap-2">
                 {player.appearances !== undefined && (
                   <StatItem
                     icon={<Footprints size={18} />}
                     label="Nastupi"
                     value={player.appearances}
+                  />
+                )}
+                {player.minutes !== undefined && (
+                  <StatItem
+                    icon={<Clock size={18} />}
+                    label="Minuti"
+                    value={player.minutes}
                   />
                 )}
                 {player.goals !== undefined && (
@@ -172,11 +183,18 @@ function PlayerBioModal({
                     value={player.assists}
                   />
                 )}
-                {player.minutes !== undefined && (
+                {player.goalsConceded !== undefined && (
                   <StatItem
-                    icon={<Clock size={18} />}
-                    label="Minuti"
-                    value={player.minutes}
+                    icon={<Shield size={18} />}
+                    label="Primljeni"
+                    value={player.goalsConceded}
+                  />
+                )}
+                {player.yellowCards !== undefined && (
+                  <StatItem
+                    icon={<SquareSlash size={18} />}
+                    label="Žuti kartoni"
+                    value={player.yellowCards}
                   />
                 )}
               </div>

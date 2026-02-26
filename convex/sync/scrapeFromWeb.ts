@@ -334,6 +334,8 @@ export const scrapePlayers = action({
       minutes?: number;
       goals?: number;
       assists?: number;
+      goalsConceded?: number;
+      yellowCards?: number;
     }> = [];
 
     // Each position group has a .team-stat-title with <h3> followed by
@@ -383,6 +385,8 @@ export const scrapePlayers = action({
         let minutes: number | undefined;
         let goals: number | undefined;
         let assists: number | undefined;
+        let goalsConceded: number | undefined;
+        let yellowCards: number | undefined;
 
         $(link)
           .find(".d-flex.justify-content-between .p-1")
@@ -396,6 +400,9 @@ export const scrapePlayers = action({
             else if (t.includes("pogod") || t.includes("pogoc"))
               goals = val;
             else if (t.includes("asist")) assists = val;
+            else if (t.includes("primljen")) goalsConceded = val;
+            else if (t.includes("žut") || t.includes("zut"))
+              yellowCards = val;
           });
 
         if (name) {
@@ -409,6 +416,8 @@ export const scrapePlayers = action({
             minutes,
             goals,
             assists,
+            goalsConceded,
+            yellowCards,
           });
         }
       });

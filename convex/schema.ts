@@ -70,6 +70,8 @@ export default defineSchema({
     goals: v.optional(v.number()),
     assists: v.optional(v.number()),
     minutes: v.optional(v.number()),
+    goalsConceded: v.optional(v.number()),
+    yellowCards: v.optional(v.number()),
     height: v.optional(v.string()),
     weight: v.optional(v.string()),
     superligaUrl: v.optional(v.string()),
