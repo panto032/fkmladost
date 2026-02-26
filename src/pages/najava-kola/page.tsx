@@ -1,7 +1,8 @@
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api.js";
-import { Calendar, Clock, MapPin, Scale, Eye, Shield } from "lucide-react";
+import { Calendar, Clock, MapPin, Scale, Eye, Shield, Swords } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton.tsx";
+import { Link } from "react-router-dom";
 import Header from "../home/_components/Header.tsx";
 import Footer from "../home/_components/Footer.tsx";
 
@@ -34,6 +35,33 @@ export default function NajavaKolaPage() {
               </span>
             </div>
           )}
+        </div>
+      </section>
+
+      {/* Analytics CTA */}
+      <section className="bg-[oklch(0.15_0.04_252)] border-y border-[oklch(0.24_0.04_252)]">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <Link
+            to="/analitika-rivala"
+            className="flex items-center justify-between gap-3 group"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-[oklch(0.69_0.095_228)]/15 flex items-center justify-center group-hover:bg-[oklch(0.69_0.095_228)]/25 transition-colors">
+                <Swords size={16} className="text-[oklch(0.69_0.095_228)]" />
+              </div>
+              <div>
+                <span className="text-white font-bold text-sm group-hover:text-[oklch(0.77_0.10_225)] transition-colors">
+                  Analitika rivala
+                </span>
+                <span className="text-[oklch(0.45_0.03_252)] text-xs block">
+                  Međusobni rezultati, statistika, forma timova
+                </span>
+              </div>
+            </div>
+            <span className="text-[oklch(0.69_0.095_228)] text-sm font-semibold group-hover:translate-x-1 transition-transform">
+              {"→"}
+            </span>
+          </Link>
         </div>
       </section>
 
