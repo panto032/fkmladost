@@ -72,7 +72,7 @@ function SmallNewsCard({
   );
 }
 
-/* ────────── Medium News Card (row 2 — image + lots of text) ────────── */
+/* ────────── Medium News Card (row 2 — horizontal: thumb + full text) ────────── */
 
 function MediumNewsCard({
   article,
@@ -86,9 +86,10 @@ function MediumNewsCard({
   return (
     <Link
       to={`/vesti/${article._id}`}
-      className={`rounded-2xl overflow-hidden border border-border shadow-lg group cursor-pointer bg-card flex flex-col ${className}`}
+      className={`rounded-2xl overflow-hidden border border-border shadow-lg group cursor-pointer bg-card flex flex-col h-full ${className}`}
     >
-      <div className="relative h-40 overflow-hidden flex-shrink-0">
+      {/* Compact image banner */}
+      <div className="relative h-28 overflow-hidden flex-shrink-0">
         {article.resolvedImageUrl && (
           <img
             src={article.resolvedImageUrl}
@@ -96,24 +97,28 @@ function MediumNewsCard({
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
         )}
-        <div className="absolute top-3 left-3">
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+        <div className="absolute top-2.5 left-2.5">
           <span className="bg-accent text-accent-foreground text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">
             {article.category}
           </span>
         </div>
-      </div>
-      <div className="p-4 flex-1 flex flex-col justify-between">
-        <div>
-          <h4 className="text-sm font-bold text-card-foreground leading-snug group-hover:text-accent transition-colors line-clamp-2">
-            {article.title}
-          </h4>
-          <p className="text-muted-foreground text-xs mt-2 leading-relaxed line-clamp-[8]">
-            {plainText}
-          </p>
-        </div>
-        <p className="text-muted-foreground text-[11px] mt-3 flex items-center">
+        <div className="absolute bottom-2.5 left-3 flex items-center text-white/70 text-[10px]">
           <Calendar size={10} className="mr-1" /> {article.date}
+        </div>
+      </div>
+
+      {/* Text fills remaining height */}
+      <div className="p-3.5 flex-1 flex flex-col overflow-hidden">
+        <h4 className="text-[13px] font-bold text-card-foreground leading-snug group-hover:text-accent transition-colors line-clamp-2 mb-1.5">
+          {article.title}
+        </h4>
+        <p className="text-muted-foreground text-[11px] leading-[1.65] flex-1 overflow-hidden">
+          {plainText}
         </p>
+        <span className="text-accent text-[11px] font-semibold mt-2 flex items-center gap-1 flex-shrink-0">
+          Pročitaj više <ArrowRight size={12} />
+        </span>
       </div>
     </Link>
   );
