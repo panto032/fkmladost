@@ -8,6 +8,10 @@
  * @module
  */
 
+import type * as matches from "../matches.js";
+import type * as news from "../news.js";
+import type * as partners from "../partners.js";
+import type * as standings from "../standings.js";
 import type * as users from "../users.js";
 
 import type {
@@ -17,6 +21,10 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  matches: typeof matches;
+  news: typeof news;
+  partners: typeof partners;
+  standings: typeof standings;
   users: typeof users;
 }>;
 
