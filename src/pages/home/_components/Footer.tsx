@@ -1,4 +1,4 @@
-import { Facebook, Instagram, Twitter, MapPin, Mail } from "lucide-react";
+import { Facebook, Instagram, Twitter, MapPin, Mail, Phone } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export default function Footer() {
@@ -115,22 +115,24 @@ export default function Footer() {
             <h5 className="font-bold uppercase tracking-wider mb-4 border-b border-[oklch(0.28_0.045_252)] pb-2">
               Kontakt
             </h5>
-            <ul className="space-y-3 text-[oklch(0.55_0.03_252)] text-sm">
-              <li className="flex items-start">
-                <MapPin
-                  size={16}
-                  className="mr-2 text-[oklch(0.69_0.095_228)] mt-1 flex-shrink-0"
-                />
-                <span>Mr Radoša Milovanovića bb, 32240 Lučani, Srbija</span>
-              </li>
-              <li className="flex items-center">
-                <Mail
-                  size={16}
-                  className="mr-2 text-[oklch(0.69_0.095_228)] flex-shrink-0"
-                />
+            <div className="space-y-2.5 text-[oklch(0.55_0.03_252)] text-sm">
+              <div className="flex items-center gap-2">
+                <MapPin size={14} className="text-[oklch(0.69_0.095_228)] flex-shrink-0" />
+                <span>Mr Radoša Milovanovića bb, Lučani</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Phone size={14} className="text-[oklch(0.69_0.095_228)] flex-shrink-0" />
+                <span>032 / 817-809</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Phone size={14} className="text-[oklch(0.69_0.095_228)] flex-shrink-0" />
+                <span>062 / 8088-628</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Mail size={14} className="text-[oklch(0.69_0.095_228)] flex-shrink-0" />
                 <span>fkmladostlucani@gmail.com</span>
-              </li>
-            </ul>
+              </div>
+            </div>
           </div>
         </div>
 
