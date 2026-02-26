@@ -236,4 +236,30 @@ export default defineSchema({
     goals: v.string(),
     isHighlighted: v.boolean(),
   }).index("by_rank", ["rank"]),
+
+  /** Pionirska Liga FSRZS — standings */
+  pioneerStandings: defineTable({
+    position: v.number(),
+    club: v.string(),
+    played: v.number(),
+    won: v.number(),
+    drawn: v.number(),
+    lost: v.number(),
+    goalsFor: v.number(),
+    goalsAgainst: v.number(),
+    goalDiff: v.number(),
+    points: v.number(),
+    isHighlighted: v.boolean(),
+  }).index("by_position", ["position"]),
+
+  /** Pionirska Liga — all matches (full schedule, not just Mladost) */
+  pioneerMatches: defineTable({
+    round: v.number(),
+    date: v.string(),
+    home: v.string(),
+    away: v.string(),
+    score: v.optional(v.string()),
+    city: v.optional(v.string()),
+    isHome: v.boolean(),
+  }).index("by_round", ["round"]),
 });

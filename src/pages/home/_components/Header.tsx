@@ -9,6 +9,7 @@ const NAV_LINKS = [
   { label: "Prvi Tim", href: "/prvi-tim" },
   { label: "Omladinska Liga", href: "/omladinska-liga" },
   { label: "Kadetska Liga", href: "/kadetska-liga" },
+  { label: "Pionirska Liga", href: "/pionirska-liga" },
   { label: "Istorijat", href: "/istorija-kluba" },
   { label: "Omladinska Škola", href: "/omladinska-skola" },
 ];
