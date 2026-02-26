@@ -69,6 +69,11 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
+                <Link to="/super-liga" className="hover:text-white transition-colors">
+                  Super liga
+                </Link>
+              </li>
+              <li>
                 <Link to="/omladinska-liga" className="hover:text-white transition-colors">
                   Omladinska liga
                 </Link>

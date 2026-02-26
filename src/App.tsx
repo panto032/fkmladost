@@ -14,6 +14,7 @@ import AnalitikaRivalaPage from "./pages/analitika-rivala/page.tsx";
 import OmladinskaLigaPage from "./pages/omladinska-liga/page.tsx";
 import KadetskaLigaPage from "./pages/kadetska-liga/page.tsx";
 import PionirskaLigaPage from "./pages/pionirska-liga/page.tsx";
+import SuperLigaPage from "./pages/super-liga/page.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 export default function App() {
@@ -34,6 +35,7 @@ export default function App() {
           <Route path="/omladinska-liga" element={<OmladinskaLigaPage />} />
           <Route path="/kadetska-liga" element={<KadetskaLigaPage />} />
           <Route path="/pionirska-liga" element={<PionirskaLigaPage />} />
+          <Route path="/super-liga" element={<SuperLigaPage />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

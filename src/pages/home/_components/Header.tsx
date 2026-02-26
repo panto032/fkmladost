@@ -6,7 +6,7 @@ import { toast } from "sonner";
 const NAV_LINKS = [
   { label: "Početna", href: "/" },
   { label: "Vesti", href: "/vesti" },
-  { label: "Prvi Tim", href: "/prvi-tim" },
+  { label: "Super Liga", href: "/super-liga" },
   { label: "Omladinska Liga", href: "/omladinska-liga" },
   { label: "Kadetska Liga", href: "/kadetska-liga" },
   { label: "Pionirska Liga", href: "/pionirska-liga" },
