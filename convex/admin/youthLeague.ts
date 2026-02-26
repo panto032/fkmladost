@@ -165,3 +165,69 @@ export const removeScorer = mutation({
     await ctx.db.delete(args.id);
   },
 });
+
+/* ── Seed / Sync all youth league data at once ── */
+
+export const seedYouthLeague = mutation({
+  args: {
+    standings: v.array(
+      v.object({
+        position: v.number(),
+        club: v.string(),
+        played: v.number(),
+        won: v.number(),
+        drawn: v.number(),
+        lost: v.number(),
+        goalsFor: v.number(),
+        goalsAgainst: v.number(),
+        goalDiff: v.number(),
+        points: v.number(),
+        isHighlighted: v.boolean(),
+      }),
+    ),
+    matches: v.array(
+      v.object({
+        round: v.number(),
+        date: v.string(),
+        home: v.string(),
+        away: v.string(),
+        score: v.optional(v.string()),
+        city: v.optional(v.string()),
+        isHome: v.boolean(),
+      }),
+    ),
+    scorers: v.array(
+      v.object({
+        rank: v.number(),
+        name: v.string(),
+        club: v.string(),
+        goals: v.string(),
+        isHighlighted: v.boolean(),
+      }),
+    ),
+  },
+  handler: async (ctx, args): Promise<{ standings: number; matches: number; scorers: number }> => {
+    await requireAdmin(ctx);
+
+    // Clear existing data
+    const oldStandings = await ctx.db.query("youthStandings").collect();
+    for (const row of oldStandings) await ctx.db.delete(row._id);
+
+    const oldMatches = await ctx.db.query("youthMatches").collect();
+    for (const row of oldMatches) await ctx.db.delete(row._id);
+
+    const oldScorers = await ctx.db.query("youthScorers").collect();
+    for (const row of oldScorers) await ctx.db.delete(row._id);
+
+    // Insert new data
+    for (const row of args.standings) await ctx.db.insert("youthStandings", row);
+    for (const row of args.matches) await ctx.db.insert("youthMatches", row);
+    for (const row of args.scorers) await ctx.db.insert("youthScorers", row);
+
+    return {
+      standings: args.standings.length,
+      matches: args.matches.length,
+      scorers: args.scorers.length,
+    };
+  },
+});
