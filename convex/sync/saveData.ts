@@ -104,6 +104,61 @@ export const saveRoundMatches = internalMutation({
   },
 });
 
+export const saveMatchAnalytics = internalMutation({
+  args: {
+    roundNumber: v.number(),
+    home: v.string(),
+    away: v.string(),
+    reportUrl: v.string(),
+    h2hTotalPlayed: v.number(),
+    h2hHomeWins: v.number(),
+    h2hDraws: v.number(),
+    h2hAwayWins: v.number(),
+    h2hHomeGoals: v.number(),
+    h2hAwayGoals: v.number(),
+    previousMatches: v.array(
+      v.object({
+        date: v.string(),
+        homeTeam: v.string(),
+        awayTeam: v.string(),
+        score: v.string(),
+      }),
+    ),
+    teamStats: v.array(
+      v.object({
+        label: v.string(),
+        homeValue: v.string(),
+        awayValue: v.string(),
+      }),
+    ),
+    homeForm: v.array(
+      v.object({
+        date: v.string(),
+        result: v.string(),
+        score: v.string(),
+        teams: v.string(),
+      }),
+    ),
+    awayForm: v.array(
+      v.object({
+        date: v.string(),
+        result: v.string(),
+        score: v.string(),
+        teams: v.string(),
+      }),
+    ),
+  },
+  handler: async (ctx, args) => {
+    // Delete all existing analytics
+    const existing = await ctx.db.query("matchAnalytics").collect();
+    for (const row of existing) {
+      await ctx.db.delete(row._id);
+    }
+    // Insert new analytics
+    await ctx.db.insert("matchAnalytics", args);
+  },
+});
+
 const NO_PLAYER_IMG = "no-player-img";
 
 /**

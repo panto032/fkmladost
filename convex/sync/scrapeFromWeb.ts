@@ -539,9 +539,249 @@ export const scrapeRoundPreview = action({
 });
 
 /**
- * Position name mapping from superliga.rs section headers
- * to our internal position values.
+ * Scrapes the Mladost match report (izveštaj) page from superliga.rs
+ * to extract H2H data, team stats, and recent form.
+ *
+ * Steps:
+ * 1. Read the current roundMatches to find the Mladost reportUrl
+ * 2. Fetch that page
+ * 3. Parse H2H summary, previous matches, team stats, form
+ * 4. Save to matchAnalytics table
  */
+export const scrapeMatchAnalytics = action({
+  args: {},
+  handler: async (ctx): Promise<{ success: boolean }> => {
+    // 1) Find the Mladost match's report URL from roundMatches
+    const roundMatches = await ctx.runQuery(
+      internal.roundMatches.getAllInternal,
+    );
+
+    const ourMatch = roundMatches.find(
+      (m: { isOurMatch: boolean }) => m.isOurMatch,
+    );
+
+    if (!ourMatch || !ourMatch.reportUrl) {
+      throw new ConvexError({
+        code: "NOT_FOUND",
+        message:
+          "Nije pronađena utakmica Mladosti ili reportUrl u najavi kola. Prvo sinhronizujte najavu kola.",
+      });
+    }
+
+    const reportUrl = ourMatch.reportUrl;
+
+    // 2) Fetch the report page
+    const res = await fetch(reportUrl, {
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (compatible; FKMladostBot/1.0; +https://fkmladost.rs)",
+        Accept: "text/html",
+      },
+    });
+
+    if (!res.ok) {
+      throw new ConvexError({
+        code: "EXTERNAL_SERVICE_ERROR",
+        message: `Greška pri učitavanju izveštaja: ${res.status}`,
+      });
+    }
+
+    const html = await res.text();
+    const $ = cheerio.load(html);
+
+    // 3a) Parse H2H summary
+    // The H2H section shows: homeWins, draws, homeGoals (left side)
+    //                        totalPlayed (center)
+    //                        awayWins, draws, awayGoals (right side)
+    const h2hDiv = $(".h2h");
+    const h2hNumbers = h2hDiv.find(".text-center span");
+    const leftNumbers: number[] = [];
+    const rightNumbers: number[] = [];
+
+    // Left side numbers (home wins, draws, home goals)
+    h2hDiv.find(".text-center").each((i, el) => {
+      const text = $(el).find("span").first().text().trim();
+      const num = parseInt(text, 10);
+      if (!isNaN(num)) {
+        if (i < 3) leftNumbers.push(num);
+      }
+    });
+
+    // Parse the center total and right numbers more carefully
+    let h2hTotalPlayed = 0;
+    let h2hHomeWins = 0;
+    let h2hDraws = 0;
+    let h2hHomeGoals = 0;
+    let h2hAwayWins = 0;
+    let h2hAwayGoals = 0;
+
+    // Get all text-center children of h2h
+    const h2hCols = h2hDiv.children();
+    h2hCols.each((_, col) => {
+      const spans = $(col).find("span");
+      const text = spans.map((__, s) => $(s).text().trim()).get();
+
+      // The total block has "Odograno" text
+      if ($(col).hasClass("h2h-total")) {
+        const totalSpans = $(col).find("span");
+        totalSpans.each((___, s) => {
+          const val = parseInt($(s).text().trim(), 10);
+          if (!isNaN(val) && val > 10) h2hTotalPlayed = val;
+        });
+      }
+
+      // Left stats block has "Uk. pobeda", "Nerešeno", "Pogodaka" labels on the right
+      if (
+        text.includes("Uk. pobeda") &&
+        $(col).prev().find("span").length > 0
+      ) {
+        // This is the right-side labels, prev sibling has left numbers
+        const numCol = $(col).prev();
+        const nums = numCol
+          .find("span")
+          .map((___, s) => parseInt($(s).text().trim(), 10))
+          .get()
+          .filter((n: number) => !isNaN(n));
+        if (nums.length >= 3) {
+          h2hHomeWins = nums[0];
+          h2hDraws = nums[1];
+          h2hHomeGoals = nums[2];
+        }
+      }
+
+      // Right stats block: after total, labels then numbers
+      if (
+        text.includes("Uk. pobeda") &&
+        $(col).next().find("span").length > 0
+      ) {
+        const numCol = $(col).next();
+        const nums = numCol
+          .find("span")
+          .map((___, s) => parseInt($(s).text().trim(), 10))
+          .get()
+          .filter((n: number) => !isNaN(n));
+        if (nums.length >= 3) {
+          h2hAwayWins = nums[0];
+          h2hDraws = nums[1]; // same draws count
+          h2hAwayGoals = nums[2];
+        }
+      }
+    });
+
+    // 3b) Previous matches
+    const previousMatches: Array<{
+      date: string;
+      homeTeam: string;
+      awayTeam: string;
+      score: string;
+    }> = [];
+
+    $(".previous-match").each((_, el) => {
+      const date = $(el).find(".h2h-date").text().trim();
+      const teamNames = $(el).find(".h2h-team-name span");
+      const homeTeam = teamNames.eq(0).text().trim();
+      const awayTeam = teamNames.eq(1).text().trim();
+      const score = $(el).find(".h2h-result span").text().trim();
+
+      if (date && homeTeam && awayTeam && score) {
+        previousMatches.push({ date, homeTeam, awayTeam, score });
+      }
+    });
+
+    // 3c) Team statistics (tab-02)
+    const teamStats: Array<{
+      label: string;
+      homeValue: string;
+      awayValue: string;
+    }> = [];
+
+    $("#tab-02 .stat-box").each((_, el) => {
+      const spans = $(el).find(".stat-number span");
+      const labelEl = $(el).find(".stat-details span");
+      const homeValue = spans.eq(0).text().trim();
+      const awayValue = spans.eq(1).text().trim();
+      const label = labelEl.text().trim();
+
+      if (label && homeValue && awayValue) {
+        teamStats.push({ label, homeValue, awayValue });
+      }
+    });
+
+    // 3d) Form for each team
+    const formSections = $("#tab-01 .col-lg-6.mb-20");
+
+    const parseForm = (
+      sectionEl: ReturnType<typeof $>,
+    ): Array<{
+      date: string;
+      result: string;
+      score: string;
+      teams: string;
+    }> => {
+      const form: Array<{
+        date: string;
+        result: string;
+        score: string;
+        teams: string;
+      }> = [];
+
+      sectionEl
+        .find(
+          ".d-flex.justify-content-start.align-items-center.mb-10",
+        )
+        .each((_, row) => {
+          const date = $(row).find(".form-date").text().trim();
+          const resultLetter = $(row)
+            .find(".form-color div")
+            .text()
+            .trim();
+          const score = $(row).find(".form-result span").text().trim();
+          const teams = $(row)
+            .find(".form-teams span")
+            .text()
+            .trim()
+            .replace(/\s+/g, " ");
+
+          if (date && score) {
+            form.push({ date, result: resultLetter, score, teams });
+          }
+        });
+
+      return form;
+    };
+
+    const homeForm = formSections.eq(0).length
+      ? parseForm(formSections.eq(0))
+      : [];
+    const awayForm = formSections.eq(1).length
+      ? parseForm(formSections.eq(1))
+      : [];
+
+    // Determine home/away from match page title
+    const home = ourMatch.home;
+    const away = ourMatch.away;
+
+    // 4) Save to database
+    await ctx.runMutation(internal.sync.saveData.saveMatchAnalytics, {
+      roundNumber: ourMatch.roundNumber,
+      home,
+      away,
+      reportUrl,
+      h2hTotalPlayed,
+      h2hHomeWins,
+      h2hDraws,
+      h2hAwayWins,
+      h2hHomeGoals,
+      h2hAwayGoals,
+      previousMatches,
+      teamStats,
+      homeForm,
+      awayForm,
+    });
+
+    return { success: true };
+  },
+});
 const POSITION_MAP: Record<string, string> = {
   golmani: "Golman",
   odbrana: "Odbrana",

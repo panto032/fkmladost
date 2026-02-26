@@ -113,4 +113,57 @@ export default defineSchema({
     reportUrl: v.string(),
     isOurMatch: v.boolean(),
   }).index("by_round", ["roundNumber"]),
+
+  /**
+   * Međusobna analitika (H2H) scraped from the Mladost match
+   * report page on superliga.rs. Replaced on every sync.
+   */
+  matchAnalytics: defineTable({
+    roundNumber: v.number(),
+    home: v.string(),
+    away: v.string(),
+    reportUrl: v.string(),
+    // Head-to-head summary
+    h2hTotalPlayed: v.number(),
+    h2hHomeWins: v.number(),
+    h2hDraws: v.number(),
+    h2hAwayWins: v.number(),
+    h2hHomeGoals: v.number(),
+    h2hAwayGoals: v.number(),
+    // Previous meetings
+    previousMatches: v.array(
+      v.object({
+        date: v.string(),
+        homeTeam: v.string(),
+        awayTeam: v.string(),
+        score: v.string(),
+      }),
+    ),
+    // Team season statistics (label + values)
+    teamStats: v.array(
+      v.object({
+        label: v.string(),
+        homeValue: v.string(),
+        awayValue: v.string(),
+      }),
+    ),
+    // Recent form for home team
+    homeForm: v.array(
+      v.object({
+        date: v.string(),
+        result: v.string(),
+        score: v.string(),
+        teams: v.string(),
+      }),
+    ),
+    // Recent form for away team
+    awayForm: v.array(
+      v.object({
+        date: v.string(),
+        result: v.string(),
+        score: v.string(),
+        teams: v.string(),
+      }),
+    ),
+  }).index("by_round", ["roundNumber"]),
 });
