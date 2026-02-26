@@ -262,4 +262,30 @@ export default defineSchema({
     city: v.optional(v.string()),
     isHome: v.boolean(),
   }).index("by_round", ["round"]),
+
+  /** Super Liga Srbije — standings */
+  superLeagueStandings: defineTable({
+    position: v.number(),
+    club: v.string(),
+    played: v.number(),
+    won: v.number(),
+    drawn: v.number(),
+    lost: v.number(),
+    goalsFor: v.number(),
+    goalsAgainst: v.number(),
+    goalDiff: v.number(),
+    points: v.number(),
+    isHighlighted: v.boolean(),
+  }).index("by_position", ["position"]),
+
+  /** Super Liga — Mladost match results & upcoming schedule */
+  superLeagueMatches: defineTable({
+    round: v.number(),
+    date: v.string(),
+    home: v.string(),
+    away: v.string(),
+    score: v.optional(v.string()),
+    city: v.optional(v.string()),
+    isHome: v.boolean(),
+  }).index("by_round", ["round"]),
 });
