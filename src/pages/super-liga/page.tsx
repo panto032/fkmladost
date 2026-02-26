@@ -54,6 +54,7 @@ type MatchRow = {
 };
 
 const MATCHES: MatchRow[] = [
+  // Kola 1-8: potvrđena sa superliga.rs/sezona/raspored-i-rezultati/
   { round: 1, date: "20.07.2025", home: "Mladost", away: "IMT", score: "1:1", city: "Lučani", isHome: true },
   { round: 2, date: "26.07.2025", home: "Radnički Niš", away: "Mladost", score: "3:1", city: "Niš", isHome: false },
   { round: 3, date: "02.08.2025", home: "Mladost", away: "Radnik", score: "1:0", city: "Lučani", isHome: true },
@@ -61,23 +62,11 @@ const MATCHES: MatchRow[] = [
   { round: 5, date: "15.08.2025", home: "Mladost", away: "Crvena zvezda", score: "1:4", city: "Lučani", isHome: true },
   { round: 6, date: "23.08.2025", home: "OFK Beograd", away: "Mladost", score: "1:1", city: "Stara Pazova", isHome: false },
   { round: 7, date: "30.08.2025", home: "Mladost", away: "Vojvodina", score: "0:0", city: "Lučani", isHome: true },
-  { round: 8, date: "13.09.2025", home: "Mladost", away: "Napredak", score: "1:1", city: "Lučani", isHome: true },
-  { round: 9, date: "20.09.2025", home: "Partizan", away: "Mladost", score: "3:0", city: "Beograd", isHome: false },
-  { round: 10, date: "24.09.2025", home: "Novi Pazar", away: "Mladost", score: "0:0", city: "Novi Pazar", isHome: false },
-  { round: 11, date: "27.09.2025", home: "Mladost", away: "TSC", score: "1:0", city: "Lučani", isHome: true },
-  { round: 12, date: "04.10.2025", home: "Železničar", away: "Mladost", score: "2:0", city: "Pančevo", isHome: false },
-  { round: 13, date: "18.10.2025", home: "Mladost", away: "Radnički 1923", score: "0:0", city: "Lučani", isHome: true },
-  { round: 14, date: "25.10.2025", home: "Čukarički", away: "Mladost", score: "2:1", city: "Pančevo", isHome: false },
-  { round: 15, date: "01.11.2025", home: "Mladost", away: "Javor Matis", score: "0:2", city: "Lučani", isHome: true },
-  { round: 16, date: "08.11.2025", home: "IMT", away: "Mladost", score: "3:1", city: "Loznica", isHome: false },
-  { round: 17, date: "22.11.2025", home: "Mladost", away: "Radnički Niš", score: "0:0", city: "Lučani", isHome: true },
-  { round: 18, date: "29.11.2025", home: "Radnik", away: "Mladost", score: "2:0", city: "Surdulica", isHome: false },
-  { round: 19, date: "06.12.2025", home: "Mladost", away: "OFK Beograd", score: "1:0", city: "Lučani", isHome: true },
-  { round: 20, date: "14.12.2025", home: "Mladost", away: "Spartak ŽK", score: "0:0", city: "Lučani", isHome: true },
-  { round: 21, date: "20.12.2025", home: "Crvena zvezda", away: "Mladost", score: "4:0", city: "Beograd", isHome: false },
-  { round: 22, date: "15.02.2026", home: "Mladost", away: "OFK Beograd", city: "Lučani", isHome: true },
-  { round: 23, date: "22.02.2026", home: "Vojvodina", away: "Mladost", city: "Novi Sad", isHome: false },
-  { round: 24, date: "01.03.2026", home: "Napredak", away: "Mladost", city: "Kruševac", isHome: false },
+  { round: 8, date: "14.09.2025", home: "TSC", away: "Mladost", score: "1:0", city: "Bačka Topola", isHome: false },
+  // Kola 9-23: dodaj kroz admin panel (prethodni podaci bili netačni)
+  // Kolo 24-25: potvrđeno sa superliga.rs/tim/mladost/
+  { round: 24, date: "23.02.2026", home: "Javor Matis", away: "Mladost", score: "0:0", city: "Ivanjica", isHome: false },
+  { round: 25, date: "28.02.2026", home: "Čukarički", away: "Mladost", city: "Beograd", isHome: false },
 ];
 
 /* ------------------------------------------------------------------ */
