@@ -17,14 +17,14 @@ export default function MatchWidgets() {
           <div className="flex-1 bg-white/95 backdrop-blur-xl rounded-3xl p-6 sm:p-8 shadow-2xl border border-white/40">
             <Skeleton className="h-6 w-32 mb-6" />
             <div className="flex justify-between items-center">
-              <div className="flex flex-col items-center w-5/12">
-                <Skeleton className="w-20 h-20 rounded-full mb-3" />
-                <Skeleton className="h-5 w-24" />
+              <div className="flex flex-col items-center w-4/12">
+                <Skeleton className="w-16 h-16 sm:w-20 sm:h-20 rounded-full mb-3" />
+                <Skeleton className="h-5 w-20" />
               </div>
               <Skeleton className="h-10 w-12" />
-              <div className="flex flex-col items-center w-5/12">
-                <Skeleton className="w-20 h-20 rounded-full mb-3" />
-                <Skeleton className="h-5 w-24" />
+              <div className="flex flex-col items-center w-4/12">
+                <Skeleton className="w-16 h-16 sm:w-20 sm:h-20 rounded-full mb-3" />
+                <Skeleton className="h-5 w-20" />
               </div>
             </div>
             <Skeleton className="h-14 w-full mt-8 rounded-2xl" />
@@ -41,28 +41,28 @@ export default function MatchWidgets() {
               </span>
             </div>
             <div className="flex justify-between items-center mt-2 relative">
-              <div className="text-center w-5/12 flex flex-col items-center">
+              <div className="text-center w-4/12 flex flex-col items-center">
                 <img
                   src={nextMatch.homeLogoUrl}
                   alt={nextMatch.home}
-                  className="w-16 h-16 sm:w-24 sm:h-24 object-contain drop-shadow-lg mb-3 hover:scale-110 transition-transform duration-300"
+                  className="w-16 h-16 sm:w-20 sm:h-20 object-contain drop-shadow-lg mb-3 hover:scale-110 transition-transform duration-300"
                 />
-                <span className="font-extrabold text-[oklch(0.22_0.045_252)] text-sm sm:text-lg">
+                <span className="font-semibold text-[oklch(0.22_0.045_252)] text-sm sm:text-base">
                   {nextMatch.home}
                 </span>
               </div>
-              <div className="w-2/12 text-center flex flex-col items-center justify-center absolute left-1/2 -translate-x-1/2">
+              <div className="w-4/12 text-center flex flex-col items-center justify-center">
                 <span className="text-[oklch(0.88_0.01_228)] font-black text-3xl sm:text-5xl italic tracking-tighter drop-shadow-sm">
                   VS
                 </span>
               </div>
-              <div className="text-center w-5/12 flex flex-col items-center">
+              <div className="text-center w-4/12 flex flex-col items-center">
                 <img
                   src={nextMatch.awayLogoUrl}
                   alt={nextMatch.away}
-                  className="w-16 h-16 sm:w-24 sm:h-24 object-contain drop-shadow-lg mb-3 hover:scale-110 transition-transform duration-300"
+                  className="w-16 h-16 sm:w-20 sm:h-20 object-contain drop-shadow-lg mb-3 hover:scale-110 transition-transform duration-300"
                 />
-                <span className="font-extrabold text-[oklch(0.22_0.045_252)] text-sm sm:text-lg">
+                <span className="font-semibold text-[oklch(0.22_0.045_252)] text-sm sm:text-base">
                   {nextMatch.away}
                 </span>
               </div>
