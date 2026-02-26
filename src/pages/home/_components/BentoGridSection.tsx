@@ -88,35 +88,38 @@ function MediumNewsCard({
       to={`/vesti/${article._id}`}
       className={`rounded-2xl overflow-hidden border border-border shadow-lg group cursor-pointer bg-card flex flex-col h-full ${className}`}
     >
-      {/* Compact image banner */}
-      <div className="relative h-28 overflow-hidden flex-shrink-0">
+      {/* Large image fills most of the card */}
+      <div className="relative flex-1 min-h-0 overflow-hidden">
         {article.resolvedImageUrl && (
           <img
             src={article.resolvedImageUrl}
             alt={article.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 absolute inset-0"
           />
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
         <div className="absolute top-2.5 left-2.5">
           <span className="bg-accent text-accent-foreground text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">
             {article.category}
           </span>
         </div>
-        <div className="absolute bottom-2.5 left-3 flex items-center text-white/70 text-[10px]">
-          <Calendar size={10} className="mr-1" /> {article.date}
+        {/* Title + date overlay on image */}
+        <div className="absolute bottom-0 left-0 right-0 p-3.5">
+          <h4 className="text-sm font-bold text-white leading-snug line-clamp-2 group-hover:text-accent transition-colors">
+            {article.title}
+          </h4>
+          <div className="flex items-center text-white/60 text-[10px] mt-1.5">
+            <Calendar size={10} className="mr-1" /> {article.date}
+          </div>
         </div>
       </div>
 
-      {/* Text fills remaining height */}
-      <div className="p-3.5 flex-1 flex flex-col overflow-hidden">
-        <h4 className="text-[13px] font-bold text-card-foreground leading-snug group-hover:text-accent transition-colors line-clamp-2 mb-1.5">
-          {article.title}
-        </h4>
-        <p className="text-muted-foreground text-[11px] leading-[1.65] flex-1 overflow-hidden">
+      {/* Compact text excerpt at bottom */}
+      <div className="p-3.5 flex-shrink-0">
+        <p className="text-muted-foreground text-[11px] leading-relaxed line-clamp-2">
           {plainText}
         </p>
-        <span className="text-accent text-[11px] font-semibold mt-2 flex items-center gap-1 flex-shrink-0">
+        <span className="text-accent text-[11px] font-semibold mt-1.5 flex items-center gap-1">
           Pročitaj više <ArrowRight size={12} />
         </span>
       </div>
