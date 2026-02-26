@@ -7,11 +7,10 @@ const NAV_LINKS = [
   { label: "Početna", href: "/" },
   { label: "Vesti", href: "/vesti" },
   { label: "Super Liga", href: "/super-liga" },
-  { label: "Omladinska Liga", href: "/omladinska-liga" },
-  { label: "Kadetska Liga", href: "/kadetska-liga" },
-  { label: "Pionirska Liga", href: "/pionirska-liga" },
+  { label: "Omladinska", href: "/omladinska-liga" },
+  { label: "Kadetska", href: "/kadetska-liga" },
+  { label: "Pionirska", href: "/pionirska-liga" },
   { label: "Istorijat", href: "/istorija-kluba" },
-  { label: "Omladinska Škola", href: "/omladinska-skola" },
 ];
 
 export default function Header() {
@@ -75,12 +74,6 @@ export default function Header() {
                   {link.label}
                 </button>
               ))}
-              <Link
-                to="/admin"
-                className="px-4 py-2 text-sm font-semibold text-yellow-300 border-b-2 border-transparent hover:border-yellow-300/50 transition-all duration-200"
-              >
-                Admin
-              </Link>
             </nav>
 
             {/* Mobile toggle */}
@@ -112,13 +105,6 @@ export default function Header() {
                   {link.label}
                 </button>
               ))}
-              <Link
-                to="/admin"
-                className="block w-full text-left px-4 py-2.5 rounded-xl text-base font-semibold text-yellow-300 hover:bg-white/10"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Admin
-              </Link>
             </div>
           </div>
         )}
