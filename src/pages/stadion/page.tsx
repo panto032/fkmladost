@@ -43,7 +43,7 @@ const KEY_FACTS = [
 /* ─── Image slots — will be replaced with actual photos ─── */
 const STADIUM_IMAGES = {
   hero: "https://cdn.hercules.app/file_UVSxHaKsO3WH89Qs3kT4kGB5" as string | null,
-  aerial: null as string | null,
+  aerial: "https://cdn.hercules.app/file_sTktNFhLtjEJYGRp7SnFFfIr" as string | null,
   interior: null as string | null,
   pitch: null as string | null,
 };
