@@ -5,6 +5,9 @@ import {
   ArrowRight,
   Newspaper,
   Handshake,
+  Landmark,
+  GraduationCap,
+  MapPin,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton.tsx";
@@ -257,6 +260,60 @@ export default function BentoGridSection() {
             />
           </Link>
         )}
+
+        {/* ── CELL: EXPLORE CLUB PAGES ─────────────────── full width */}
+        <div className="lg:col-span-12 grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <Link
+            to="/istorija-kluba"
+            className="group relative rounded-2xl overflow-hidden border border-[oklch(0.30_0.045_252)] bg-gradient-to-br from-[oklch(0.20_0.04_252)] to-[oklch(0.16_0.035_252)] p-6 flex flex-col justify-between min-h-[140px] shadow-lg hover:border-[oklch(0.69_0.095_228)]/50 transition-all duration-300"
+          >
+            <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-[oklch(0.69_0.095_228)]/5 blur-2xl -translate-y-1/2 translate-x-1/4 group-hover:scale-150 transition-transform duration-500" />
+            <div>
+              <div className="w-10 h-10 rounded-xl bg-[oklch(0.69_0.095_228)]/10 border border-[oklch(0.69_0.095_228)]/20 flex items-center justify-center mb-3 group-hover:bg-[oklch(0.69_0.095_228)]/20 transition-colors">
+                <Landmark size={20} className="text-[oklch(0.69_0.095_228)]" />
+              </div>
+              <h4 className="text-white font-extrabold text-lg tracking-tight">Istorija Kluba</h4>
+              <p className="text-[oklch(0.50_0.03_252)] text-xs mt-1">Od 1952. godine do danas</p>
+            </div>
+            <div className="flex items-center text-[oklch(0.69_0.095_228)] text-xs font-semibold mt-3 group-hover:translate-x-1 transition-transform">
+              Saznaj više <ArrowRight size={14} className="ml-1" />
+            </div>
+          </Link>
+
+          <Link
+            to="/omladinska-skola"
+            className="group relative rounded-2xl overflow-hidden border border-[oklch(0.30_0.045_252)] bg-gradient-to-br from-[oklch(0.20_0.04_252)] to-[oklch(0.16_0.035_252)] p-6 flex flex-col justify-between min-h-[140px] shadow-lg hover:border-[oklch(0.69_0.095_228)]/50 transition-all duration-300"
+          >
+            <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-[oklch(0.77_0.10_225)]/5 blur-2xl -translate-y-1/2 translate-x-1/4 group-hover:scale-150 transition-transform duration-500" />
+            <div>
+              <div className="w-10 h-10 rounded-xl bg-[oklch(0.77_0.10_225)]/10 border border-[oklch(0.77_0.10_225)]/20 flex items-center justify-center mb-3 group-hover:bg-[oklch(0.77_0.10_225)]/20 transition-colors">
+                <GraduationCap size={20} className="text-[oklch(0.77_0.10_225)]" />
+              </div>
+              <h4 className="text-white font-extrabold text-lg tracking-tight">Omladinska Škola</h4>
+              <p className="text-[oklch(0.50_0.03_252)] text-xs mt-1">Rasadnik talenata od 1962.</p>
+            </div>
+            <div className="flex items-center text-[oklch(0.77_0.10_225)] text-xs font-semibold mt-3 group-hover:translate-x-1 transition-transform">
+              Saznaj više <ArrowRight size={14} className="ml-1" />
+            </div>
+          </Link>
+
+          <Link
+            to="/stadion"
+            className="group relative rounded-2xl overflow-hidden border border-[oklch(0.30_0.045_252)] bg-gradient-to-br from-[oklch(0.20_0.04_252)] to-[oklch(0.16_0.035_252)] p-6 flex flex-col justify-between min-h-[140px] shadow-lg hover:border-[oklch(0.69_0.095_228)]/50 transition-all duration-300"
+          >
+            <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-[oklch(0.55_0.12_240)]/5 blur-2xl -translate-y-1/2 translate-x-1/4 group-hover:scale-150 transition-transform duration-500" />
+            <div>
+              <div className="w-10 h-10 rounded-xl bg-[oklch(0.55_0.12_240)]/10 border border-[oklch(0.55_0.12_240)]/20 flex items-center justify-center mb-3 group-hover:bg-[oklch(0.55_0.12_240)]/20 transition-colors">
+                <MapPin size={20} className="text-[oklch(0.55_0.12_240)]" />
+              </div>
+              <h4 className="text-white font-extrabold text-lg tracking-tight">Stadion</h4>
+              <p className="text-[oklch(0.50_0.03_252)] text-xs mt-1">SRC "mr Radoš Milovanović"</p>
+            </div>
+            <div className="flex items-center text-[oklch(0.55_0.12_240)] text-xs font-semibold mt-3 group-hover:translate-x-1 transition-transform">
+              Saznaj više <ArrowRight size={14} className="ml-1" />
+            </div>
+          </Link>
+        </div>
 
         {/* ── CELL: PARTNERI & SPONZORI ─────────────────── full width, row 4 */}
         <div className="lg:col-span-12 rounded-2xl bg-gradient-to-br from-[oklch(0.22_0.045_252)] to-[oklch(0.18_0.04_252)] border border-[oklch(0.30_0.045_252)] shadow-lg p-5 text-white">
