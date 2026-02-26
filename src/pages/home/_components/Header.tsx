@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 
 const NAV_LINKS = [
-  { label: "Početna", href: "/", active: true },
+  { label: "Početna", href: "/" },
   { label: "Vesti", href: "/vesti" },
   { label: "Prvi Tim", href: "/prvi-tim" },
   { label: "Klub", href: "#partneri" },
@@ -14,6 +14,13 @@ const NAV_LINKS = [
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const isActive = (href: string) => {
+    if (href.startsWith("#")) return false;
+    if (href === "/") return location.pathname === "/";
+    return location.pathname.startsWith(href);
+  };
 
   const handleNavClick = (href: string, label: string) => {
     setIsMobileMenuOpen(false);
@@ -57,7 +64,7 @@ export default function Header() {
                   key={link.label}
                   onClick={() => handleNavClick(link.href, link.label)}
                   className={`px-4 py-2 text-sm font-semibold transition-all duration-200 border-b-2 ${
-                    link.active
+                    isActive(link.href)
                       ? "text-white border-[oklch(0.55_0.12_240)]"
                       : "text-white/70 border-transparent hover:text-white hover:border-white/30"
                   }`}
@@ -94,7 +101,7 @@ export default function Header() {
                   key={link.label}
                   onClick={() => handleNavClick(link.href, link.label)}
                   className={`block w-full text-left px-4 py-2.5 rounded-xl text-base font-semibold transition-colors ${
-                    link.active
+                    isActive(link.href)
                       ? "text-white bg-white/15"
                       : "text-white/75 hover:text-white hover:bg-white/10"
                   }`}
