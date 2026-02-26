@@ -18,10 +18,10 @@ export default function AnalitikaRivalaPage() {
   const isLoading = analytics === undefined;
 
   return (
-    <div className="min-h-screen bg-[oklch(0.13_0.03_252)] font-sans text-foreground">
+    <div className="min-h-screen bg-[oklch(0.97_0.01_228)] font-sans text-foreground">
       <Header />
 
-      {/* Hero */}
+      {/* Hero — stays dark for brand impact */}
       <section className="relative text-white pt-20 overflow-hidden">
         <div className="absolute inset-0 bg-[oklch(0.10_0.03_252)]" />
         {/* Decorative diagonal */}
@@ -68,8 +68,8 @@ export default function AnalitikaRivalaPage() {
         </div>
       </section>
 
-      {/* Content */}
-      <section className="bg-[oklch(0.13_0.03_252)] py-12">
+      {/* Content — light background */}
+      <section className="bg-[oklch(0.97_0.01_228)] py-12">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           {isLoading ? (
             <LoadingSkeleton />
@@ -133,20 +133,20 @@ type AnalyticsData = {
 /* ─── H2H Summary ─── */
 function H2HSummary({ analytics }: { analytics: AnalyticsData }) {
   const { h2hTotalPlayed, h2hHomeWins, h2hDraws, h2hAwayWins, h2hHomeGoals, h2hAwayGoals, home, away } = analytics;
-  const total = h2hTotalPlayed || 1; // avoid divide by zero
+  const total = h2hTotalPlayed || 1;
 
   return (
-    <div className="rounded-2xl border border-[oklch(0.28_0.04_252)] bg-[oklch(0.18_0.04_252)] overflow-hidden">
+    <div className="rounded-2xl border border-[oklch(0.90_0.015_228)] bg-white shadow-sm overflow-hidden">
       {/* Section header */}
-      <div className="px-6 py-4 bg-[oklch(0.22_0.04_252)] border-b border-[oklch(0.28_0.04_252)] flex items-center gap-3">
+      <div className="px-6 py-4 bg-[oklch(0.96_0.01_228)] border-b border-[oklch(0.90_0.015_228)] flex items-center gap-3">
         <div className="w-8 h-8 rounded-lg bg-[oklch(0.69_0.095_228)]/15 flex items-center justify-center">
           <Trophy size={16} className="text-[oklch(0.69_0.095_228)]" />
         </div>
-        <h2 className="text-white font-bold text-lg uppercase tracking-wide">
+        <h2 className="text-[oklch(0.20_0.04_252)] font-bold text-lg uppercase tracking-wide">
           Međusobni rezultati
         </h2>
         {h2hTotalPlayed > 0 && (
-          <span className="ml-auto text-[oklch(0.50_0.03_252)] text-sm">
+          <span className="ml-auto text-[oklch(0.55_0.03_252)] text-sm">
             {h2hTotalPlayed} odigranih utakmica
           </span>
         )}
@@ -154,7 +154,7 @@ function H2HSummary({ analytics }: { analytics: AnalyticsData }) {
 
       <div className="p-6">
         {h2hTotalPlayed === 0 ? (
-          <p className="text-[oklch(0.50_0.03_252)] text-center py-8">
+          <p className="text-[oklch(0.55_0.03_252)] text-center py-8">
             Nema podataka o međusobnim rezultatima.
           </p>
         ) : (
@@ -166,10 +166,10 @@ function H2HSummary({ analytics }: { analytics: AnalyticsData }) {
                 <span className="text-[oklch(0.69_0.095_228)] font-extrabold text-lg uppercase tracking-tight">
                   {home}
                 </span>
-                <span className="text-[oklch(0.50_0.03_252)] font-bold text-xs uppercase tracking-widest">
+                <span className="text-[oklch(0.55_0.03_252)] font-bold text-xs uppercase tracking-widest">
                   Nerešeno
                 </span>
-                <span className="text-[oklch(0.77_0.10_225)] font-extrabold text-lg uppercase tracking-tight">
+                <span className="text-[oklch(0.50_0.10_250)] font-extrabold text-lg uppercase tracking-tight">
                   {away}
                 </span>
               </div>
@@ -187,21 +187,21 @@ function H2HSummary({ analytics }: { analytics: AnalyticsData }) {
                   )}
                 </div>
                 <div
-                  className="bg-[oklch(0.35_0.04_252)] flex items-center justify-center transition-all duration-700"
+                  className="bg-[oklch(0.85_0.01_228)] flex items-center justify-center transition-all duration-700"
                   style={{ width: `${(h2hDraws / total) * 100}%` }}
                 >
                   {h2hDraws > 0 && (
-                    <span className="text-white/70 font-bold text-lg">
+                    <span className="text-[oklch(0.45_0.03_252)] font-bold text-lg">
                       {h2hDraws}
                     </span>
                   )}
                 </div>
                 <div
-                  className="bg-[oklch(0.77_0.10_225)] flex items-center justify-center transition-all duration-700"
+                  className="bg-[oklch(0.50_0.10_250)] flex items-center justify-center transition-all duration-700"
                   style={{ width: `${(h2hAwayWins / total) * 100}%` }}
                 >
                   {h2hAwayWins > 0 && (
-                    <span className="text-[oklch(0.16_0.04_252)] font-black text-lg">
+                    <span className="text-white font-black text-lg">
                       {h2hAwayWins}
                     </span>
                   )}
@@ -209,7 +209,7 @@ function H2HSummary({ analytics }: { analytics: AnalyticsData }) {
               </div>
 
               {/* Labels under bar */}
-              <div className="flex justify-between mt-2 text-xs text-[oklch(0.50_0.03_252)]">
+              <div className="flex justify-between mt-2 text-xs text-[oklch(0.55_0.03_252)]">
                 <span>
                   {h2hHomeWins} {h2hHomeWins === 1 ? "pobeda" : "pobeda"}
                 </span>
@@ -229,14 +229,14 @@ function H2HSummary({ analytics }: { analytics: AnalyticsData }) {
                 home={home}
                 away={away}
               />
-              <div className="flex flex-col items-center justify-center bg-[oklch(0.14_0.03_252)] rounded-xl p-4 border border-[oklch(0.24_0.04_252)]">
-                <span className="text-[oklch(0.40_0.03_252)] text-[10px] uppercase tracking-widest mb-1">
+              <div className="flex flex-col items-center justify-center bg-[oklch(0.97_0.01_228)] rounded-xl p-4 border border-[oklch(0.92_0.01_228)]">
+                <span className="text-[oklch(0.55_0.03_252)] text-[10px] uppercase tracking-widest mb-1">
                   Ukupno
                 </span>
-                <span className="text-white font-black text-3xl">
+                <span className="text-[oklch(0.20_0.04_252)] font-black text-3xl">
                   {h2hTotalPlayed}
                 </span>
-                <span className="text-[oklch(0.45_0.03_252)] text-[10px] uppercase tracking-widest mt-1">
+                <span className="text-[oklch(0.55_0.03_252)] text-[10px] uppercase tracking-widest mt-1">
                   Utakmica
                 </span>
               </div>
@@ -277,8 +277,8 @@ function StatCard({
   away: string;
 }) {
   return (
-    <div className="bg-[oklch(0.14_0.03_252)] rounded-xl p-4 border border-[oklch(0.24_0.04_252)]">
-      <p className="text-[oklch(0.40_0.03_252)] text-[10px] uppercase tracking-widest text-center mb-3">
+    <div className="bg-[oklch(0.97_0.01_228)] rounded-xl p-4 border border-[oklch(0.92_0.01_228)]">
+      <p className="text-[oklch(0.55_0.03_252)] text-[10px] uppercase tracking-widest text-center mb-3">
         {label}
       </p>
       <div className="flex items-center justify-between gap-2">
@@ -286,16 +286,16 @@ function StatCard({
           <p className="text-[oklch(0.69_0.095_228)] font-black text-2xl">
             {homeValue}
           </p>
-          <p className="text-[oklch(0.45_0.03_252)] text-[9px] uppercase mt-1 truncate">
+          <p className="text-[oklch(0.55_0.03_252)] text-[9px] uppercase mt-1 truncate">
             {home}
           </p>
         </div>
-        <div className="w-px h-8 bg-[oklch(0.28_0.04_252)]" />
+        <div className="w-px h-8 bg-[oklch(0.90_0.015_228)]" />
         <div className="text-center flex-1">
-          <p className="text-[oklch(0.77_0.10_225)] font-black text-2xl">
+          <p className="text-[oklch(0.50_0.10_250)] font-black text-2xl">
             {awayValue}
           </p>
-          <p className="text-[oklch(0.45_0.03_252)] text-[9px] uppercase mt-1 truncate">
+          <p className="text-[oklch(0.55_0.03_252)] text-[9px] uppercase mt-1 truncate">
             {away}
           </p>
         </div>
@@ -311,19 +311,18 @@ function PreviousMatches({ analytics }: { analytics: AnalyticsData }) {
   if (previousMatches.length === 0) return null;
 
   return (
-    <div className="rounded-2xl border border-[oklch(0.28_0.04_252)] bg-[oklch(0.18_0.04_252)] overflow-hidden">
-      <div className="px-6 py-4 bg-[oklch(0.22_0.04_252)] border-b border-[oklch(0.28_0.04_252)] flex items-center gap-3">
+    <div className="rounded-2xl border border-[oklch(0.90_0.015_228)] bg-white shadow-sm overflow-hidden">
+      <div className="px-6 py-4 bg-[oklch(0.96_0.01_228)] border-b border-[oklch(0.90_0.015_228)] flex items-center gap-3">
         <div className="w-8 h-8 rounded-lg bg-[oklch(0.69_0.095_228)]/15 flex items-center justify-center">
           <Calendar size={16} className="text-[oklch(0.69_0.095_228)]" />
         </div>
-        <h2 className="text-white font-bold text-lg uppercase tracking-wide">
+        <h2 className="text-[oklch(0.20_0.04_252)] font-bold text-lg uppercase tracking-wide">
           Prethodne utakmice
         </h2>
       </div>
 
-      <div className="divide-y divide-[oklch(0.24_0.04_252)]">
+      <div className="divide-y divide-[oklch(0.93_0.01_228)]">
         {previousMatches.map((match, i) => {
-          // Parse score to determine winner
           const parts = match.score.split(/[:\-]/);
           const homeGoals = parseInt(parts[0]?.trim() ?? "", 10);
           const awayGoals = parseInt(parts[1]?.trim() ?? "", 10);
@@ -333,28 +332,28 @@ function PreviousMatches({ analytics }: { analytics: AnalyticsData }) {
           const isMladostAway = match.awayTeam
             .toUpperCase()
             .includes("MLADOST");
-          let resultClass = "bg-[oklch(0.35_0.04_252)]"; // draw
+          let resultClass = "bg-[oklch(0.90_0.01_228)] text-[oklch(0.45_0.03_252)]";
           if (!isNaN(homeGoals) && !isNaN(awayGoals)) {
             if (homeGoals > awayGoals) {
               resultClass = isMladostHome
-                ? "bg-emerald-500/20 text-emerald-400"
-                : "bg-red-500/20 text-red-400";
+                ? "bg-emerald-500/15 text-emerald-600"
+                : "bg-red-500/10 text-red-500";
             } else if (awayGoals > homeGoals) {
               resultClass = isMladostAway
-                ? "bg-emerald-500/20 text-emerald-400"
-                : "bg-red-500/20 text-red-400";
+                ? "bg-emerald-500/15 text-emerald-600"
+                : "bg-red-500/10 text-red-500";
             } else {
-              resultClass = "bg-amber-500/20 text-amber-400";
+              resultClass = "bg-amber-500/15 text-amber-600";
             }
           }
 
           return (
             <div
               key={i}
-              className="px-6 py-4 flex items-center gap-4 hover:bg-[oklch(0.20_0.04_252)] transition-colors"
+              className="px-6 py-4 flex items-center gap-4 hover:bg-[oklch(0.97_0.01_228)] transition-colors"
             >
               {/* Date */}
-              <span className="text-[oklch(0.45_0.03_252)] text-xs font-mono w-20 shrink-0">
+              <span className="text-[oklch(0.55_0.03_252)] text-xs font-mono w-20 shrink-0">
                 {match.date}
               </span>
 
@@ -363,7 +362,7 @@ function PreviousMatches({ analytics }: { analytics: AnalyticsData }) {
                 className={`flex-1 text-right font-bold text-sm uppercase tracking-tight ${
                   isMladostHome
                     ? "text-[oklch(0.69_0.095_228)]"
-                    : "text-white/80"
+                    : "text-[oklch(0.30_0.04_252)]"
                 }`}
               >
                 {match.homeTeam}
@@ -381,7 +380,7 @@ function PreviousMatches({ analytics }: { analytics: AnalyticsData }) {
                 className={`flex-1 text-left font-bold text-sm uppercase tracking-tight ${
                   isMladostAway
                     ? "text-[oklch(0.69_0.095_228)]"
-                    : "text-white/80"
+                    : "text-[oklch(0.30_0.04_252)]"
                 }`}
               >
                 {match.awayTeam}
@@ -401,12 +400,12 @@ function TeamStats({ analytics }: { analytics: AnalyticsData }) {
   if (teamStats.length === 0) return null;
 
   return (
-    <div className="rounded-2xl border border-[oklch(0.28_0.04_252)] bg-[oklch(0.18_0.04_252)] overflow-hidden">
-      <div className="px-6 py-4 bg-[oklch(0.22_0.04_252)] border-b border-[oklch(0.28_0.04_252)] flex items-center gap-3">
+    <div className="rounded-2xl border border-[oklch(0.90_0.015_228)] bg-white shadow-sm overflow-hidden">
+      <div className="px-6 py-4 bg-[oklch(0.96_0.01_228)] border-b border-[oklch(0.90_0.015_228)] flex items-center gap-3">
         <div className="w-8 h-8 rounded-lg bg-[oklch(0.69_0.095_228)]/15 flex items-center justify-center">
           <BarChart3 size={16} className="text-[oklch(0.69_0.095_228)]" />
         </div>
-        <h2 className="text-white font-bold text-lg uppercase tracking-wide">
+        <h2 className="text-[oklch(0.20_0.04_252)] font-bold text-lg uppercase tracking-wide">
           Statistika sezone
         </h2>
       </div>
@@ -417,7 +416,7 @@ function TeamStats({ analytics }: { analytics: AnalyticsData }) {
           <span className="text-[oklch(0.69_0.095_228)] font-bold text-xs uppercase tracking-widest">
             {home}
           </span>
-          <span className="text-[oklch(0.77_0.10_225)] font-bold text-xs uppercase tracking-widest">
+          <span className="text-[oklch(0.50_0.10_250)] font-bold text-xs uppercase tracking-widest">
             {away}
           </span>
         </div>
@@ -431,30 +430,30 @@ function TeamStats({ analytics }: { analytics: AnalyticsData }) {
             return (
               <div key={i}>
                 <div className="flex items-center justify-between gap-4 mb-1">
-                  <span className="text-white font-bold text-sm w-12 text-right shrink-0">
+                  <span className="text-[oklch(0.25_0.04_252)] font-bold text-sm w-12 text-right shrink-0">
                     {stat.homeValue}
                   </span>
                   <div className="flex-1 flex items-center gap-1">
                     {/* Home bar (grows right-to-left) */}
                     <div className="flex-1 flex justify-end">
                       <div
-                        className="h-5 rounded-l-md bg-[oklch(0.69_0.095_228)]/60 transition-all duration-500"
+                        className="h-5 rounded-l-md bg-[oklch(0.69_0.095_228)]/50 transition-all duration-500"
                         style={{ width: `${(homeNum / max) * 100}%` }}
                       />
                     </div>
                     {/* Away bar (grows left-to-right) */}
                     <div className="flex-1">
                       <div
-                        className="h-5 rounded-r-md bg-[oklch(0.77_0.10_225)]/60 transition-all duration-500"
+                        className="h-5 rounded-r-md bg-[oklch(0.50_0.10_250)]/50 transition-all duration-500"
                         style={{ width: `${(awayNum / max) * 100}%` }}
                       />
                     </div>
                   </div>
-                  <span className="text-white font-bold text-sm w-12 text-left shrink-0">
+                  <span className="text-[oklch(0.25_0.04_252)] font-bold text-sm w-12 text-left shrink-0">
                     {stat.awayValue}
                   </span>
                 </div>
-                <p className="text-[oklch(0.45_0.03_252)] text-[10px] uppercase tracking-widest text-center">
+                <p className="text-[oklch(0.55_0.03_252)] text-[10px] uppercase tracking-widest text-center">
                   {stat.label}
                 </p>
               </div>
@@ -473,12 +472,12 @@ function RecentForm({ analytics }: { analytics: AnalyticsData }) {
   if (homeForm.length === 0 && awayForm.length === 0) return null;
 
   return (
-    <div className="rounded-2xl border border-[oklch(0.28_0.04_252)] bg-[oklch(0.18_0.04_252)] overflow-hidden">
-      <div className="px-6 py-4 bg-[oklch(0.22_0.04_252)] border-b border-[oklch(0.28_0.04_252)] flex items-center gap-3">
+    <div className="rounded-2xl border border-[oklch(0.90_0.015_228)] bg-white shadow-sm overflow-hidden">
+      <div className="px-6 py-4 bg-[oklch(0.96_0.01_228)] border-b border-[oklch(0.90_0.015_228)] flex items-center gap-3">
         <div className="w-8 h-8 rounded-lg bg-[oklch(0.69_0.095_228)]/15 flex items-center justify-center">
           <TrendingUp size={16} className="text-[oklch(0.69_0.095_228)]" />
         </div>
-        <h2 className="text-white font-bold text-lg uppercase tracking-wide">
+        <h2 className="text-[oklch(0.20_0.04_252)] font-bold text-lg uppercase tracking-wide">
           Forma
         </h2>
       </div>
@@ -491,7 +490,7 @@ function RecentForm({ analytics }: { analytics: AnalyticsData }) {
 
         {/* Divider */}
         {homeForm.length > 0 && awayForm.length > 0 && (
-          <div className="border-t border-[oklch(0.24_0.04_252)]" />
+          <div className="border-t border-[oklch(0.93_0.01_228)]" />
         )}
 
         {/* Away form */}
@@ -523,7 +522,7 @@ function FormSection({
         className={`font-bold text-sm uppercase tracking-widest mb-3 ${
           isHome
             ? "text-[oklch(0.69_0.095_228)]"
-            : "text-[oklch(0.77_0.10_225)]"
+            : "text-[oklch(0.50_0.10_250)]"
         }`}
       >
         {teamName}
@@ -541,16 +540,16 @@ function FormSection({
         {matches.map((m, i) => (
           <div
             key={i}
-            className="flex items-center gap-3 px-3 py-2 rounded-lg bg-[oklch(0.14_0.03_252)] border border-[oklch(0.22_0.04_252)]"
+            className="flex items-center gap-3 px-3 py-2 rounded-lg bg-[oklch(0.97_0.01_228)] border border-[oklch(0.93_0.01_228)]"
           >
             <FormBadge result={m.result} size="sm" />
-            <span className="text-[oklch(0.45_0.03_252)] text-[11px] font-mono w-16 shrink-0">
+            <span className="text-[oklch(0.55_0.03_252)] text-[11px] font-mono w-16 shrink-0">
               {m.date}
             </span>
-            <span className="text-white/70 text-xs font-semibold truncate flex-1">
+            <span className="text-[oklch(0.35_0.04_252)] text-xs font-semibold truncate flex-1">
               {m.teams}
             </span>
-            <span className="text-white font-bold text-xs shrink-0">
+            <span className="text-[oklch(0.20_0.04_252)] font-bold text-xs shrink-0">
               {m.score}
             </span>
           </div>
@@ -568,18 +567,18 @@ function FormBadge({
   size?: "sm" | "md";
 }) {
   const letter = result.toUpperCase();
-  let bgColor = "bg-[oklch(0.35_0.04_252)]";
-  let textColor = "text-white/60";
+  let bgColor = "bg-[oklch(0.90_0.01_228)]";
+  let textColor = "text-[oklch(0.50_0.03_252)]";
 
   if (letter === "P" || letter === "W") {
-    bgColor = "bg-emerald-500/20";
-    textColor = "text-emerald-400";
+    bgColor = "bg-emerald-500/15";
+    textColor = "text-emerald-600";
   } else if (letter === "I" || letter === "L") {
-    bgColor = "bg-red-500/20";
-    textColor = "text-red-400";
+    bgColor = "bg-red-500/12";
+    textColor = "text-red-500";
   } else if (letter === "N" || letter === "D") {
-    bgColor = "bg-amber-500/20";
-    textColor = "text-amber-400";
+    bgColor = "bg-amber-500/15";
+    textColor = "text-amber-600";
   }
 
   const sizeClass =
@@ -600,11 +599,11 @@ function FormBadge({
 function LoadingSkeleton() {
   return (
     <div className="space-y-10">
-      <Skeleton className="h-72 w-full rounded-2xl bg-white/5" />
-      <Skeleton className="h-56 w-full rounded-2xl bg-white/5" />
+      <Skeleton className="h-72 w-full rounded-2xl bg-[oklch(0.92_0.01_228)]" />
+      <Skeleton className="h-56 w-full rounded-2xl bg-[oklch(0.92_0.01_228)]" />
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <Skeleton className="h-80 rounded-2xl bg-white/5" />
-        <Skeleton className="h-80 rounded-2xl bg-white/5" />
+        <Skeleton className="h-80 rounded-2xl bg-[oklch(0.92_0.01_228)]" />
+        <Skeleton className="h-80 rounded-2xl bg-[oklch(0.92_0.01_228)]" />
       </div>
     </div>
   );
@@ -617,16 +616,16 @@ function EmptyState() {
       <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-[oklch(0.69_0.095_228)]/10 border border-[oklch(0.69_0.095_228)]/20 flex items-center justify-center">
         <Swords size={28} className="text-[oklch(0.69_0.095_228)]" />
       </div>
-      <p className="text-[oklch(0.65_0.03_228)] text-lg font-semibold mb-2">
+      <p className="text-[oklch(0.35_0.04_252)] text-lg font-semibold mb-2">
         Analitika rivala jos nije dostupna
       </p>
-      <p className="text-[oklch(0.40_0.03_252)] text-sm max-w-md mx-auto">
+      <p className="text-[oklch(0.55_0.03_252)] text-sm max-w-md mx-auto">
         Kliknite "Sinhronizuj analitiku" u Admin panelu kako biste preuzeli
         podatke sa superliga.rs
       </p>
       <Link
         to="/najava-kola"
-        className="inline-flex items-center gap-2 mt-6 text-[oklch(0.69_0.095_228)] hover:text-[oklch(0.77_0.10_225)] font-semibold text-sm transition-colors"
+        className="inline-flex items-center gap-2 mt-6 text-[oklch(0.69_0.095_228)] hover:text-[oklch(0.50_0.10_250)] font-semibold text-sm transition-colors"
       >
         <ArrowLeft size={16} />
         Pogledajte najavu kola
