@@ -68,6 +68,11 @@ export default function Footer() {
                   Analitika rivala
                 </Link>
               </li>
+              <li>
+                <Link to="/omladinska-liga" className="hover:text-white transition-colors">
+                  Omladinska liga
+                </Link>
+              </li>
             </ul>
           </div>
 

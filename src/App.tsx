@@ -11,6 +11,7 @@ import IstorijaKluba from "./pages/istorija-kluba/page.tsx";
 import StadionPage from "./pages/stadion/page.tsx";
 import NajavaKolaPage from "./pages/najava-kola/page.tsx";
 import AnalitikaRivalaPage from "./pages/analitika-rivala/page.tsx";
+import OmladinskaLigaPage from "./pages/omladinska-liga/page.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 export default function App() {
@@ -28,6 +29,7 @@ export default function App() {
           <Route path="/stadion" element={<StadionPage />} />
           <Route path="/najava-kola" element={<NajavaKolaPage />} />
           <Route path="/analitika-rivala" element={<AnalitikaRivalaPage />} />
+          <Route path="/omladinska-liga" element={<OmladinskaLigaPage />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
