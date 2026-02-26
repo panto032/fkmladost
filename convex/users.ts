@@ -23,10 +23,15 @@ export const updateCurrentUser = mutation({
       return user._id;
     }
     // If it's a new identity, create a new User.
+    // First user gets admin role automatically
+    const allUsers = await ctx.db.query("users").take(1);
+    const isFirstUser = allUsers.length === 0;
+
     return await ctx.db.insert("users", {
       name: identity.name,
       email: identity.email,
       tokenIdentifier: identity.tokenIdentifier,
+      role: isFirstUser ? "admin" : undefined,
     });
   },
 });
