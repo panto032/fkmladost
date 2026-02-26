@@ -133,6 +133,40 @@ export const scrapeStandings = action({
 const TEAM_PAGE_URL = "https://www.superliga.rs/tim/mladost/";
 
 /**
+ * Maps home team name (uppercase) to their stadium.
+ * Used to auto-fill the stadium field during match sync.
+ */
+const STADIUM_MAP: Record<string, string> = {
+  "CRVENA ZVEZDA": "Stadion Rajko Mitić, Beograd",
+  "ČUKARIČKI": "Stadion Čukarički, Beograd",
+  "IMT": "Stadion IMT, Novi Beograd",
+  "JAVOR MATIS": "Stadion kraj Moravice, Ivanjica",
+  "MLADOST": "SRC MR Radoš Milovanović, Lučani",
+  "NAPREDAK": "Stadion Mladost, Kruševac",
+  "NOVI PAZAR": "Gradski stadion, Novi Pazar",
+  "OFK BEOGRAD": "Stadion Omladinski, Beograd",
+  "PARTIZAN": "Stadion Partizana, Beograd",
+  "RADNIČKI 1923": "Stadion Čika Dača, Kragujevac",
+  "RADNIČKI NIŠ": "Stadion Čair, Niš",
+  "RADNIK": "Gradski stadion, Surdulica",
+  "SPARTAK ŽK": "Gradski stadion, Subotica",
+  "SPARTAK": "Gradski stadion, Subotica",
+  "TSC": "Stadion TSC, Bačka Topola",
+  "VOJVODINA": "Stadion Karađorđe, Novi Sad",
+  "ŽELEZNIČAR": "Stadion Železničar, Pančevo",
+};
+
+/** Find stadium by home team name (flexible matching) */
+function findStadium(teamName: string): string {
+  const upper = teamName.toUpperCase().trim();
+  if (STADIUM_MAP[upper]) return STADIUM_MAP[upper];
+  for (const [key, val] of Object.entries(STADIUM_MAP)) {
+    if (upper.includes(key) || key.includes(upper)) return val;
+  }
+  return "";
+}
+
+/**
  * Scrapes latest match data for FK Mladost from superliga.rs
  * – previous match (result) & next match (fixture), with team logos.
  */
@@ -262,7 +296,7 @@ export const scrapeMatches = action({
         awayScore,
         date: datePart,
         time: timePart,
-        stadium: "",
+        stadium: findStadium(homeTeam.displayName),
         competition: "Mozzart Bet Superliga",
         status: isLast ? "Završeno" : undefined,
       });
