@@ -165,26 +165,19 @@ function PlayerBioModal({
                   label="Minuti"
                   value={player.minutes ?? 0}
                 />
-                <StatItem
-                  icon={<Target size={18} />}
-                  label="Golovi"
-                  value={player.goals ?? 0}
-                />
-                <StatItem
-                  icon={<Trophy size={18} />}
-                  label="Asistencije"
-                  value={player.assists ?? 0}
-                />
-                <StatItem
-                  icon={<Shield size={18} />}
-                  label="Primljeni"
-                  value={player.goalsConceded ?? 0}
-                />
-                <StatItem
-                  icon={<SquareSlash size={18} />}
-                  label="Žuti kartoni"
-                  value={player.yellowCards ?? 0}
-                />
+                {player.position === "Golman" ? (
+                  <StatItem
+                    icon={<Shield size={18} />}
+                    label="Primljeni"
+                    value={player.goalsConceded ?? 0}
+                  />
+                ) : (
+                  <StatItem
+                    icon={<Target size={18} />}
+                    label="Golovi"
+                    value={player.goals ?? 0}
+                  />
+                )}
               </div>
             </div>
           )}
