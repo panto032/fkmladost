@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery, useMutation } from "convex/react";
+import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "@/convex/_generated/api.js";
 import type { Doc } from "@/convex/_generated/dataModel.d.ts";
 import { Button } from "@/components/ui/button.tsx";
@@ -28,7 +28,7 @@ import {
   TableRow,
 } from "@/components/ui/table.tsx";
 import { Skeleton } from "@/components/ui/skeleton.tsx";
-import { Pencil, Trash2, Plus } from "lucide-react";
+import { Pencil, Trash2, Plus, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { ConvexError } from "convex/values";
 
@@ -54,11 +54,13 @@ export default function AdminMatches() {
   const createMatch = useMutation(api.admin.matches.create);
   const updateMatch = useMutation(api.admin.matches.update);
   const removeMatch = useMutation(api.admin.matches.remove);
+  const scrapeMatches = useAction(api.sync.scrapeFromWeb.scrapeMatches);
 
   const [isOpen, setIsOpen] = useState(false);
   const [editing, setEditing] = useState<MatchItem | null>(null);
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
+  const [syncing, setSyncing] = useState(false);
 
   const openCreate = () => {
     setEditing(null);
@@ -126,6 +128,25 @@ export default function AdminMatches() {
     }
   };
 
+  const handleSync = async () => {
+    setSyncing(true);
+    try {
+      const result = await scrapeMatches();
+      toast.success(
+        `Sinhronizacija uspešna! Učitano ${result.matches} meč(eva) sa superliga.rs`,
+      );
+    } catch (error) {
+      if (error instanceof ConvexError) {
+        const { message } = error.data as { code: string; message: string };
+        toast.error(`Greška pri sinhronizaciji: ${message}`);
+      } else {
+        toast.error("Greška pri sinhronizaciji sa superliga.rs");
+      }
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   if (matches === undefined) {
     return (
       <div className="space-y-3">
@@ -138,6 +159,25 @@ export default function AdminMatches() {
 
   return (
     <div>
+      {/* ── Sync banner ── */}
+      <div className="bg-[oklch(0.22_0.06_250)] text-white rounded-xl p-4 mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div>
+          <h4 className="font-bold text-sm">SuperLiga.rs Sinhronizacija</h4>
+          <p className="text-[oklch(0.65_0.04_250)] text-xs mt-0.5">
+            Povuci podatke o prethodnoj i sledećoj utakmici FK Mladost sa superliga.rs (sa logom)
+          </p>
+        </div>
+        <Button
+          size="sm"
+          onClick={handleSync}
+          disabled={syncing}
+          className="bg-[oklch(0.55_0.18_250)] hover:bg-[oklch(0.50_0.18_250)] text-white shrink-0"
+        >
+          <RefreshCw size={14} className={syncing ? "animate-spin" : ""} />
+          {syncing ? "Sinhronizujem..." : "Sinhronizuj sada"}
+        </Button>
+      </div>
+
       <div className="flex justify-between items-center mb-6">
         <h3 className="text-lg font-bold">Mečevi ({matches.length})</h3>
         <Button onClick={openCreate} size="sm">
