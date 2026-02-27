@@ -9,6 +9,7 @@
  */
 
 import type * as admin_cadetLeague from "../admin/cadetLeague.js";
+import type * as admin_documents from "../admin/documents.js";
 import type * as admin_matches from "../admin/matches.js";
 import type * as admin_news from "../admin/news.js";
 import type * as admin_pages from "../admin/pages.js";
@@ -19,6 +20,7 @@ import type * as admin_standings from "../admin/standings.js";
 import type * as admin_superLeague from "../admin/superLeague.js";
 import type * as admin_youthLeague from "../admin/youthLeague.js";
 import type * as contact from "../contact.js";
+import type * as documents from "../documents.js";
 import type * as licenseAction from "../licenseAction.js";
 import type * as licenseStore from "../licenseStore.js";
 import type * as matchAnalytics from "../matchAnalytics.js";
@@ -49,6 +51,7 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   "admin/cadetLeague": typeof admin_cadetLeague;
+  "admin/documents": typeof admin_documents;
   "admin/matches": typeof admin_matches;
   "admin/news": typeof admin_news;
   "admin/pages": typeof admin_pages;
@@ -59,6 +62,7 @@ declare const fullApi: ApiFromModules<{
   "admin/superLeague": typeof admin_superLeague;
   "admin/youthLeague": typeof admin_youthLeague;
   contact: typeof contact;
+  documents: typeof documents;
   licenseAction: typeof licenseAction;
   licenseStore: typeof licenseStore;
   matchAnalytics: typeof matchAnalytics;

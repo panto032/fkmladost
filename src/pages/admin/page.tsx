@@ -46,6 +46,7 @@ import AdminSuperLeague from "./_components/AdminSuperLeague.tsx";
 import AdminContactMessages from "./_components/AdminContactMessages.tsx";
 import AdminSettings from "./_components/AdminSettings.tsx";
 import AdminLicense from "./_components/AdminLicense.tsx";
+import AdminDocuments from "./_components/AdminDocuments.tsx";
 
 type NavItem = {
   id: string;
@@ -64,6 +65,7 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { id: "news", label: "Vesti", icon: <Newspaper size={18} /> },
       { id: "pages", label: "Stranice", icon: <FileText size={18} /> },
+      { id: "documents", label: "Dokumenta", icon: <FileText size={18} /> },
       { id: "partners", label: "Partneri", icon: <Handshake size={18} /> },
     ],
   },
@@ -118,6 +120,7 @@ const CONTENT_MAP: Record<string, React.ReactNode> = {
   partners: <AdminPartners />,
   standings: <AdminStandings />,
   pages: <AdminPages />,
+  documents: <AdminDocuments />,
   youth: <AdminYouthLeague />,
   cadet: <AdminCadetLeague />,
   pioneer: <AdminPioneerLeague />,

@@ -308,6 +308,22 @@ export default defineSchema({
     accepted: v.boolean(),
   }).index("by_email", ["email"]),
 
+  /** Dokumenta kluba */
+  documents: defineTable({
+    title: v.string(),
+    description: v.optional(v.string()),
+    category: v.string(),
+    fileStorageId: v.id("_storage"),
+    fileName: v.string(),
+    fileType: v.string(),
+    fileSize: v.number(),
+    published: v.boolean(),
+    sortOrder: v.number(),
+  })
+    .index("by_published", ["published"])
+    .index("by_category", ["category"])
+    .index("by_sort_order", ["sortOrder"]),
+
   /** Licenca za admin panel */
   license: defineTable({
     key: v.string(),
