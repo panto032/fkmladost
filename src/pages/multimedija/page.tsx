@@ -18,6 +18,17 @@ import { cn } from "@/lib/utils.ts";
 
 type TabType = "slike" | "video";
 
+/** Shared lightbox item — works for both images and videos */
+type LightboxItem = {
+  _id: string;
+  title: string;
+  description?: string;
+  category: string;
+  type: "image" | "video";
+  imageUrl?: string | null;
+  youtubeVideoId?: string;
+};
+
 export default function MultimedijaPage() {
   const images = useQuery(api.media.getPublishedImages);
   const videos = useQuery(api.media.getPublishedVideos);
@@ -27,13 +38,12 @@ export default function MultimedijaPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
-  // Filter images by category
+  // Filter by category
   const filteredImages =
     images && selectedCategory !== "all"
       ? images.filter((img) => img.category === selectedCategory)
       : images;
 
-  // Filter videos by category
   const filteredVideos =
     videos && selectedCategory !== "all"
       ? videos.filter((vid) => vid.category === selectedCategory)
@@ -46,8 +56,25 @@ export default function MultimedijaPage() {
       : categories.filter((c) => videos?.some((v) => v.category === c))
     : [];
 
-  // Lightbox navigation
-  const lightboxImages = filteredImages ?? [];
+  // Build lightbox items based on active tab
+  const lightboxItems: LightboxItem[] =
+    activeTab === "slike"
+      ? (filteredImages ?? []).map((img) => ({
+          _id: img._id,
+          title: img.title,
+          description: img.description,
+          category: img.category,
+          type: "image" as const,
+          imageUrl: img.imageUrl,
+        }))
+      : (filteredVideos ?? []).map((vid) => ({
+          _id: vid._id,
+          title: vid.title,
+          description: vid.description,
+          category: vid.category,
+          type: "video" as const,
+          youtubeVideoId: vid.youtubeVideoId,
+        }));
 
   const openLightbox = (idx: number) => setLightboxIndex(idx);
   const closeLightbox = () => setLightboxIndex(null);
@@ -55,18 +82,18 @@ export default function MultimedijaPage() {
   const goNext = useCallback(() => {
     if (lightboxIndex === null) return;
     setLightboxIndex((prev) =>
-      prev !== null && prev < lightboxImages.length - 1 ? prev + 1 : 0,
+      prev !== null && prev < lightboxItems.length - 1 ? prev + 1 : 0,
     );
-  }, [lightboxIndex, lightboxImages.length]);
+  }, [lightboxIndex, lightboxItems.length]);
 
   const goPrev = useCallback(() => {
     if (lightboxIndex === null) return;
     setLightboxIndex((prev) =>
-      prev !== null && prev > 0 ? prev - 1 : lightboxImages.length - 1,
+      prev !== null && prev > 0 ? prev - 1 : lightboxItems.length - 1,
     );
-  }, [lightboxIndex, lightboxImages.length]);
+  }, [lightboxIndex, lightboxItems.length]);
 
-  // Keyboard navigation for lightbox
+  // Keyboard navigation
   useEffect(() => {
     if (lightboxIndex === null) return;
 
@@ -120,6 +147,7 @@ export default function MultimedijaPage() {
               onClick={() => {
                 setActiveTab("slike");
                 setSelectedCategory("all");
+                setLightboxIndex(null);
               }}
               className={cn(
                 "flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold uppercase tracking-wide transition-all",
@@ -140,6 +168,7 @@ export default function MultimedijaPage() {
               onClick={() => {
                 setActiveTab("video");
                 setSelectedCategory("all");
+                setLightboxIndex(null);
               }}
               className={cn(
                 "flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold uppercase tracking-wide transition-all",
@@ -202,15 +231,18 @@ export default function MultimedijaPage() {
               onOpen={openLightbox}
             />
           ) : (
-            <VideoGrid videos={filteredVideos ?? []} />
+            <VideoGrid
+              videos={filteredVideos ?? []}
+              onOpen={openLightbox}
+            />
           )}
         </div>
       </section>
 
-      {/* Lightbox */}
-      {lightboxIndex !== null && lightboxImages[lightboxIndex] && (
-        <Lightbox
-          images={lightboxImages}
+      {/* Unified Lightbox for images & videos */}
+      {lightboxIndex !== null && lightboxItems[lightboxIndex] && (
+        <MediaLightbox
+          items={lightboxItems}
           currentIndex={lightboxIndex}
           onClose={closeLightbox}
           onNext={goNext}
@@ -272,7 +304,7 @@ function ImageGrid({
             </div>
           )}
 
-          {/* Hover overlay with title */}
+          {/* Hover overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3 sm:p-4">
             <p className="text-white text-sm font-semibold truncate">
               {img.title}
@@ -299,12 +331,15 @@ type VideoItem = {
   description?: string;
   category: string;
   youtubeVideoId?: string;
-  youtubeUrl?: string;
 };
 
-function VideoGrid({ videos }: { videos: VideoItem[] }) {
-  const [playingId, setPlayingId] = useState<string | null>(null);
-
+function VideoGrid({
+  videos,
+  onOpen,
+}: {
+  videos: VideoItem[];
+  onOpen: (idx: number) => void;
+}) {
   if (videos.length === 0) {
     return (
       <div className="text-center py-20">
@@ -318,88 +353,74 @@ function VideoGrid({ videos }: { videos: VideoItem[] }) {
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      {videos.map((vid) => (
-        <div
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
+      {videos.map((vid, idx) => (
+        <button
           key={vid._id}
-          className="rounded-xl overflow-hidden border bg-card group"
+          onClick={() => onOpen(idx)}
+          className="group relative aspect-square rounded-xl overflow-hidden bg-muted focus:outline-none focus:ring-2 focus:ring-[oklch(0.69_0.095_228)] focus:ring-offset-2"
         >
-          {/* Video embed or thumbnail */}
-          <div className="aspect-video relative">
-            {playingId === vid._id && vid.youtubeVideoId ? (
-              <iframe
-                src={`https://www.youtube.com/embed/${vid.youtubeVideoId}?autoplay=1`}
-                title={vid.title}
-                className="w-full h-full"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
-            ) : vid.youtubeVideoId ? (
-              <button
-                onClick={() => setPlayingId(vid._id)}
-                className="w-full h-full relative focus:outline-none"
+          {vid.youtubeVideoId ? (
+            <img
+              src={`https://img.youtube.com/vi/${vid.youtubeVideoId}/hqdefault.jpg`}
+              alt={vid.title}
+              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+              loading="lazy"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <Video size={32} className="text-muted-foreground" />
+            </div>
+          )}
+
+          {/* Play icon */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div className="w-14 h-14 rounded-full bg-red-600/90 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform">
+              <svg
+                viewBox="0 0 24 24"
+                className="w-6 h-6 text-white ml-0.5"
+                fill="currentColor"
               >
-                <img
-                  src={`https://img.youtube.com/vi/${vid.youtubeVideoId}/hqdefault.jpg`}
-                  alt={vid.title}
-                  className="w-full h-full object-cover"
-                  loading="lazy"
-                />
-                {/* Play button overlay */}
-                <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/40 transition-colors">
-                  <div className="w-16 h-16 rounded-full bg-red-600 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform">
-                    <svg
-                      viewBox="0 0 24 24"
-                      className="w-7 h-7 text-white ml-1"
-                      fill="currentColor"
-                    >
-                      <path d="M8 5v14l11-7z" />
-                    </svg>
-                  </div>
-                </div>
-              </button>
-            ) : (
-              <div className="w-full h-full bg-muted flex items-center justify-center">
-                <Video size={32} className="text-muted-foreground" />
-              </div>
-            )}
+                <path d="M8 5v14l11-7z" />
+              </svg>
+            </div>
           </div>
 
-          {/* Info */}
-          <div className="p-4">
-            <h3 className="font-semibold text-foreground truncate">
+          {/* Hover overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3 sm:p-4">
+            <p className="text-white text-sm font-semibold truncate">
               {vid.title}
-            </h3>
+            </p>
             {vid.description && (
-              <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+              <p className="text-white/70 text-xs truncate mt-0.5">
                 {vid.description}
               </p>
             )}
-            <span className="inline-block mt-2 text-xs bg-muted px-2 py-0.5 rounded-full text-muted-foreground">
+            <span className="text-white/50 text-[10px] mt-1">
               {vid.category}
             </span>
           </div>
-        </div>
+        </button>
       ))}
     </div>
   );
 }
 
-/* ─────── Lightbox ─────── */
-function Lightbox({
-  images,
+/* ─────── Unified Lightbox (images + videos) ─────── */
+function MediaLightbox({
+  items,
   currentIndex,
   onClose,
   onNext,
   onPrev,
 }: {
-  images: ImageItem[];
+  items: LightboxItem[];
   currentIndex: number;
   onClose: () => void;
   onNext: () => void;
   onPrev: () => void;
 }) {
-  const current = images[currentIndex];
+  const current = items[currentIndex];
   if (!current) return null;
 
   return (
@@ -415,7 +436,7 @@ function Lightbox({
         <div className="text-white min-w-0 flex-1 mr-4">
           <h3 className="text-lg font-bold truncate">{current.title}</h3>
           {current.description && (
-            <p className="text-white/60 text-sm truncate mt-0.5">
+            <p className="text-white/60 text-sm mt-0.5 line-clamp-2">
               {current.description}
             </p>
           )}
@@ -423,7 +444,7 @@ function Lightbox({
         </div>
         <div className="flex items-center gap-3 flex-shrink-0">
           <span className="text-white/50 text-sm">
-            {currentIndex + 1} / {images.length}
+            {currentIndex + 1} / {items.length}
           </span>
           <Button
             size="sm"
@@ -436,13 +457,13 @@ function Lightbox({
         </div>
       </div>
 
-      {/* Image area */}
+      {/* Content area */}
       <div
         className="flex-1 flex items-center justify-center px-4 sm:px-16 pb-6 relative min-h-0"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Prev button */}
-        {images.length > 1 && (
+        {items.length > 1 && (
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -454,18 +475,28 @@ function Lightbox({
           </button>
         )}
 
-        {/* Image */}
-        {current.imageUrl && (
+        {/* Image or YouTube embed */}
+        {current.type === "image" && current.imageUrl ? (
           <img
             src={current.imageUrl}
             alt={current.title}
             className="max-w-full max-h-full object-contain rounded-lg select-none"
             draggable={false}
           />
-        )}
+        ) : current.type === "video" && current.youtubeVideoId ? (
+          <div className="w-full max-w-5xl aspect-video">
+            <iframe
+              src={`https://www.youtube.com/embed/${current.youtubeVideoId}?autoplay=1&rel=0`}
+              title={current.title}
+              className="w-full h-full rounded-xl"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          </div>
+        ) : null}
 
         {/* Next button */}
-        {images.length > 1 && (
+        {items.length > 1 && (
           <button
             onClick={(e) => {
               e.stopPropagation();
