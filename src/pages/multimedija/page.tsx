@@ -188,33 +188,46 @@ export default function MultimedijaPage() {
           </div>
 
           {/* Category filter */}
-          {tabCategories.length > 1 && (
+          {tabCategories.length > 0 && (
             <div className="flex flex-wrap items-center justify-center gap-2 mb-8">
               <button
                 onClick={() => setSelectedCategory("all")}
                 className={cn(
-                  "px-4 py-2 rounded-full text-xs font-semibold transition-all",
+                  "px-5 py-2.5 rounded-full text-sm font-semibold transition-all border",
                   selectedCategory === "all"
-                    ? "bg-foreground text-background"
-                    : "bg-muted text-muted-foreground hover:bg-muted/80",
+                    ? "bg-[oklch(0.69_0.095_228)] text-white border-[oklch(0.69_0.095_228)] shadow-lg shadow-[oklch(0.69_0.095_228)]/20"
+                    : "bg-card text-muted-foreground border-border hover:border-[oklch(0.69_0.095_228)]/50 hover:text-foreground",
                 )}
               >
                 Sve
+                {activeTab === "slike" && images && (
+                  <span className="ml-1.5 opacity-70">({images.length})</span>
+                )}
+                {activeTab === "video" && videos && (
+                  <span className="ml-1.5 opacity-70">({videos.length})</span>
+                )}
               </button>
-              {tabCategories.map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => setSelectedCategory(cat)}
-                  className={cn(
-                    "px-4 py-2 rounded-full text-xs font-semibold transition-all",
-                    selectedCategory === cat
-                      ? "bg-foreground text-background"
-                      : "bg-muted text-muted-foreground hover:bg-muted/80",
-                  )}
-                >
-                  {cat}
-                </button>
-              ))}
+              {tabCategories.map((cat) => {
+                const count =
+                  activeTab === "slike"
+                    ? images?.filter((i) => i.category === cat).length ?? 0
+                    : videos?.filter((v) => v.category === cat).length ?? 0;
+                return (
+                  <button
+                    key={cat}
+                    onClick={() => setSelectedCategory(cat)}
+                    className={cn(
+                      "px-5 py-2.5 rounded-full text-sm font-semibold transition-all border",
+                      selectedCategory === cat
+                        ? "bg-[oklch(0.69_0.095_228)] text-white border-[oklch(0.69_0.095_228)] shadow-lg shadow-[oklch(0.69_0.095_228)]/20"
+                        : "bg-card text-muted-foreground border-border hover:border-[oklch(0.69_0.095_228)]/50 hover:text-foreground",
+                    )}
+                  >
+                    {cat}
+                    <span className="ml-1.5 opacity-70">({count})</span>
+                  </button>
+                );
+              })}
             </div>
           )}
 
