@@ -324,6 +324,25 @@ export default defineSchema({
     .index("by_category", ["category"])
     .index("by_sort_order", ["sortOrder"]),
 
+  /** Multimedija — slike i video */
+  mediaItems: defineTable({
+    type: v.union(v.literal("image"), v.literal("video")),
+    title: v.string(),
+    description: v.optional(v.string()),
+    category: v.string(),
+    /** For images: Convex storage ID */
+    imageStorageId: v.optional(v.id("_storage")),
+    /** For videos: YouTube URL */
+    youtubeUrl: v.optional(v.string()),
+    /** Extracted YouTube video ID for embed */
+    youtubeVideoId: v.optional(v.string()),
+    published: v.boolean(),
+    sortOrder: v.number(),
+  })
+    .index("by_type_and_published", ["type", "published"])
+    .index("by_category", ["category"])
+    .index("by_sort_order", ["sortOrder"]),
+
   /** Licenca za admin panel */
   license: defineTable({
     key: v.string(),
