@@ -1,4 +1,4 @@
-import { Facebook, Instagram, Twitter, MapPin, Mail, Phone } from "lucide-react";
+import { Facebook, Instagram, MapPin, Mail, Phone } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export default function Footer() {
@@ -36,12 +36,6 @@ export default function Footer() {
                 className="w-10 h-10 rounded-full bg-[oklch(0.24_0.045_252)] flex items-center justify-center hover:bg-[oklch(0.69_0.095_228)] transition-colors"
               >
                 <Instagram size={18} />
-              </a>
-              <a
-                href="#"
-                className="w-10 h-10 rounded-full bg-[oklch(0.24_0.045_252)] flex items-center justify-center hover:bg-[oklch(0.69_0.095_228)] transition-colors"
-              >
-                <Twitter size={18} />
               </a>
             </div>
           </div>
