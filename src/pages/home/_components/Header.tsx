@@ -11,7 +11,6 @@ const NAV_LINKS = [
   { label: "Kadetska", href: "/kadetska-liga" },
   { label: "Pionirska", href: "/pionirska-liga" },
   { label: "Istorijat", href: "/istorija-kluba" },
-  { label: "Dokumenta", href: "/dokumenta" },
   { label: "Kontakt", href: "/kontakt" },
 ];
 
