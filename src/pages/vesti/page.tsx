@@ -1,7 +1,8 @@
-import { useQuery } from "convex/react";
+import { usePaginatedQuery } from "convex/react";
 import { api } from "@/convex/_generated/api.js";
-import { Newspaper } from "lucide-react";
+import { Newspaper, ChevronDown } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton.tsx";
+import { Button } from "@/components/ui/button.tsx";
 import {
   Empty,
   EmptyHeader,
@@ -13,8 +14,16 @@ import Header from "../home/_components/Header.tsx";
 import Footer from "../home/_components/Footer.tsx";
 import NewsCard from "./_components/NewsCard.tsx";
 
+const PAGE_SIZE = 9;
+
 export default function VestiPage() {
-  const news = useQuery(api.news.getPublished);
+  const { results, status, loadMore } = usePaginatedQuery(
+    api.news.getPublishedPaginated,
+    {},
+    { initialNumItems: PAGE_SIZE },
+  );
+
+  const isFirstLoad = status === "LoadingFirstPage";
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -41,13 +50,13 @@ export default function VestiPage() {
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        {news === undefined ? (
+        {isFirstLoad ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {Array.from({ length: 6 }).map((_, i) => (
               <Skeleton key={i} className="h-72 rounded-2xl" />
             ))}
           </div>
-        ) : news.length === 0 ? (
+        ) : results.length === 0 ? (
           <Empty>
             <EmptyHeader>
               <EmptyMedia variant="icon">
@@ -62,14 +71,37 @@ export default function VestiPage() {
         ) : (
           <>
             {/* Featured article */}
-            <NewsCard article={news[0]} featured />
+            <NewsCard article={results[0]} featured />
 
             {/* Rest of the articles */}
-            {news.length > 1 && (
+            {results.length > 1 && (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
-                {news.slice(1).map((article) => (
+                {results.slice(1).map((article) => (
                   <NewsCard key={article._id} article={article} />
                 ))}
+              </div>
+            )}
+
+            {/* Load more */}
+            {status === "CanLoadMore" && (
+              <div className="flex justify-center mt-12">
+                <Button
+                  variant="secondary"
+                  size="lg"
+                  className="gap-2"
+                  onClick={() => loadMore(PAGE_SIZE)}
+                >
+                  <ChevronDown size={18} />
+                  Učitaj još vesti
+                </Button>
+              </div>
+            )}
+
+            {status === "LoadingMore" && (
+              <div className="flex justify-center mt-12">
+                <Button variant="secondary" size="lg" disabled className="gap-2">
+                  Učitavanje...
+                </Button>
               </div>
             )}
           </>

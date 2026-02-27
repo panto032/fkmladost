@@ -1,3 +1,4 @@
+import { paginationOptsValidator } from "convex/server";
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 
@@ -20,6 +21,33 @@ export const getPublished = query({
         };
       }),
     );
+  },
+});
+
+/** Paginated published news — 9 per page */
+export const getPublishedPaginated = query({
+  args: { paginationOpts: paginationOptsValidator },
+  handler: async (ctx, args) => {
+    const results = await ctx.db
+      .query("news")
+      .withIndex("by_published_and_sort_date", (q) => q.eq("published", true))
+      .order("desc")
+      .paginate(args.paginationOpts);
+
+    return {
+      ...results,
+      page: await Promise.all(
+        results.page.map(async (article) => {
+          const resolvedImageUrl = article.imageStorageId
+            ? await ctx.storage.getUrl(article.imageStorageId)
+            : null;
+          return {
+            ...article,
+            resolvedImageUrl: resolvedImageUrl || article.imageUrl,
+          };
+        }),
+      ),
+    };
   },
 });
 
