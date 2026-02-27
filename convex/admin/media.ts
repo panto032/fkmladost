@@ -15,9 +15,12 @@ export const getAll = query({
 
     return Promise.all(
       items.map(async (item) => {
-        const imageUrl = item.imageStorageId
-          ? await ctx.storage.getUrl(item.imageStorageId)
-          : null;
+        let imageUrl: string | null = null;
+        if (item.imageStorageId) {
+          imageUrl = await ctx.storage.getUrl(item.imageStorageId);
+        } else if (item.externalUrl) {
+          imageUrl = item.externalUrl;
+        }
         return { ...item, imageUrl };
       }),
     );

@@ -332,6 +332,8 @@ export default defineSchema({
     category: v.string(),
     /** For images: Convex storage ID */
     imageStorageId: v.optional(v.id("_storage")),
+    /** For images: external URL (CDN etc.) — used when no storage ID */
+    externalUrl: v.optional(v.string()),
     /** For videos: YouTube URL */
     youtubeUrl: v.optional(v.string()),
     /** Extracted YouTube video ID for embed */
