@@ -42,7 +42,7 @@ export default function SponsorsBottomSection() {
               <img
                 src={sponsor.logoUrl}
                 alt={sponsor.name}
-                className="relative h-14 md:h-20 w-auto max-w-[180px] md:max-w-[240px] object-contain opacity-50 grayscale group-hover:opacity-100 group-hover:grayscale-0 group-hover:scale-110 transition-all duration-500 cursor-pointer"
+                className="relative h-16 md:h-24 w-auto max-w-[200px] md:max-w-[280px] object-contain opacity-50 grayscale group-hover:opacity-100 group-hover:grayscale-0 group-hover:scale-110 transition-all duration-500 cursor-pointer"
               />
             </div>
           ))}
