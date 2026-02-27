@@ -28,7 +28,9 @@ export default function Footer() {
                 <Facebook size={18} />
               </a>
               <a
-                href="#"
+                href="https://www.instagram.com/mladostlucanifk/"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="w-10 h-10 rounded-full bg-[oklch(0.24_0.045_252)] flex items-center justify-center hover:bg-[oklch(0.69_0.095_228)] transition-colors"
               >
                 <Instagram size={18} />
