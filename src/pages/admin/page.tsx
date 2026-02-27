@@ -27,6 +27,7 @@ import {
   KeyRound,
   AlertTriangle,
   Clock,
+  Camera,
 } from "lucide-react";
 import { Button } from "@/components/ui/button.tsx";
 import { Input } from "@/components/ui/input.tsx";
@@ -47,6 +48,7 @@ import AdminContactMessages from "./_components/AdminContactMessages.tsx";
 import AdminSettings from "./_components/AdminSettings.tsx";
 import AdminLicense from "./_components/AdminLicense.tsx";
 import AdminDocuments from "./_components/AdminDocuments.tsx";
+import AdminMedia from "./_components/AdminMedia.tsx";
 
 type NavItem = {
   id: string;
@@ -66,6 +68,7 @@ const NAV_GROUPS: NavGroup[] = [
       { id: "news", label: "Vesti", icon: <Newspaper size={18} /> },
       { id: "pages", label: "Stranice", icon: <FileText size={18} /> },
       { id: "documents", label: "Dokumenta", icon: <FileText size={18} /> },
+      { id: "media", label: "Multimedija", icon: <Camera size={18} /> },
       { id: "partners", label: "Partneri", icon: <Handshake size={18} /> },
     ],
   },
@@ -121,6 +124,7 @@ const CONTENT_MAP: Record<string, React.ReactNode> = {
   standings: <AdminStandings />,
   pages: <AdminPages />,
   documents: <AdminDocuments />,
+  media: <AdminMedia />,
   youth: <AdminYouthLeague />,
   cadet: <AdminCadetLeague />,
   pioneer: <AdminPioneerLeague />,

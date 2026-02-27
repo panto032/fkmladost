@@ -78,6 +78,11 @@ export default function Footer() {
                   Dokumenta
                 </Link>
               </li>
+              <li>
+                <Link to="/multimedija" className="hover:text-white transition-colors">
+                  Multimedija
+                </Link>
+              </li>
             </ul>
           </div>
 

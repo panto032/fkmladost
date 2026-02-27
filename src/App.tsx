@@ -19,6 +19,7 @@ import SuperLigaPage from "./pages/super-liga/page.tsx";
 import StrucniStabPage from "./pages/strucni-stab/page.tsx";
 import KontaktPage from "./pages/kontakt/page.tsx";
 import DokumentaPage from "./pages/dokumenta/page.tsx";
+import MultimedijaPage from "./pages/multimedija/page.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 function ScrollToTop() {
@@ -52,6 +53,7 @@ export default function App() {
           <Route path="/strucni-stab" element={<StrucniStabPage />} />
           <Route path="/kontakt" element={<KontaktPage />} />
           <Route path="/dokumenta" element={<DokumentaPage />} />
+          <Route path="/multimedija" element={<MultimedijaPage />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
