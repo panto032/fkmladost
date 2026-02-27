@@ -782,22 +782,34 @@ export const scrapeMatchAnalytics = action({
     return { success: true };
   },
 });
-const POSITION_MAP: Record<string, string> = {
-  golmani: "Golman",
-  odbrana: "Odbrana",
-  defanzivci: "Odbrana",
-  "vezni igrači": "Vezni red",
-  vezni: "Vezni red",
-  "napadači": "Napad",
-  napad: "Napad",
-};
-
-const NO_PLAYER_IMG_MARKER = "no-player-img";
+/**
+ * Determines a player position from a section header text.
+ * Uses transliteration + substring matching so it works regardless
+ * of exact Serbian character encoding.
+ */
+function determinePosition(rawText: string): string | null {
+  const t = rawText
+    .toLowerCase()
+    .replace(/č/g, "c")
+    .replace(/ć/g, "c")
+    .replace(/š/g, "s")
+    .replace(/ž/g, "z")
+    .replace(/đ/g, "dj");
+  if (t.includes("golman")) return "Golman";
+  if (t.includes("odbran") || t.includes("defanz")) return "Odbrana";
+  if (t.includes("vezn")) return "Vezni red";
+  if (t.includes("napad")) return "Napad";
+  return null;
+}
 
 /**
  * Scrapes first-team player data for FK Mladost from superliga.rs.
  * Extracts name, jersey number, position and photo for each player.
  * Uses upsert logic: updates existing players by name, inserts new ones.
+ *
+ * Strategy: iterate over every owl-carousel that contains player links,
+ * determine position from the nearest preceding h3/h2.title header,
+ * and parse each player card.  This avoids fragile exact-text matching.
  */
 export const scrapePlayers = action({
   args: {},
@@ -834,23 +846,42 @@ export const scrapePlayers = action({
       yellowCards?: number;
     }> = [];
 
-    // Each position group has a .team-stat-title with <h3> followed by
-    // a sibling .row containing an .owl-carousel with player cards.
-    $(".team-stat-title").each((_, el) => {
-      const h3 = $(el).find("h3.title");
-      if (h3.length === 0) return;
+    const seenNames = new Set<string>();
 
-      const headerText = h3.text().trim().toLowerCase();
-      const position = POSITION_MAP[headerText];
-      if (!position) return; // skip non-position headers
+    // Iterate over EVERY owl-carousel on the page.
+    // Only process carousels that contain player profile links
+    // and are NOT inside the "Istaknuti igrači" (featured) section.
+    $(".owl-carousel").each((_, carousel) => {
+      const carouselEl = $(carousel);
 
-      // Carousel is in the next .row sibling
-      const titleRow = $(el).closest(".row");
-      const carouselRow = titleRow.next();
-      const carousel = carouselRow.find(".owl-carousel");
-      if (carousel.length === 0) return;
+      // Must contain at least one player link
+      const playerLinks = carouselEl.find("a[href*='/sezona/igrac/']");
+      if (playerLinks.length === 0) return;
 
-      carousel.find("a[href*='/sezona/igrac/']").each((_, link) => {
+      // Skip featured-players widget
+      if (carouselEl.closest(".istaknuti-igraci").length > 0) return;
+
+      // --- Determine position from the nearest preceding header ---
+      // Walk backwards through previous sibling .row elements of the
+      // carousel's parent .row looking for a .team-stat-title h3/h2.
+      const carouselRow = carouselEl.closest(".row");
+      let position = "Nepoznato";
+
+      let prevEl = carouselRow.prev();
+      for (let i = 0; i < 5 && prevEl.length > 0; i++) {
+        const h3 = prevEl.find(".team-stat-title h3.title, .team-stat-title h2.title");
+        if (h3.length > 0) {
+          const headerText = h3.first().text().trim();
+          position = determinePosition(headerText) ?? "Nepoznato";
+          break;
+        }
+        // Stop if we hit another carousel row (means we passed a section)
+        if (prevEl.find(".owl-carousel").length > 0) break;
+        prevEl = prevEl.prev();
+      }
+
+      // --- Parse each player card ---
+      playerLinks.each((__, link) => {
         // Jersey number
         const numberText = $(link)
           .find(".blog-name-left span")
@@ -861,9 +892,12 @@ export const scrapePlayers = action({
         // Name from <img alt="...">
         const img = $(link).find("img.img-fluid");
         const name = (img.attr("alt") ?? "").trim();
-        let imageUrl = (img.attr("src") ?? "").trim();
 
-        // Make URL absolute if relative
+        // Deduplicate (some carousels clone items)
+        if (!name || seenNames.has(name.toLowerCase())) return;
+        seenNames.add(name.toLowerCase());
+
+        let imageUrl = (img.attr("src") ?? "").trim();
         if (imageUrl && !imageUrl.startsWith("http")) {
           imageUrl = `https://www.superliga.rs${imageUrl}`;
         }
@@ -876,7 +910,7 @@ export const scrapePlayers = action({
             ? `https://www.superliga.rs${href}`
             : "";
 
-        // Stats from the carousel card (appearances, minutes, goals/assists)
+        // Stats from the carousel card
         let appearances: number | undefined;
         let minutes: number | undefined;
         let goals: number | undefined;
@@ -886,7 +920,7 @@ export const scrapePlayers = action({
 
         $(link)
           .find(".d-flex.justify-content-between .p-1")
-          .each((__, statEl) => {
+          .each((___, statEl) => {
             const title = $(statEl).find("img").attr("title") ?? "";
             const val =
               parseInt($(statEl).find("span").text().trim(), 10) || 0;
@@ -901,21 +935,19 @@ export const scrapePlayers = action({
               yellowCards = val;
           });
 
-        if (name) {
-          players.push({
-            name,
-            number,
-            position,
-            imageUrl,
-            superligaUrl,
-            appearances,
-            minutes,
-            goals,
-            assists,
-            goalsConceded,
-            yellowCards,
-          });
-        }
+        players.push({
+          name,
+          number,
+          position,
+          imageUrl,
+          superligaUrl,
+          appearances,
+          minutes,
+          goals,
+          assists,
+          goalsConceded,
+          yellowCards,
+        });
       });
     });
 
