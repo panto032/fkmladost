@@ -11,9 +11,9 @@ export default function SponsorsBottomSection() {
       <section className="bg-card py-12 border-t border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <Skeleton className="h-4 w-64 mx-auto mb-8" />
-          <div className="flex flex-wrap justify-center gap-6">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <Skeleton key={i} className="w-32 h-16 rounded-lg" />
+          <div className="flex justify-center gap-12">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Skeleton key={i} className="w-36 h-16 rounded-lg" />
             ))}
           </div>
         </div>
@@ -21,36 +21,29 @@ export default function SponsorsBottomSection() {
     );
   }
 
-  if (!partners || partners.length === 0) return null;
+  // Only show partners that have a logoUrl
+  const withLogos = partners?.filter((p) => p.logoUrl) ?? [];
+  if (withLogos.length === 0) return null;
 
   return (
-    <section className="bg-card py-12 border-t border-border">
+    <section className="bg-card py-14 border-t border-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <p className="text-center text-sm font-bold text-muted-foreground uppercase tracking-widest mb-8">
+        <p className="text-center text-sm font-bold text-muted-foreground uppercase tracking-widest mb-10">
           Prijatelji Kluba i Sponzori
         </p>
-        <div className="flex flex-wrap justify-center items-center gap-6 md:gap-12">
-          {partners.map((sponsor) => (
+        <div className="flex flex-wrap justify-center items-center gap-10 md:gap-16 lg:gap-20">
+          {withLogos.map((sponsor) => (
             <div
               key={sponsor._id}
-              className="w-32 h-16 md:w-48 md:h-20 bg-muted rounded-lg border border-border flex flex-col items-center justify-center grayscale opacity-60 hover:grayscale-0 hover:opacity-100 hover:border-[oklch(0.55_0.18_250)] hover:shadow-md transition-all duration-300 cursor-pointer"
+              className="group relative"
             >
-              {sponsor.logoUrl ? (
-                <img
-                  src={sponsor.logoUrl}
-                  alt={sponsor.name}
-                  className="max-h-10 max-w-[80%] object-contain"
-                />
-              ) : (
-                <>
-                  <span className="font-black text-foreground text-lg md:text-xl uppercase tracking-tighter">
-                    {sponsor.name.split(" ")[0]}
-                  </span>
-                  <span className="text-[10px] text-[oklch(0.55_0.18_250)] font-semibold uppercase">
-                    {sponsor.level}
-                  </span>
-                </>
-              )}
+              {/* Glow effect on hover */}
+              <div className="absolute -inset-4 rounded-2xl bg-[oklch(0.55_0.18_250)]/0 group-hover:bg-[oklch(0.55_0.18_250)]/8 blur-xl transition-all duration-500" />
+              <img
+                src={sponsor.logoUrl}
+                alt={sponsor.name}
+                className="relative h-12 md:h-16 w-auto max-w-[160px] md:max-w-[200px] object-contain opacity-50 grayscale group-hover:opacity-100 group-hover:grayscale-0 group-hover:scale-110 transition-all duration-500 cursor-pointer"
+              />
             </div>
           ))}
         </div>
