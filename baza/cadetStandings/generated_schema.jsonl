@@ -1,0 +1,1 @@
+"{\"_creationTime\": normalfloat64, \"_id\": id<10015>, \"club\": string, \"drawn\": normalfloat64, \"goalDiff\": normalfloat64, \"goalsAgainst\": normalfloat64, \"goalsFor\": normalfloat64, \"isHighlighted\": boolean, \"lost\": normalfloat64, \"played\": normalfloat64, \"points\": normalfloat64, \"position\": normalfloat64, \"won\": normalfloat64}"

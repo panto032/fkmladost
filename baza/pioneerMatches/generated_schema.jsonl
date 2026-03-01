@@ -1,0 +1,1 @@
+"{\"_creationTime\": normalfloat64, \"_id\": id<10016>, \"away\": string, \"city\": string, \"date\": field_name, \"home\": string, \"isHome\": boolean, \"round\": normalfloat64} | {\"_creationTime\": normalfloat64, \"_id\": id<10016>, \"away\": string, \"city\": string, \"date\": field_name, \"home\": string, \"isHome\": boolean, \"round\": normalfloat64, \"score\": field_name}"
