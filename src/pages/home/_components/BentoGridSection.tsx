@@ -31,7 +31,7 @@ type NewsArticle = {
 };
 
 function getNewsImageUrl(article: NewsArticle): string {
-  if (article.imageFileName) return \`\${apiBaseUrl}/uploads/\${article.imageFileName}\`;
+  if (article.imageFileName) return `${apiBaseUrl}/uploads/${article.imageFileName}`;
   return article.imageUrl;
 }
 
