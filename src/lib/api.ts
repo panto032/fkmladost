@@ -251,10 +251,15 @@ export const adminNewsApi = {
 
 export const adminScrapeApi = {
   standings: () => post<ScrapeResult>("/api/admin/scrape/standings"),
+  scrapeStandings: () => post<ScrapeResult>("/api/admin/scrape/standings"),
   matches: () => post<ScrapeResult>("/api/admin/scrape/matches"),
+  scrapeMatches: () => post<ScrapeResult>("/api/admin/scrape/matches"),
   roundPreview: () => post<ScrapeResult>("/api/admin/scrape/round-preview"),
+  scrapeRoundPreview: () => post<ScrapeResult>("/api/admin/scrape/round-preview"),
   matchAnalytics: () => post<ScrapeResult>("/api/admin/scrape/match-analytics"),
+  scrapeMatchAnalytics: () => post<ScrapeResult>("/api/admin/scrape/match-analytics"),
   players: () => post<ScrapeResult>("/api/admin/scrape/players"),
+  scrapePlayers: () => post<ScrapeResult>("/api/admin/scrape/players"),
   youthStandings: () => post<ScrapeResult>("/api/admin/scrape/youth-league/standings"),
   youthMatches: () => post<ScrapeResult>("/api/admin/scrape/youth-league/matches"),
   cadetStandings: () => post<ScrapeResult>("/api/admin/scrape/cadet-league/standings"),
@@ -267,12 +272,20 @@ export const adminScrapeApi = {
 export const adminCrudApi = {
   // Matches
   getMatches: () => get<Match[]>("/api/admin/matches"),
+  createMatch: (data: Partial<Match>) => post<Match>("/api/admin/matches", data),
   updateMatch: (id: number, data: Partial<Match>) => put<Match>(`/api/admin/matches/${id}`, data),
+  deleteMatch: (id: number) => del(`/api/admin/matches/${id}`),
+  // Standings
+  getStandings: () => get<Standing[]>("/api/admin/standings"),
+  createStanding: (data: Partial<Standing>) => post<Standing>("/api/admin/standings", data),
+  updateStanding: (id: number, data: Partial<Standing>) => put<Standing>(`/api/admin/standings/${id}`, data),
+  deleteStanding: (id: number) => del(`/api/admin/standings/${id}`),
   // Players
   getPlayers: () => get<Player[]>("/api/admin/players"),
   createPlayer: (data: Partial<Player>) => post<Player>("/api/admin/players", data),
   updatePlayer: (id: number, data: Partial<Player>) => put<Player>(`/api/admin/players/${id}`, data),
   deletePlayer: (id: number) => del(`/api/admin/players/${id}`),
+  deleteAllPlayers: () => del("/api/admin/players/all"),
   // Partners
   getPartners: () => get<Partner[]>("/api/admin/partners"),
   createPartner: (data: Partial<Partner>) => post<Partner>("/api/admin/partners", data),
@@ -295,8 +308,45 @@ export const adminCrudApi = {
   deleteMedia: (id: number) => del(`/api/admin/media/${id}`),
   // Contact messages
   getMessages: () => get<ContactMessage[]>("/api/admin/contact-messages"),
+  getContactMessages: () => get<ContactMessage[]>("/api/admin/contact-messages"),
   markRead: (id: number) => put(`/api/admin/contact-messages/${id}/read`, {}),
+  markContactMessageRead: (id: number) => put(`/api/admin/contact-messages/${id}/read`, {}),
   deleteMessage: (id: number) => del(`/api/admin/contact-messages/${id}`),
+  deleteContactMessage: (id: number) => del(`/api/admin/contact-messages/${id}`),
+  // Youth league
+  createYouthStanding: (data: Partial<LeagueStanding>) => post<LeagueStanding>("/api/admin/youth-league/standings", data),
+  updateYouthStanding: (id: number, data: Partial<LeagueStanding>) => put<LeagueStanding>(`/api/admin/youth-league/standings/${id}`, data),
+  deleteYouthStanding: (id: number) => del(`/api/admin/youth-league/standings/${id}`),
+  createYouthMatch: (data: Partial<LeagueMatch>) => post<LeagueMatch>("/api/admin/youth-league/matches", data),
+  updateYouthMatch: (id: number, data: Partial<LeagueMatch>) => put<LeagueMatch>(`/api/admin/youth-league/matches/${id}`, data),
+  deleteYouthMatch: (id: number) => del(`/api/admin/youth-league/matches/${id}`),
+  createYouthScorer: (data: Partial<Scorer>) => post<Scorer>("/api/admin/youth-league/scorers", data),
+  updateYouthScorer: (id: number, data: Partial<Scorer>) => put<Scorer>(`/api/admin/youth-league/scorers/${id}`, data),
+  deleteYouthScorer: (id: number) => del(`/api/admin/youth-league/scorers/${id}`),
+  // Cadet league
+  createCadetStanding: (data: Partial<LeagueStanding>) => post<LeagueStanding>("/api/admin/cadet-league/standings", data),
+  updateCadetStanding: (id: number, data: Partial<LeagueStanding>) => put<LeagueStanding>(`/api/admin/cadet-league/standings/${id}`, data),
+  deleteCadetStanding: (id: number) => del(`/api/admin/cadet-league/standings/${id}`),
+  createCadetMatch: (data: Partial<LeagueMatch>) => post<LeagueMatch>("/api/admin/cadet-league/matches", data),
+  updateCadetMatch: (id: number, data: Partial<LeagueMatch>) => put<LeagueMatch>(`/api/admin/cadet-league/matches/${id}`, data),
+  deleteCadetMatch: (id: number) => del(`/api/admin/cadet-league/matches/${id}`),
+  createCadetScorer: (data: Partial<Scorer>) => post<Scorer>("/api/admin/cadet-league/scorers", data),
+  updateCadetScorer: (id: number, data: Partial<Scorer>) => put<Scorer>(`/api/admin/cadet-league/scorers/${id}`, data),
+  deleteCadetScorer: (id: number) => del(`/api/admin/cadet-league/scorers/${id}`),
+  // Pioneer league
+  createPioneerStanding: (data: Partial<LeagueStanding>) => post<LeagueStanding>("/api/admin/pioneer-league/standings", data),
+  updatePioneerStanding: (id: number, data: Partial<LeagueStanding>) => put<LeagueStanding>(`/api/admin/pioneer-league/standings/${id}`, data),
+  deletePioneerStanding: (id: number) => del(`/api/admin/pioneer-league/standings/${id}`),
+  createPioneerMatch: (data: Partial<LeagueMatch>) => post<LeagueMatch>("/api/admin/pioneer-league/matches", data),
+  updatePioneerMatch: (id: number, data: Partial<LeagueMatch>) => put<LeagueMatch>(`/api/admin/pioneer-league/matches/${id}`, data),
+  deletePioneerMatch: (id: number) => del(`/api/admin/pioneer-league/matches/${id}`),
+  // Super league
+  createSuperLeagueStanding: (data: Partial<LeagueStanding>) => post<LeagueStanding>("/api/admin/super-league/standings", data),
+  updateSuperLeagueStanding: (id: number, data: Partial<LeagueStanding>) => put<LeagueStanding>(`/api/admin/super-league/standings/${id}`, data),
+  deleteSuperLeagueStanding: (id: number) => del(`/api/admin/super-league/standings/${id}`),
+  createSuperLeagueMatch: (data: Partial<LeagueMatch>) => post<LeagueMatch>("/api/admin/super-league/matches", data),
+  updateSuperLeagueMatch: (id: number, data: Partial<LeagueMatch>) => put<LeagueMatch>(`/api/admin/super-league/matches/${id}`, data),
+  deleteSuperLeagueMatch: (id: number) => del(`/api/admin/super-league/matches/${id}`),
 };
 
 // ── Types ─────────────────────────────────────────────────────────────
