@@ -239,7 +239,8 @@ export const contactApi = {
 
 // ── Admin API ─────────────────────────────────────────────────────────
 export const adminNewsApi = {
-  getAll: () => get<NewsItem[]>("/api/admin/news"),
+  getAll: () =>
+    get<{ items: NewsItem[]; total: number }>("/api/admin/news").then((r) => r.items),
   getById: (id: number) => get<NewsItem>(`/api/admin/news/${id}`),
   create: (data: Partial<NewsItem>) => post<NewsItem>("/api/admin/news", data),
   update: (id: number, data: Partial<NewsItem>) =>
