@@ -1,4 +1,5 @@
 import * as cheerio from "cheerio";
+import { Prisma } from "@prisma/client";
 import { db } from "../db.js";
 
 const STANDINGS_URL = "https://www.superliga.rs/sezona/tabela-takmicenja/";
@@ -55,7 +56,7 @@ export async function scrapeSuperLeagueStandings(): Promise<{ count: number }> {
 
   if (rows.length === 0) throw new Error("SuperLeague standings table not found");
 
-  const standings: Parameters<typeof db.superLeagueStanding.createMany>[0]["data"] = [];
+  const standings: Prisma.SuperLeagueStandingCreateManyInput[] = [];
 
   rows.each((_, row) => {
     const cells = $(row).find("td");
@@ -89,7 +90,7 @@ export async function scrapeSuperLeagueMatches(): Promise<{ count: number }> {
   const html = await fetchHtml(SCHEDULE_URL);
   const $ = cheerio.load(html);
 
-  const matches: Parameters<typeof db.superLeagueMatch.createMany>[0]["data"] = [];
+  const matches: Prisma.SuperLeagueMatchCreateManyInput[] = [];
 
   $("div.tab-pane").each((_, pane) => {
     const paneId = $(pane).attr("id") ?? "";

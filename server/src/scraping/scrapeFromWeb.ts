@@ -1,4 +1,5 @@
 import * as cheerio from "cheerio";
+import { Prisma } from "@prisma/client";
 import { db } from "../db.js";
 
 const STANDINGS_URL = "https://www.superliga.rs/sezona/tabela-takmicenja/";
@@ -55,7 +56,7 @@ export async function scrapeStandings(): Promise<{ standings: number }> {
 
   if (rows.length === 0) throw new Error("Standings table not found on superliga.rs");
 
-  const standings: Parameters<typeof db.standing.createMany>[0]["data"] = [];
+  const standings: Prisma.StandingCreateManyInput[] = [];
 
   rows.each((_, row) => {
     const cells = $(row).find("td");
@@ -243,7 +244,7 @@ export async function scrapeRoundPreview(): Promise<{ roundNumber: number; match
   const roundNumber = roundMatch ? parseInt(roundMatch[1], 10) : 0;
   if (roundNumber === 0) throw new Error("Round number not found");
 
-  const roundMatches: Parameters<typeof db.roundMatch.createMany>[0]["data"] = [];
+  const roundMatches: Prisma.RoundMatchCreateManyInput[] = [];
 
   $(".najava-box").each((_, box) => {
     const boxEl = $(box);
