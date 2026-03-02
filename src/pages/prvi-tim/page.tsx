@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api.js";
+import { useQuery } from "@tanstack/react-query";
+import { playersApi } from "@/lib/api.ts";
 import { Skeleton } from "@/components/ui/skeleton.tsx";
 import {
   Dialog,
@@ -16,7 +16,7 @@ import Footer from "../home/_components/Footer.tsx";
 const POSITION_ORDER = ["Golman", "Odbrana", "Vezni red", "Napad"];
 
 type Player = {
-  _id: string;
+  id: number;
   name: string;
   number: number;
   position: string;
@@ -236,8 +236,10 @@ function PlayerCard({
 }
 
 export default function PrviTimPage() {
-  const players = useQuery(api.players.getAll);
-  const isLoading = players === undefined;
+  const { data: players, isLoading } = useQuery({
+    queryKey: ["players"],
+    queryFn: () => playersApi.get(),
+  });
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
 
   const groups = players ? groupByPosition(players) : {};
@@ -302,7 +304,7 @@ export default function PrviTimPage() {
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                       {group.map((player) => (
                         <PlayerCard
-                          key={player._id}
+                          key={player.id}
                           player={player}
                           onClick={() => setSelectedPlayer(player)}
                         />
@@ -322,7 +324,7 @@ export default function PrviTimPage() {
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                     {groups["Ostalo"].map((player) => (
                       <PlayerCard
-                        key={player._id}
+                        key={player.id}
                         player={player}
                         onClick={() => setSelectedPlayer(player)}
                       />

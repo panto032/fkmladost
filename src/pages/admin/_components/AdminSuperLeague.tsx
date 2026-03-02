@@ -1,7 +1,6 @@
 import { useState } from "react";
-import { useQuery, useMutation, useAction } from "convex/react";
-import { api } from "@/convex/_generated/api.js";
-import type { Doc } from "@/convex/_generated/dataModel.d.ts";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { superLeagueApi, adminCrudApi, adminScrapeApi, type LeagueStanding, type LeagueMatch } from "@/lib/api.ts";
 import { Button } from "@/components/ui/button.tsx";
 import { Input } from "@/components/ui/input.tsx";
 import { Label } from "@/components/ui/label.tsx";
@@ -24,7 +23,6 @@ import {
 import { Skeleton } from "@/components/ui/skeleton.tsx";
 import { Pencil, Trash2, Plus, Trophy, Calendar, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
-import { ConvexError } from "convex/values";
 
 /* ------------------------------------------------------------------ */
 /*  Sub-tab selector                                                   */
@@ -33,32 +31,25 @@ import { ConvexError } from "convex/values";
 type SubTab = "standings" | "matches";
 
 export default function AdminSuperLeague() {
+  const qc = useQueryClient();
   const [subTab, setSubTab] = useState<SubTab>("standings");
-  const scrapeStandings = useAction(api.sync.scrapeSuperLeague.scrapeSuperLeagueStandings);
-  const scrapeMatches = useAction(api.sync.scrapeSuperLeague.scrapeSuperLeagueMatches);
-  const [syncing, setSyncing] = useState(false);
 
-  const handleSync = async () => {
-    setSyncing(true);
-    try {
-      const [standingsResult, matchesResult] = await Promise.all([
-        scrapeStandings(),
-        scrapeMatches(),
-      ]);
+  const syncMutation = useMutation({
+    mutationFn: () =>
+      Promise.all([
+        adminScrapeApi.superLeagueStandings(),
+        adminScrapeApi.superLeagueMatches(),
+      ]),
+    onSuccess: ([standingsResult, matchesResult]) => {
+      qc.invalidateQueries({ queryKey: ["superLeagueStandings"] });
+      qc.invalidateQueries({ queryKey: ["superLeagueMatches"] });
       toast.success(
         `Uspešno sa superliga.rs: ${standingsResult.count} klubova, ${matchesResult.count} utakmica`,
       );
-    } catch (error) {
-      if (error instanceof ConvexError) {
-        const { message } = error.data as { code: string; message: string };
-        toast.error(message);
-      } else {
-        toast.error("Greška pri sinhronizaciji sa superliga.rs");
-      }
-    } finally {
-      setSyncing(false);
-    }
-  };
+    },
+    onError: (err) =>
+      toast.error(err instanceof Error ? err.message : "Greška pri sinhronizaciji sa superliga.rs"),
+  });
 
   return (
     <div>
@@ -69,12 +60,12 @@ export default function AdminSuperLeague() {
         </p>
         <Button
           size="sm"
-          onClick={handleSync}
-          disabled={syncing}
+          onClick={() => syncMutation.mutate()}
+          disabled={syncMutation.isPending}
           className="gap-1.5 flex-shrink-0"
         >
-          <RefreshCw size={14} className={syncing ? "animate-spin" : ""} />
-          {syncing ? "Učitavanje..." : "Sinhronizuj"}
+          <RefreshCw size={14} className={syncMutation.isPending ? "animate-spin" : ""} />
+          {syncMutation.isPending ? "Učitavanje..." : "Sinhronizuj"}
         </Button>
       </div>
 
@@ -109,8 +100,6 @@ export default function AdminSuperLeague() {
 /*  Standings Admin                                                    */
 /* ================================================================== */
 
-type StandingDoc = Doc<"superLeagueStandings">;
-
 const EMPTY_STANDING = {
   position: 1,
   club: "",
@@ -126,15 +115,46 @@ const EMPTY_STANDING = {
 };
 
 function StandingsAdmin() {
-  const standings = useQuery(api.admin.superLeague.getStandings);
-  const create = useMutation(api.admin.superLeague.createStanding);
-  const update = useMutation(api.admin.superLeague.updateStanding);
-  const remove = useMutation(api.admin.superLeague.removeStanding);
+  const qc = useQueryClient();
+
+  const { data: standings, isLoading } = useQuery({
+    queryKey: ["superLeagueStandings"],
+    queryFn: () => superLeagueApi.getStandings(),
+  });
+
+  const create = useMutation({
+    mutationFn: (data: typeof EMPTY_STANDING) => adminCrudApi.createSuperLeagueStanding(data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["superLeagueStandings"] });
+      toast.success("Klub dodat");
+      setIsOpen(false);
+    },
+    onError: (err) => toast.error(err instanceof Error ? err.message : "Greška pri čuvanju"),
+  });
+
+  const update = useMutation({
+    mutationFn: ({ id, ...data }: { id: number } & typeof EMPTY_STANDING) =>
+      adminCrudApi.updateSuperLeagueStanding(id, data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["superLeagueStandings"] });
+      toast.success("Tabela ažurirana");
+      setIsOpen(false);
+    },
+    onError: (err) => toast.error(err instanceof Error ? err.message : "Greška pri čuvanju"),
+  });
+
+  const remove = useMutation({
+    mutationFn: (id: number) => adminCrudApi.deleteSuperLeagueStanding(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["superLeagueStandings"] });
+      toast.success("Klub obrisan");
+    },
+    onError: (err) => toast.error(err instanceof Error ? err.message : "Greška pri brisanju"),
+  });
 
   const [isOpen, setIsOpen] = useState(false);
-  const [editing, setEditing] = useState<StandingDoc | null>(null);
+  const [editing, setEditing] = useState<LeagueStanding | null>(null);
   const [form, setForm] = useState(EMPTY_STANDING);
-  const [saving, setSaving] = useState(false);
 
   const openCreate = () => {
     setEditing(null);
@@ -142,7 +162,7 @@ function StandingsAdmin() {
     setIsOpen(true);
   };
 
-  const openEdit = (item: StandingDoc) => {
+  const openEdit = (item: LeagueStanding) => {
     setEditing(item);
     setForm({
       position: item.position,
@@ -160,52 +180,27 @@ function StandingsAdmin() {
     setIsOpen(true);
   };
 
-  const handleSave = async () => {
+  const handleSave = () => {
     if (!form.club) { toast.error("Ime kluba je obavezno"); return; }
-    setSaving(true);
-    try {
-      if (editing) {
-        await update({ id: editing._id, ...form });
-        toast.success("Tabela ažurirana");
-      } else {
-        await create(form);
-        toast.success("Klub dodat");
-      }
-      setIsOpen(false);
-    } catch (error) {
-      if (error instanceof ConvexError) {
-        const { message } = error.data as { code: string; message: string };
-        toast.error(message);
-      } else {
-        toast.error("Greška pri čuvanju");
-      }
-    } finally {
-      setSaving(false);
+    if (editing) {
+      update.mutate({ id: editing.id, ...form });
+    } else {
+      create.mutate(form);
     }
   };
 
-  const handleDelete = async (id: StandingDoc["_id"]) => {
-    try {
-      await remove({ id });
-      toast.success("Klub obrisan");
-    } catch (error) {
-      if (error instanceof ConvexError) {
-        const { message } = error.data as { code: string; message: string };
-        toast.error(message);
-      } else {
-        toast.error("Greška pri brisanju");
-      }
-    }
-  };
+  const saving = create.isPending || update.isPending;
 
-  if (standings === undefined) {
+  if (isLoading) {
     return <div className="space-y-3">{Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-14 w-full" />)}</div>;
   }
+
+  const list = standings ?? [];
 
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h3 className="text-lg font-bold">Tabela Super Lige ({standings.length} klubova)</h3>
+        <h3 className="text-lg font-bold">Tabela Super Lige ({list.length} klubova)</h3>
         <Button onClick={openCreate} size="sm"><Plus size={16} /> Dodaj klub</Button>
       </div>
 
@@ -226,8 +221,8 @@ function StandingsAdmin() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {standings.map((item) => (
-              <TableRow key={item._id} className={item.isHighlighted ? "bg-accent/10" : ""}>
+            {list.map((item) => (
+              <TableRow key={item.id} className={item.isHighlighted ? "bg-accent/10" : ""}>
                 <TableCell className="font-bold text-muted-foreground">{item.position}.</TableCell>
                 <TableCell className={`font-medium ${item.isHighlighted ? "text-accent font-bold" : ""}`}>{item.club}</TableCell>
                 <TableCell className="hidden sm:table-cell">{item.played}</TableCell>
@@ -240,7 +235,7 @@ function StandingsAdmin() {
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-1">
                     <Button size="icon-sm" variant="ghost" onClick={() => openEdit(item)}><Pencil size={14} /></Button>
-                    <Button size="icon-sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => handleDelete(item._id)}><Trash2 size={14} /></Button>
+                    <Button size="icon-sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => remove.mutate(item.id)}><Trash2 size={14} /></Button>
                   </div>
                 </TableCell>
               </TableRow>
@@ -288,8 +283,6 @@ function StandingsAdmin() {
 /*  Matches Admin                                                      */
 /* ================================================================== */
 
-type MatchDoc = Doc<"superLeagueMatches">;
-
 const EMPTY_MATCH = {
   round: 1,
   date: "",
@@ -301,15 +294,46 @@ const EMPTY_MATCH = {
 };
 
 function MatchesAdmin() {
-  const matches = useQuery(api.admin.superLeague.getMatches);
-  const createMatch = useMutation(api.admin.superLeague.createMatch);
-  const updateMatch = useMutation(api.admin.superLeague.updateMatch);
-  const removeMatch = useMutation(api.admin.superLeague.removeMatch);
+  const qc = useQueryClient();
+
+  const { data: matches, isLoading } = useQuery({
+    queryKey: ["superLeagueMatches"],
+    queryFn: () => superLeagueApi.getMatches(),
+  });
+
+  const createMatch = useMutation({
+    mutationFn: (data: typeof EMPTY_MATCH) => adminCrudApi.createSuperLeagueMatch(data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["superLeagueMatches"] });
+      toast.success("Utakmica dodata");
+      setIsOpen(false);
+    },
+    onError: (err) => toast.error(err instanceof Error ? err.message : "Greška pri čuvanju"),
+  });
+
+  const updateMatch = useMutation({
+    mutationFn: ({ id, ...data }: { id: number } & typeof EMPTY_MATCH) =>
+      adminCrudApi.updateSuperLeagueMatch(id, data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["superLeagueMatches"] });
+      toast.success("Utakmica ažurirana");
+      setIsOpen(false);
+    },
+    onError: (err) => toast.error(err instanceof Error ? err.message : "Greška pri čuvanju"),
+  });
+
+  const removeMatch = useMutation({
+    mutationFn: (id: number) => adminCrudApi.deleteSuperLeagueMatch(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["superLeagueMatches"] });
+      toast.success("Utakmica obrisana");
+    },
+    onError: (err) => toast.error(err instanceof Error ? err.message : "Greška pri brisanju"),
+  });
 
   const [isOpen, setIsOpen] = useState(false);
-  const [editing, setEditing] = useState<MatchDoc | null>(null);
+  const [editing, setEditing] = useState<LeagueMatch | null>(null);
   const [form, setForm] = useState(EMPTY_MATCH);
-  const [saving, setSaving] = useState(false);
 
   const openCreate = () => {
     setEditing(null);
@@ -317,7 +341,7 @@ function MatchesAdmin() {
     setIsOpen(true);
   };
 
-  const openEdit = (item: MatchDoc) => {
+  const openEdit = (item: LeagueMatch) => {
     setEditing(item);
     setForm({
       round: item.round,
@@ -331,61 +355,36 @@ function MatchesAdmin() {
     setIsOpen(true);
   };
 
-  const handleSave = async () => {
+  const handleSave = () => {
     if (!form.home || !form.away) { toast.error("Timovi su obavezni"); return; }
-    setSaving(true);
-    try {
-      const payload = {
-        round: form.round,
-        date: form.date,
-        home: form.home,
-        away: form.away,
-        score: form.score || undefined,
-        city: form.city || undefined,
-        isHome: form.isHome,
-      };
-      if (editing) {
-        await updateMatch({ id: editing._id, ...payload });
-        toast.success("Utakmica ažurirana");
-      } else {
-        await createMatch(payload);
-        toast.success("Utakmica dodata");
-      }
-      setIsOpen(false);
-    } catch (error) {
-      if (error instanceof ConvexError) {
-        const { message } = error.data as { code: string; message: string };
-        toast.error(message);
-      } else {
-        toast.error("Greška pri čuvanju");
-      }
-    } finally {
-      setSaving(false);
+    const payload = {
+      round: form.round,
+      date: form.date,
+      home: form.home,
+      away: form.away,
+      score: form.score || undefined,
+      city: form.city || undefined,
+      isHome: form.isHome,
+    };
+    if (editing) {
+      updateMatch.mutate({ id: editing.id, ...payload });
+    } else {
+      createMatch.mutate(payload);
     }
   };
 
-  const handleDelete = async (id: MatchDoc["_id"]) => {
-    try {
-      await removeMatch({ id });
-      toast.success("Utakmica obrisana");
-    } catch (error) {
-      if (error instanceof ConvexError) {
-        const { message } = error.data as { code: string; message: string };
-        toast.error(message);
-      } else {
-        toast.error("Greška pri brisanju");
-      }
-    }
-  };
+  const saving = createMatch.isPending || updateMatch.isPending;
 
-  if (matches === undefined) {
+  if (isLoading) {
     return <div className="space-y-3">{Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-14 w-full" />)}</div>;
   }
+
+  const list = matches ?? [];
 
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h3 className="text-lg font-bold">Utakmice Mladosti ({matches.length})</h3>
+        <h3 className="text-lg font-bold">Utakmice Mladosti ({list.length})</h3>
         <Button onClick={openCreate} size="sm"><Plus size={16} /> Dodaj utakmicu</Button>
       </div>
 
@@ -403,10 +402,10 @@ function MatchesAdmin() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {matches.map((item) => {
+            {list.map((item) => {
               const isMladost = item.home.includes("Mladost") || item.away.includes("Mladost");
               return (
-                <TableRow key={item._id} className={isMladost ? "bg-accent/10" : ""}>
+                <TableRow key={item.id} className={isMladost ? "bg-accent/10" : ""}>
                   <TableCell className="font-bold text-muted-foreground">{item.round}</TableCell>
                   <TableCell className="text-sm">{item.date}</TableCell>
                   <TableCell className={`font-medium ${item.home.includes("Mladost") ? "text-accent font-bold" : ""}`}>{item.home}</TableCell>
@@ -416,7 +415,7 @@ function MatchesAdmin() {
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
                       <Button size="icon-sm" variant="ghost" onClick={() => openEdit(item)}><Pencil size={14} /></Button>
-                      <Button size="icon-sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => handleDelete(item._id)}><Trash2 size={14} /></Button>
+                      <Button size="icon-sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => removeMatch.mutate(item.id)}><Trash2 size={14} /></Button>
                     </div>
                   </TableCell>
                 </TableRow>

@@ -1,0 +1,339 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  admin
+  editor
+}
+
+enum MatchType {
+  next
+  last
+}
+
+enum MediaType {
+  image
+  video
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  username     String   @unique
+  passwordHash String
+  name         String?
+  email        String?  @unique
+  role         UserRole @default(editor)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model News {
+  id            Int      @id @default(autoincrement())
+  title         String
+  excerpt       String
+  content       String   @db.Text
+  category      String
+  date          String
+  sortDate      String
+  imageUrl      String
+  imageFileName String?
+  published     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Match {
+  id               Int       @id @default(autoincrement())
+  type             MatchType
+  home             String
+  away             String
+  homeLogoUrl      String
+  awayLogoUrl      String
+  homeScore        Int?
+  awayScore        Int?
+  date             String
+  time             String
+  stadium          String
+  competition      String
+  status           String?
+  tvChannel        String?
+  tvChannelLogoUrl String?
+  updatedAt        DateTime  @updatedAt
+}
+
+model Partner {
+  id        Int     @id @default(autoincrement())
+  name      String
+  level     String
+  logoUrl   String?
+  sortOrder Int
+}
+
+model Standing {
+  id             Int      @id @default(autoincrement())
+  position       Int
+  team           String
+  played         Int
+  wins           Int
+  draws          Int
+  losses         Int
+  goalsFor       Int      @default(0)
+  goalsAgainst   Int      @default(0)
+  goalDifference String
+  points         Int
+  isHighlighted  Boolean
+  logoUrl        String?
+  form           String?
+  updatedAt      DateTime @updatedAt
+}
+
+model Player {
+  id            Int      @id @default(autoincrement())
+  name          String
+  number        Int
+  position      String
+  imageUrl      String
+  nationality   String?
+  birthDate     String?
+  sortOrder     Int
+  isActive      Boolean  @default(true)
+  appearances   Int?
+  goals         Int?
+  assists       Int?
+  minutes       Int?
+  goalsConceded Int?
+  yellowCards   Int?
+  height        String?
+  weight        String?
+  superligaUrl  String?
+  updatedAt     DateTime @updatedAt
+}
+
+model Page {
+  id        Int      @id @default(autoincrement())
+  slug      String   @unique
+  title     String
+  content   String   @db.Text
+  published Boolean  @default(false)
+  updatedAt DateTime @updatedAt
+}
+
+model RoundMatch {
+  id               Int      @id @default(autoincrement())
+  roundNumber      Int
+  date             String
+  time             String
+  home             String
+  away             String
+  stadium          String
+  tvChannel        String
+  tvChannelLogoUrl String
+  referee          String
+  assistantRef1    String
+  assistantRef2    String
+  fourthOfficial   String
+  delegate         String
+  refInspector     String
+  varRef           String
+  avarRef          String
+  reportUrl        String
+  isOurMatch       Boolean
+  updatedAt        DateTime @updatedAt
+}
+
+model MatchAnalytics {
+  id              Int      @id @default(autoincrement())
+  roundNumber     Int
+  home            String
+  away            String
+  reportUrl       String
+  h2hTotalPlayed  Int
+  h2hHomeWins     Int
+  h2hDraws        Int
+  h2hAwayWins     Int
+  h2hHomeGoals    Int
+  h2hAwayGoals    Int
+  previousMatches Json
+  teamStats       Json
+  homeForm        Json
+  awayForm        Json
+  updatedAt       DateTime @updatedAt
+}
+
+model YouthStanding {
+  id            Int      @id @default(autoincrement())
+  position      Int
+  club          String
+  played        Int
+  won           Int
+  drawn         Int
+  lost          Int
+  goalsFor      Int
+  goalsAgainst  Int
+  goalDiff      Int
+  points        Int
+  isHighlighted Boolean
+  updatedAt     DateTime @updatedAt
+}
+
+model YouthMatch {
+  id        Int      @id @default(autoincrement())
+  round     Int
+  date      String
+  home      String
+  away      String
+  score     String?
+  city      String?
+  isHome    Boolean
+  updatedAt DateTime @updatedAt
+}
+
+model YouthScorer {
+  id            Int      @id @default(autoincrement())
+  rank          Int
+  name          String
+  club          String
+  goals         String
+  isHighlighted Boolean
+  updatedAt     DateTime @updatedAt
+}
+
+model CadetStanding {
+  id            Int      @id @default(autoincrement())
+  position      Int
+  club          String
+  played        Int
+  won           Int
+  drawn         Int
+  lost          Int
+  goalsFor      Int
+  goalsAgainst  Int
+  goalDiff      Int
+  points        Int
+  isHighlighted Boolean
+  updatedAt     DateTime @updatedAt
+}
+
+model CadetMatch {
+  id        Int      @id @default(autoincrement())
+  round     Int
+  date      String
+  home      String
+  away      String
+  score     String?
+  city      String?
+  isHome    Boolean
+  updatedAt DateTime @updatedAt
+}
+
+model CadetScorer {
+  id            Int      @id @default(autoincrement())
+  rank          Int
+  name          String
+  club          String
+  goals         String
+  isHighlighted Boolean
+  updatedAt     DateTime @updatedAt
+}
+
+model PioneerStanding {
+  id            Int      @id @default(autoincrement())
+  position      Int
+  club          String
+  played        Int
+  won           Int
+  drawn         Int
+  lost          Int
+  goalsFor      Int
+  goalsAgainst  Int
+  goalDiff      Int
+  points        Int
+  isHighlighted Boolean
+  updatedAt     DateTime @updatedAt
+}
+
+model PioneerMatch {
+  id        Int      @id @default(autoincrement())
+  round     Int
+  date      String
+  home      String
+  away      String
+  score     String?
+  city      String?
+  isHome    Boolean
+  updatedAt DateTime @updatedAt
+}
+
+model SuperLeagueStanding {
+  id            Int      @id @default(autoincrement())
+  position      Int
+  club          String
+  played        Int
+  won           Int
+  drawn         Int
+  lost          Int
+  goalsFor      Int
+  goalsAgainst  Int
+  goalDiff      Int
+  points        Int
+  isHighlighted Boolean
+  updatedAt     DateTime @updatedAt
+}
+
+model SuperLeagueMatch {
+  id        Int      @id @default(autoincrement())
+  round     Int
+  date      String
+  home      String
+  away      String
+  score     String?
+  city      String?
+  isHome    Boolean
+  updatedAt DateTime @updatedAt
+}
+
+model ContactMessage {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String
+  subject   String
+  message   String   @db.Text
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Document {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  category    String
+  fileName    String
+  fileType    String
+  fileSize    Int
+  published   Boolean  @default(false)
+  sortOrder   Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model MediaItem {
+  id             Int       @id @default(autoincrement())
+  type           MediaType
+  title          String
+  description    String?
+  category       String
+  fileName       String?
+  externalUrl    String?
+  youtubeUrl     String?
+  youtubeVideoId String?
+  published      Boolean   @default(false)
+  sortOrder      Int
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}

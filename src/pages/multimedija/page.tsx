@@ -1,6 +1,6 @@
-import { useState, useCallback, useEffect } from "react";
-import { useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api.js";
+import { useState, useCallback, useEffect, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { mediaApi, apiBaseUrl } from "@/lib/api.ts";
 import Header from "@/pages/home/_components/Header.tsx";
 import Footer from "@/pages/home/_components/Footer.tsx";
 import { Skeleton } from "@/components/ui/skeleton.tsx";
@@ -30,9 +30,14 @@ type LightboxItem = {
 };
 
 export default function MultimedijaPage() {
-  const images = useQuery(api.media.getPublishedImages);
-  const videos = useQuery(api.media.getPublishedVideos);
-  const categories = useQuery(api.media.getCategories);
+  const { data: images, isLoading: imagesLoading } = useQuery({
+    queryKey: ["media", "images"],
+    queryFn: () => mediaApi.get({ type: "image" }),
+  });
+  const { data: videos, isLoading: videosLoading } = useQuery({
+    queryKey: ["media", "videos"],
+    queryFn: () => mediaApi.get({ type: "video" }),
+  });
 
   const [activeTab, setActiveTab] = useState<TabType>("slike");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
@@ -49,31 +54,36 @@ export default function MultimedijaPage() {
       ? videos.filter((vid) => vid.category === selectedCategory)
       : videos;
 
-  // Categories for current tab
-  const tabCategories = categories
-    ? activeTab === "slike"
-      ? categories.filter((c) => images?.some((i) => i.category === c))
-      : categories.filter((c) => videos?.some((v) => v.category === c))
-    : [];
+  // Derive categories from data
+  const allCategories = useMemo(() => {
+    const cats = new Set<string>();
+    (images ?? []).forEach((i) => cats.add(i.category));
+    (videos ?? []).forEach((v) => cats.add(v.category));
+    return Array.from(cats);
+  }, [images, videos]);
+
+  const tabCategories = activeTab === "slike"
+    ? allCategories.filter((c) => images?.some((i) => i.category === c))
+    : allCategories.filter((c) => videos?.some((v) => v.category === c));
 
   // Build lightbox items based on active tab
   const lightboxItems: LightboxItem[] =
     activeTab === "slike"
       ? (filteredImages ?? []).map((img) => ({
-          _id: img._id,
+          _id: String(img.id),
           title: img.title,
-          description: img.description,
+          description: img.description ?? undefined,
           category: img.category,
           type: "image" as const,
-          imageUrl: img.imageUrl,
+          imageUrl: img.fileName ? `${apiBaseUrl}/uploads/${img.fileName}` : img.externalUrl ?? null,
         }))
       : (filteredVideos ?? []).map((vid) => ({
-          _id: vid._id,
+          _id: String(vid.id),
           title: vid.title,
-          description: vid.description,
+          description: vid.description ?? undefined,
           category: vid.category,
           type: "video" as const,
-          youtubeVideoId: vid.youtubeVideoId,
+          youtubeVideoId: vid.youtubeVideoId ?? undefined,
         }));
 
   const openLightbox = (idx: number) => setLightboxIndex(idx);
@@ -112,8 +122,7 @@ export default function MultimedijaPage() {
     };
   }, [lightboxIndex, goNext, goPrev]);
 
-  const isLoading =
-    images === undefined || videos === undefined || categories === undefined;
+  const isLoading = imagesLoading || videosLoading;
 
   return (
     <div className="min-h-screen bg-background">
@@ -160,7 +169,7 @@ export default function MultimedijaPage() {
               Slike
               {images && (
                 <span className="ml-1 text-xs opacity-70">
-                  ({images.length})
+                  ({images?.length ?? 0})
                 </span>
               )}
             </button>
@@ -181,7 +190,7 @@ export default function MultimedijaPage() {
               Video
               {videos && (
                 <span className="ml-1 text-xs opacity-70">
-                  ({videos.length})
+                  ({videos?.length ?? 0})
                 </span>
               )}
             </button>
@@ -201,10 +210,10 @@ export default function MultimedijaPage() {
               >
                 Sve
                 {activeTab === "slike" && images && (
-                  <span className="ml-1.5 opacity-70">({images.length})</span>
+                  <span className="ml-1.5 opacity-70">({images?.length ?? 0})</span>
                 )}
                 {activeTab === "video" && videos && (
-                  <span className="ml-1.5 opacity-70">({videos.length})</span>
+                  <span className="ml-1.5 opacity-70">({videos?.length ?? 0})</span>
                 )}
               </button>
               {tabCategories.map((cat) => {
@@ -269,19 +278,13 @@ export default function MultimedijaPage() {
 }
 
 /* ─────── Image Grid ─────── */
-type ImageItem = {
-  _id: string;
-  title: string;
-  description?: string;
-  category: string;
-  imageUrl: string | null;
-};
+
 
 function ImageGrid({
   images,
   onOpen,
 }: {
-  images: ImageItem[];
+  images: import("@/lib/api.ts").MediaItem[];
   onOpen: (idx: number) => void;
 }) {
   if (images.length === 0) {
@@ -300,13 +303,13 @@ function ImageGrid({
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
       {images.map((img, idx) => (
         <button
-          key={img._id}
+          key={img.id}
           onClick={() => onOpen(idx)}
           className="group relative aspect-square rounded-xl overflow-hidden bg-muted focus:outline-none focus:ring-2 focus:ring-[oklch(0.69_0.095_228)] focus:ring-offset-2"
         >
-          {img.imageUrl ? (
+          {(img.fileName || img.externalUrl) ? (
             <img
-              src={img.imageUrl}
+              src={img.fileName ? `${apiBaseUrl}/uploads/${img.fileName}` : img.externalUrl!}
               alt={img.title}
               className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
               loading="lazy"
@@ -338,19 +341,11 @@ function ImageGrid({
 }
 
 /* ─────── Video Grid ─────── */
-type VideoItem = {
-  _id: string;
-  title: string;
-  description?: string;
-  category: string;
-  youtubeVideoId?: string;
-};
-
 function VideoGrid({
   videos,
   onOpen,
 }: {
-  videos: VideoItem[];
+  videos: import("@/lib/api.ts").MediaItem[];
   onOpen: (idx: number) => void;
 }) {
   if (videos.length === 0) {
@@ -369,7 +364,7 @@ function VideoGrid({
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
       {videos.map((vid, idx) => (
         <button
-          key={vid._id}
+          key={vid.id}
           onClick={() => onOpen(idx)}
           className="group relative aspect-square rounded-xl overflow-hidden bg-muted focus:outline-none focus:ring-2 focus:ring-[oklch(0.69_0.095_228)] focus:ring-offset-2"
         >

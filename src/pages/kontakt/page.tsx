@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api.js";
+import { contactApi } from "@/lib/api.ts";
 import {
   ArrowLeft,
   MapPin,
@@ -63,7 +62,6 @@ const SOCIALS = [
 ];
 
 export default function KontaktPage() {
-  const sendMessage = useMutation(api.contact.send);
   const [isSent, setIsSent] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -98,7 +96,7 @@ export default function KontaktPage() {
 
     setIsSubmitting(true);
     try {
-      await sendMessage({
+      await contactApi.send({
         name: form.name.trim(),
         email: form.email.trim(),
         subject: form.subject,

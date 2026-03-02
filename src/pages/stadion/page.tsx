@@ -1,5 +1,5 @@
-import { useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api.js";
+import { useQuery } from "@tanstack/react-query";
+import { pagesApi } from "@/lib/api.ts";
 import { ArrowLeft, MapPin, Users, CalendarDays, Lightbulb, Leaf } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton.tsx";
@@ -60,8 +60,10 @@ function ImageSlot({ label }: { label: string }) {
 }
 
 export default function StadionPage() {
-  const page = useQuery(api.pages.getBySlug, { slug: "stadion" });
-  const isLoading = page === undefined;
+  const { data: page, isLoading } = useQuery({
+    queryKey: ["page", "stadion"],
+    queryFn: () => pagesApi.getBySlug("stadion"),
+  });
 
   return (
     <div className="min-h-screen bg-[oklch(0.13_0.03_252)] font-sans text-foreground">

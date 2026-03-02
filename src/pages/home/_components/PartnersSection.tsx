@@ -1,11 +1,13 @@
-import { useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api.js";
+import { useQuery } from "@tanstack/react-query";
+import { partnersApi } from "@/lib/api.ts";
 import { ArrowRight } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton.tsx";
 
 export default function PartnersSection() {
-  const partners = useQuery(api.partners.getAll);
-  const isLoading = partners === undefined;
+  const { data: partners, isLoading } = useQuery({
+    queryKey: ["partners"],
+    queryFn: () => partnersApi.get(),
+  });
 
   return (
     <div className="lg:col-span-5 flex flex-col gap-4">
@@ -25,7 +27,7 @@ export default function PartnersSection() {
             <Skeleton key={i} className="rounded-3xl h-20" />
           ))}
         </div>
-      ) : partners.length === 0 ? (
+      ) : (partners ?? []).length === 0 ? (
         <div className="bg-card rounded-3xl p-8 border border-border text-center">
           <p className="text-muted-foreground">Partneri će uskoro biti prikazani</p>
         </div>
@@ -35,7 +37,7 @@ export default function PartnersSection() {
             if (index === 0)
               return (
                 <div
-                  key={p._id}
+                  key={p.id}
                   className="col-span-2 bg-gradient-to-br from-[oklch(0.22_0.045_252)] to-[oklch(0.26_0.045_252)] rounded-3xl p-6 text-white shadow-lg relative overflow-hidden group cursor-pointer border border-[oklch(0.30_0.045_252)]"
                 >
                   <span className="text-[oklch(0.69_0.07_228)] text-xs font-bold uppercase tracking-wider mb-2 block">
@@ -51,7 +53,7 @@ export default function PartnersSection() {
             if (index === 1 || index === 2)
               return (
                 <div
-                  key={p._id}
+                  key={p.id}
                   className="col-span-1 bg-card rounded-3xl p-5 shadow-sm border border-border hover:shadow-md transition-shadow flex flex-col justify-center cursor-pointer group"
                 >
                   <span className="text-muted-foreground text-[10px] font-bold uppercase tracking-wider mb-2 block">
@@ -66,7 +68,7 @@ export default function PartnersSection() {
               );
             return (
               <div
-                key={p._id}
+                key={p.id}
                 className="col-span-2 bg-[oklch(0.18_0.04_252)] text-white rounded-3xl p-6 shadow-lg flex items-center justify-between group cursor-pointer"
               >
                 <div>

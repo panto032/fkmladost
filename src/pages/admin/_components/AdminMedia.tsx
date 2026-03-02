@@ -1,7 +1,6 @@
 import { useState, useRef } from "react";
-import { useQuery, useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api.js";
-import type { Id } from "@/convex/_generated/dataModel.d.ts";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { adminCrudApi, adminNewsApi, apiBaseUrl, type MediaItem } from "@/lib/api.ts";
 import { Button } from "@/components/ui/button.tsx";
 import { Input } from "@/components/ui/input.tsx";
 import { Textarea } from "@/components/ui/textarea.tsx";
@@ -34,7 +33,6 @@ import {
   X,
 } from "lucide-react";
 import { toast } from "sonner";
-import { ConvexError } from "convex/values";
 import { cn } from "@/lib/utils.ts";
 
 const DEFAULT_CATEGORIES = [
@@ -55,7 +53,7 @@ type FormState = {
   title: string;
   description: string;
   category: string;
-  imageStorageId: Id<"_storage"> | null;
+  fileName: string | null;
   imagePreviewUrl: string | null;
   youtubeUrl: string;
   published: boolean;
@@ -66,7 +64,7 @@ const EMPTY_FORM: FormState = {
   title: "",
   description: "",
   category: "Ostalo",
-  imageStorageId: null,
+  fileName: null,
   imagePreviewUrl: null,
   youtubeUrl: "",
   published: true,
@@ -86,19 +84,34 @@ function extractYouTubeId(url: string): string | null {
 }
 
 export default function AdminMedia() {
-  const media = useQuery(api.admin.media.getAll);
-  const createItem = useMutation(api.admin.media.create);
-  const updateItem = useMutation(api.admin.media.update);
-  const removeItem = useMutation(api.admin.media.remove);
-  const generateUploadUrl = useMutation(api.media.generateUploadUrl);
+  const qc = useQueryClient();
+  const { data: media, isLoading } = useQuery({
+    queryKey: ["admin", "media"],
+    queryFn: () => adminCrudApi.getMedia(),
+  });
+  const createMutation = useMutation({
+    mutationFn: (data: Partial<MediaItem>) => adminCrudApi.createMedia(data),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin", "media"] }); setIsOpen(false); toast.success("Stavka dodata"); },
+    onError: () => toast.error("Greška pri čuvanju"),
+  });
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: Partial<MediaItem> }) => adminCrudApi.updateMedia(id, data),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin", "media"] }); setIsOpen(false); toast.success("Stavka ažurirana"); },
+    onError: () => toast.error("Greška pri čuvanju"),
+  });
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => adminCrudApi.deleteMedia(id),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin", "media"] }); toast.success("Stavka obrisana"); },
+    onError: () => toast.error("Greška pri brisanju"),
+  });
 
   const [isOpen, setIsOpen] = useState(false);
-  const [editingId, setEditingId] = useState<Id<"mediaItems"> | null>(null);
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [uploading, setUploading] = useState(false);
-  const [saving, setSaving] = useState(false);
   const [filterType, setFilterType] = useState<"all" | MediaType>("all");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const saving = createMutation.isPending || updateMutation.isPending;
 
   const openCreate = (type: MediaType) => {
     setEditingId(null);
@@ -106,15 +119,15 @@ export default function AdminMedia() {
     setIsOpen(true);
   };
 
-  const openEdit = (item: NonNullable<typeof media>[number]) => {
-    setEditingId(item._id);
+  const openEdit = (item: MediaItem) => {
+    setEditingId(item.id);
     setForm({
       type: item.type,
       title: item.title,
       description: item.description ?? "",
       category: item.category,
-      imageStorageId: item.imageStorageId ?? null,
-      imagePreviewUrl: item.imageUrl ?? null,
+      fileName: item.fileName ?? null,
+      imagePreviewUrl: item.fileName ? `${apiBaseUrl}/uploads/${item.fileName}` : null,
       youtubeUrl: item.youtubeUrl ?? "",
       published: item.published,
     });
@@ -132,20 +145,11 @@ export default function AdminMedia() {
 
     setUploading(true);
     try {
-      const postUrl = await generateUploadUrl();
-      const result = await fetch(postUrl, {
-        method: "POST",
-        headers: { "Content-Type": file.type },
-        body: file,
-      });
-      const { storageId } = await result.json();
-
-      // Create local preview
+      const result = await adminNewsApi.uploadImage(file);
       const previewUrl = URL.createObjectURL(file);
-
       setForm((prev) => ({
         ...prev,
-        imageStorageId: storageId as Id<"_storage">,
+        fileName: result.fileName,
         imagePreviewUrl: previewUrl,
       }));
       toast.success("Slika otpremljena");
@@ -157,12 +161,12 @@ export default function AdminMedia() {
     }
   };
 
-  const handleSave = async () => {
+  const handleSave = () => {
     if (!form.title.trim()) {
       toast.error("Unesite naziv");
       return;
     }
-    if (form.type === "image" && !form.imageStorageId) {
+    if (form.type === "image" && !form.fileName) {
       toast.error("Otpremite sliku");
       return;
     }
@@ -178,59 +182,31 @@ export default function AdminMedia() {
       }
     }
 
-    setSaving(true);
-    try {
-      const youtubeVideoId =
-        form.type === "video"
-          ? extractYouTubeId(form.youtubeUrl.trim()) ?? undefined
-          : undefined;
+    const youtubeVideoId =
+      form.type === "video"
+        ? extractYouTubeId(form.youtubeUrl.trim()) ?? undefined
+        : undefined;
 
-      const payload = {
-        type: form.type,
-        title: form.title.trim(),
-        description: form.description.trim() || undefined,
-        category: form.category,
-        imageStorageId: form.type === "image" ? (form.imageStorageId ?? undefined) : undefined,
-        youtubeUrl: form.type === "video" ? form.youtubeUrl.trim() || undefined : undefined,
-        youtubeVideoId,
-        published: form.published,
-      };
+    const payload: Partial<MediaItem> = {
+      type: form.type,
+      title: form.title.trim(),
+      description: form.description.trim() || undefined,
+      category: form.category,
+      fileName: form.type === "image" ? (form.fileName ?? undefined) : undefined,
+      youtubeUrl: form.type === "video" ? form.youtubeUrl.trim() || undefined : undefined,
+      youtubeVideoId,
+      published: form.published,
+      sortOrder: 0,
+    };
 
-      if (editingId) {
-        await updateItem({ id: editingId, ...payload });
-        toast.success("Stavka ažurirana");
-      } else {
-        await createItem(payload);
-        toast.success("Stavka dodata");
-      }
-      setIsOpen(false);
-    } catch (err) {
-      if (err instanceof ConvexError) {
-        const { message } = err.data as { message: string };
-        toast.error(message);
-      } else {
-        toast.error("Greška pri čuvanju");
-      }
-    } finally {
-      setSaving(false);
+    if (editingId !== null) {
+      updateMutation.mutate({ id: editingId, data: payload });
+    } else {
+      createMutation.mutate(payload);
     }
   };
 
-  const handleDelete = async (id: Id<"mediaItems">) => {
-    try {
-      await removeItem({ id });
-      toast.success("Stavka obrisana");
-    } catch (err) {
-      if (err instanceof ConvexError) {
-        const { message } = err.data as { message: string };
-        toast.error(message);
-      } else {
-        toast.error("Greška pri brisanju");
-      }
-    }
-  };
-
-  if (media === undefined) {
+  if (isLoading) {
     return (
       <div className="space-y-4">
         {Array.from({ length: 4 }).map((_, i) => (
@@ -240,11 +216,10 @@ export default function AdminMedia() {
     );
   }
 
-  const filtered =
-    filterType === "all" ? media : media.filter((m) => m.type === filterType);
-
-  const imageCount = media.filter((m) => m.type === "image").length;
-  const videoCount = media.filter((m) => m.type === "video").length;
+  const allMedia = media ?? [];
+  const filtered = filterType === "all" ? allMedia : allMedia.filter((m) => m.type === filterType);
+  const imageCount = allMedia.filter((m) => m.type === "image").length;
+  const videoCount = allMedia.filter((m) => m.type === "video").length;
 
   return (
     <div className="space-y-6">
@@ -260,7 +235,7 @@ export default function AdminMedia() {
                 : "bg-muted hover:bg-muted/80"
             )}
           >
-            Sve ({media.length})
+            Sve ({allMedia.length})
           </button>
           <button
             onClick={() => setFilterType("image")}
@@ -308,89 +283,92 @@ export default function AdminMedia() {
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-          {filtered.map((item) => (
-            <div
-              key={item._id}
-              className="group relative rounded-xl overflow-hidden border bg-card aspect-square"
-            >
-              {/* Thumbnail */}
-              {item.type === "image" && item.imageUrl ? (
-                <img
-                  src={item.imageUrl}
-                  alt={item.title}
-                  className="w-full h-full object-cover"
-                />
-              ) : item.type === "video" && item.youtubeVideoId ? (
-                <img
-                  src={`https://img.youtube.com/vi/${item.youtubeVideoId}/mqdefault.jpg`}
-                  alt={item.title}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full bg-muted flex items-center justify-center">
-                  {item.type === "image" ? (
-                    <ImageIcon size={32} className="text-muted-foreground" />
-                  ) : (
-                    <Video size={32} className="text-muted-foreground" />
-                  )}
-                </div>
-              )}
-
-              {/* Type badge */}
-              <div className="absolute top-2 left-2">
-                <span
-                  className={cn(
-                    "text-[10px] font-bold uppercase px-2 py-0.5 rounded",
-                    item.type === "image"
-                      ? "bg-blue-500/80 text-white"
-                      : "bg-red-500/80 text-white"
-                  )}
-                >
-                  {item.type === "image" ? "Slika" : "Video"}
-                </span>
-              </div>
-
-              {/* Published badge */}
-              {!item.published && (
-                <div className="absolute top-2 right-2">
-                  <EyeOff size={14} className="text-white drop-shadow-lg" />
-                </div>
-              )}
-
-              {/* Hover overlay */}
-              <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-3">
-                <p className="text-white text-xs font-semibold truncate">
-                  {item.title}
-                </p>
-                {item.description && (
-                  <p className="text-white/70 text-[10px] truncate mt-0.5">
-                    {item.description}
-                  </p>
+          {filtered.map((item) => {
+            const imageUrl = item.fileName ? `${apiBaseUrl}/uploads/${item.fileName}` : null;
+            return (
+              <div
+                key={item.id}
+                className="group relative rounded-xl overflow-hidden border bg-card aspect-square"
+              >
+                {/* Thumbnail */}
+                {item.type === "image" && imageUrl ? (
+                  <img
+                    src={imageUrl}
+                    alt={item.title}
+                    className="w-full h-full object-cover"
+                  />
+                ) : item.type === "video" && item.youtubeVideoId ? (
+                  <img
+                    src={`https://img.youtube.com/vi/${item.youtubeVideoId}/mqdefault.jpg`}
+                    alt={item.title}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-muted flex items-center justify-center">
+                    {item.type === "image" ? (
+                      <ImageIcon size={32} className="text-muted-foreground" />
+                    ) : (
+                      <Video size={32} className="text-muted-foreground" />
+                    )}
+                  </div>
                 )}
-                <p className="text-white/50 text-[10px] mt-0.5">{item.category}</p>
 
-                <div className="flex gap-1 mt-2">
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    className="h-7 px-2 text-xs"
-                    onClick={() => openEdit(item)}
+                {/* Type badge */}
+                <div className="absolute top-2 left-2">
+                  <span
+                    className={cn(
+                      "text-[10px] font-bold uppercase px-2 py-0.5 rounded",
+                      item.type === "image"
+                        ? "bg-blue-500/80 text-white"
+                        : "bg-red-500/80 text-white"
+                    )}
                   >
-                    <Pencil size={12} className="mr-1" />
-                    Izmeni
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    className="h-7 px-2 text-xs"
-                    onClick={() => handleDelete(item._id)}
-                  >
-                    <Trash2 size={12} />
-                  </Button>
+                    {item.type === "image" ? "Slika" : "Video"}
+                  </span>
+                </div>
+
+                {/* Published badge */}
+                {!item.published && (
+                  <div className="absolute top-2 right-2">
+                    <EyeOff size={14} className="text-white drop-shadow-lg" />
+                  </div>
+                )}
+
+                {/* Hover overlay */}
+                <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-3">
+                  <p className="text-white text-xs font-semibold truncate">
+                    {item.title}
+                  </p>
+                  {item.description && (
+                    <p className="text-white/70 text-[10px] truncate mt-0.5">
+                      {item.description}
+                    </p>
+                  )}
+                  <p className="text-white/50 text-[10px] mt-0.5">{item.category}</p>
+
+                  <div className="flex gap-1 mt-2">
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      className="h-7 px-2 text-xs"
+                      onClick={() => openEdit(item)}
+                    >
+                      <Pencil size={12} className="mr-1" />
+                      Izmeni
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      className="h-7 px-2 text-xs"
+                      onClick={() => deleteMutation.mutate(item.id)}
+                    >
+                      <Trash2 size={12} />
+                    </Button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
@@ -399,7 +377,7 @@ export default function AdminMedia() {
         <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>
-              {editingId
+              {editingId !== null
                 ? `Izmeni ${form.type === "image" ? "sliku" : "video"}`
                 : `Dodaj ${form.type === "image" ? "sliku" : "video"}`}
             </DialogTitle>
@@ -455,7 +433,7 @@ export default function AdminMedia() {
             {form.type === "image" && (
               <div className="space-y-2">
                 <Label>Slika *</Label>
-                {form.imagePreviewUrl || form.imageStorageId ? (
+                {form.imagePreviewUrl || form.fileName ? (
                   <div className="relative rounded-xl overflow-hidden border">
                     {form.imagePreviewUrl && (
                       <img
@@ -475,7 +453,7 @@ export default function AdminMedia() {
                         onClick={() =>
                           setForm({
                             ...form,
-                            imageStorageId: null,
+                            fileName: null,
                             imagePreviewUrl: null,
                           })
                         }
@@ -557,7 +535,7 @@ export default function AdminMedia() {
             <Button onClick={handleSave} disabled={saving || uploading}>
               {saving
                 ? "Čuvanje..."
-                : editingId
+                : editingId !== null
                   ? "Sačuvaj"
                   : "Dodaj"}
             </Button>

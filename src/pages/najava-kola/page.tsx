@@ -1,5 +1,5 @@
-import { useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api.js";
+import { useQuery } from "@tanstack/react-query";
+import { roundMatchesApi } from "@/lib/api.ts";
 import { Calendar, Clock, MapPin, Scale, Eye, Shield, Swords } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton.tsx";
 import { Link } from "react-router-dom";
@@ -7,8 +7,10 @@ import Header from "../home/_components/Header.tsx";
 import Footer from "../home/_components/Footer.tsx";
 
 export default function NajavaKolaPage() {
-  const matches = useQuery(api.roundMatches.getAll);
-  const isLoading = matches === undefined;
+  const { data: matches, isLoading } = useQuery({
+    queryKey: ["roundMatches"],
+    queryFn: () => roundMatchesApi.get(),
+  });
 
   const roundNumber = matches?.[0]?.roundNumber ?? 0;
 
@@ -74,7 +76,7 @@ export default function NajavaKolaPage() {
                 <Skeleton key={i} className="h-56 rounded-2xl bg-[oklch(0.92_0.01_228)]" />
               ))}
             </div>
-          ) : matches.length === 0 ? (
+          ) : !matches || matches.length === 0 ? (
             <div className="text-center py-20">
               <p className="text-[oklch(0.45_0.03_252)] text-lg">
                 Najava kola jos nije dostupna.
@@ -86,7 +88,7 @@ export default function NajavaKolaPage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               {matches.map((match) => (
-                <MatchCard key={match._id} match={match} />
+                <MatchCard key={match.id} match={match} />
               ))}
             </div>
           )}
@@ -101,7 +103,7 @@ export default function NajavaKolaPage() {
 /* ─── Single match card ─── */
 
 type RoundMatch = {
-  _id: string;
+  id: number;
   roundNumber: number;
   date: string;
   time: string;

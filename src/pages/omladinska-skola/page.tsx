@@ -1,5 +1,5 @@
-import { useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api.js";
+import { useQuery } from "@tanstack/react-query";
+import { pagesApi } from "@/lib/api.ts";
 import { ArrowLeft, GraduationCap } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton.tsx";
@@ -7,8 +7,10 @@ import Header from "../home/_components/Header.tsx";
 import Footer from "../home/_components/Footer.tsx";
 
 export default function OmladinskaSkola() {
-  const page = useQuery(api.pages.getBySlug, { slug: "omladinska-skola" });
-  const isLoading = page === undefined;
+  const { data: page, isLoading } = useQuery({
+    queryKey: ["page", "omladinska-skola"],
+    queryFn: () => pagesApi.getBySlug("omladinska-skola"),
+  });
 
   return (
     <div className="min-h-screen bg-background font-sans text-foreground">

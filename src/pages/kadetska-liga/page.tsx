@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api.js";
+import { useQuery } from "@tanstack/react-query";
+import { cadetLeagueApi } from "@/lib/api.ts";
 import { Trophy, Target, Calendar, Star, MapPin } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton.tsx";
 import Header from "../home/_components/Header.tsx";
@@ -62,11 +62,20 @@ export default function KadetskaLigaPage() {
   const [activeTab, setActiveTab] = useState<Tab>("tabela");
 
   // Database queries
-  const dbStandings = useQuery(api.admin.cadetLeague.getStandings);
-  const dbScorers = useQuery(api.admin.cadetLeague.getScorers);
-  const dbMatches = useQuery(api.admin.cadetLeague.getMatches);
+  const { data: dbStandings, isLoading: standingsLoading } = useQuery({
+    queryKey: ["cadetLeague", "standings"],
+    queryFn: () => cadetLeagueApi.getStandings(),
+  });
+  const { data: dbScorers, isLoading: scorersLoading } = useQuery({
+    queryKey: ["cadetLeague", "scorers"],
+    queryFn: () => cadetLeagueApi.getScorers(),
+  });
+  const { data: dbMatches, isLoading: matchesLoading } = useQuery({
+    queryKey: ["cadetLeague", "matches"],
+    queryFn: () => cadetLeagueApi.getMatches(),
+  });
 
-  const isLoading = dbStandings === undefined || dbScorers === undefined || dbMatches === undefined;
+  const isLoading = standingsLoading || scorersLoading || matchesLoading;
 
   // Map DB data to display types
   const standings: StandingRow[] = (dbStandings ?? []).map((s) => ({

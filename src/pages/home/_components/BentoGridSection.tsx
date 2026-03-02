@@ -1,5 +1,5 @@
-import { useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api.js";
+import { useQuery } from "@tanstack/react-query";
+import { newsApi, standingsApi, apiBaseUrl } from "@/lib/api.ts";
 import {
   Calendar,
   ArrowRight,
@@ -20,14 +20,20 @@ function stripHtml(html: string): string {
 /* ─────────────────── Small News Card (reusable) ─────────────────── */
 
 type NewsArticle = {
-  _id: string;
+  id: number;
   title: string;
   excerpt?: string;
   content?: string;
   category: string;
   date: string;
-  resolvedImageUrl?: string | null;
+  imageUrl: string;
+  imageFileName?: string | null;
 };
+
+function getNewsImageUrl(article: NewsArticle): string {
+  if (article.imageFileName) return \`\${apiBaseUrl}/uploads/\${article.imageFileName}\`;
+  return article.imageUrl;
+}
 
 function SmallNewsCard({
   article,
@@ -38,13 +44,13 @@ function SmallNewsCard({
 }) {
   return (
     <Link
-      to={`/vesti/${article._id}`}
+      to={`/vesti/${article.id}`}
       className={`rounded-2xl overflow-hidden border border-border shadow-lg group cursor-pointer bg-card flex flex-col ${className}`}
     >
       <div className="relative h-36 overflow-hidden flex-shrink-0">
-        {article.resolvedImageUrl && (
+        {getNewsImageUrl(article) && (
           <img
-            src={article.resolvedImageUrl}
+            src={getNewsImageUrl(article)}
             alt={article.title}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
@@ -87,14 +93,14 @@ function MediumNewsCard({
 
   return (
     <Link
-      to={`/vesti/${article._id}`}
+      to={`/vesti/${article.id}`}
       className={`rounded-2xl overflow-hidden border border-border shadow-lg group cursor-pointer bg-card flex flex-col h-full ${className}`}
     >
       {/* Large image fills most of the card */}
       <div className="relative flex-1 min-h-0 overflow-hidden">
-        {article.resolvedImageUrl && (
+        {getNewsImageUrl(article) && (
           <img
-            src={article.resolvedImageUrl}
+            src={getNewsImageUrl(article)}
             alt={article.title}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 absolute inset-0"
           />
@@ -132,17 +138,22 @@ function MediumNewsCard({
 /* ─────────────────────────── Main Component ─────────────────────────── */
 
 export default function BentoGridSection() {
-  const news = useQuery(api.news.getLatest);
-  const standings = useQuery(api.standings.getAll);
+  const { data: newsData, isLoading: newsLoading } = useQuery({
+    queryKey: ["news", "latest"],
+    queryFn: () => newsApi.getLatest(6),
+  });
+  const { data: standings, isLoading: standingsLoading } = useQuery({
+    queryKey: ["standings"],
+    queryFn: () => standingsApi.get(),
+  });
 
-  const isLoading =
-    news === undefined ||
-    standings === undefined;
+  const isLoading = newsLoading || standingsLoading;
 
   if (isLoading) {
     return <BentoSkeleton />;
   }
 
+  const news = newsData?.items ?? [];
   const featuredNews = news.length > 0 ? news[0] : null;
   const row2News = news.slice(1, 3); // 2 items for row 2
   const row3News = news.slice(3, 6); // up to 3 items for row 3
@@ -159,11 +170,11 @@ export default function BentoGridSection() {
         {/* ── CELL: FEATURED NEWS ───────────────────────── col 5-12, row 1 */}
         {featuredNews ? (
           <Link
-            to={`/vesti/${featuredNews._id}`}
+            to={`/vesti/${featuredNews.id}`}
             className="lg:col-start-5 lg:col-end-13 lg:row-start-1 lg:row-end-2 rounded-2xl overflow-hidden border border-border shadow-lg relative group cursor-pointer min-h-[280px] lg:min-h-0"
           >
             <img
-              src={featuredNews.resolvedImageUrl}
+              src={getNewsImageUrl(featuredNews)}
               alt={featuredNews.title}
               className="w-full h-full object-cover absolute inset-0 group-hover:scale-105 transition-transform duration-700"
             />

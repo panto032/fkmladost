@@ -1,7 +1,6 @@
 import { useState, useRef } from "react";
-import { useQuery, useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api.js";
-import type { Id } from "@/convex/_generated/dataModel.d.ts";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { adminCrudApi, adminNewsApi, apiBaseUrl, type Document } from "@/lib/api.ts";
 import { Button } from "@/components/ui/button.tsx";
 import { Input } from "@/components/ui/input.tsx";
 import { Textarea } from "@/components/ui/textarea.tsx";
@@ -32,7 +31,6 @@ import {
 import { Skeleton } from "@/components/ui/skeleton.tsx";
 import { Pencil, Trash2, Plus, Eye, EyeOff, Upload, FileText, FileIcon, Download } from "lucide-react";
 import { toast } from "sonner";
-import { ConvexError } from "convex/values";
 
 const CATEGORIES = [
   "Statut",
@@ -49,7 +47,6 @@ type FormState = {
   description: string;
   category: string;
   published: boolean;
-  fileStorageId: Id<"_storage"> | null;
   fileName: string;
   fileType: string;
   fileSize: number;
@@ -60,7 +57,6 @@ const EMPTY_FORM: FormState = {
   description: "",
   category: "Ostalo",
   published: true,
-  fileStorageId: null,
   fileName: "",
   fileType: "",
   fileSize: 0,
@@ -73,18 +69,33 @@ function formatFileSize(bytes: number): string {
 }
 
 export default function AdminDocuments() {
-  const documents = useQuery(api.admin.documents.getAll);
-  const createDoc = useMutation(api.admin.documents.create);
-  const updateDoc = useMutation(api.admin.documents.update);
-  const removeDoc = useMutation(api.admin.documents.remove);
-  const generateUploadUrl = useMutation(api.documents.generateUploadUrl);
+  const qc = useQueryClient();
+  const { data: documents, isLoading } = useQuery({
+    queryKey: ["admin", "documents"],
+    queryFn: () => adminCrudApi.getDocuments(),
+  });
+  const createMutation = useMutation({
+    mutationFn: (data: Partial<Document>) => adminCrudApi.createDocument(data),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin", "documents"] }); setIsOpen(false); toast.success("Dokument dodat"); },
+    onError: () => toast.error("Greška pri čuvanju dokumenta"),
+  });
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: Partial<Document> }) => adminCrudApi.updateDocument(id, data),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin", "documents"] }); setIsOpen(false); toast.success("Dokument ažuriran"); },
+    onError: () => toast.error("Greška pri čuvanju dokumenta"),
+  });
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => adminCrudApi.deleteDocument(id),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin", "documents"] }); toast.success("Dokument obrisan"); },
+    onError: () => toast.error("Greška pri brisanju"),
+  });
 
   const [isOpen, setIsOpen] = useState(false);
-  const [editingId, setEditingId] = useState<Id<"documents"> | null>(null);
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [uploading, setUploading] = useState(false);
-  const [saving, setSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const saving = createMutation.isPending || updateMutation.isPending;
 
   const openCreate = () => {
     setEditingId(null);
@@ -92,14 +103,13 @@ export default function AdminDocuments() {
     setIsOpen(true);
   };
 
-  const openEdit = (doc: NonNullable<typeof documents>[number]) => {
-    setEditingId(doc._id);
+  const openEdit = (doc: Document) => {
+    setEditingId(doc.id);
     setForm({
       title: doc.title,
       description: doc.description ?? "",
       category: doc.category,
       published: doc.published,
-      fileStorageId: doc.fileStorageId,
       fileName: doc.fileName,
       fileType: doc.fileType,
       fileSize: doc.fileSize,
@@ -113,18 +123,10 @@ export default function AdminDocuments() {
 
     setUploading(true);
     try {
-      const postUrl = await generateUploadUrl();
-      const result = await fetch(postUrl, {
-        method: "POST",
-        headers: { "Content-Type": file.type },
-        body: file,
-      });
-      const { storageId } = await result.json();
-
+      const result = await adminNewsApi.uploadImage(file);
       setForm((prev) => ({
         ...prev,
-        fileStorageId: storageId as Id<"_storage">,
-        fileName: file.name,
+        fileName: result.fileName,
         fileType: file.type,
         fileSize: file.size,
       }));
@@ -133,78 +135,39 @@ export default function AdminDocuments() {
       toast.error("Greška pri otpremanju fajla");
     } finally {
       setUploading(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
+      if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
 
-  const handleSave = async () => {
+  const handleSave = () => {
     if (!form.title.trim()) {
       toast.error("Unesite naziv dokumenta");
       return;
     }
-    if (!form.fileStorageId) {
+    if (!form.fileName) {
       toast.error("Otpremite fajl");
       return;
     }
 
-    setSaving(true);
-    try {
-      if (editingId) {
-        await updateDoc({
-          id: editingId,
-          title: form.title.trim(),
-          description: form.description.trim() || undefined,
-          category: form.category,
-          fileStorageId: form.fileStorageId,
-          fileName: form.fileName,
-          fileType: form.fileType,
-          fileSize: form.fileSize,
-          published: form.published,
-        });
-        toast.success("Dokument ažuriran");
-      } else {
-        await createDoc({
-          title: form.title.trim(),
-          description: form.description.trim() || undefined,
-          category: form.category,
-          fileStorageId: form.fileStorageId,
-          fileName: form.fileName,
-          fileType: form.fileType,
-          fileSize: form.fileSize,
-          published: form.published,
-        });
-        toast.success("Dokument dodat");
-      }
-      setIsOpen(false);
-    } catch (err) {
-      if (err instanceof ConvexError) {
-        const { message } = err.data as { message: string };
-        toast.error(message);
-      } else {
-        toast.error("Greška pri čuvanju dokumenta");
-      }
-    } finally {
-      setSaving(false);
+    const payload: Partial<Document> = {
+      title: form.title.trim(),
+      description: form.description.trim() || undefined,
+      category: form.category,
+      fileName: form.fileName,
+      fileType: form.fileType,
+      fileSize: form.fileSize,
+      published: form.published,
+      sortOrder: 0,
+    };
+
+    if (editingId !== null) {
+      updateMutation.mutate({ id: editingId, data: payload });
+    } else {
+      createMutation.mutate(payload);
     }
   };
 
-  const handleDelete = async (id: Id<"documents">) => {
-    try {
-      await removeDoc({ id });
-      toast.success("Dokument obrisan");
-    } catch (err) {
-      if (err instanceof ConvexError) {
-        const { message } = err.data as { message: string };
-        toast.error(message);
-      } else {
-        toast.error("Greška pri brisanju");
-      }
-    }
-  };
-
-  if (documents === undefined) {
+  if (isLoading) {
     return (
       <div className="space-y-4">
         {Array.from({ length: 3 }).map((_, i) => (
@@ -219,7 +182,7 @@ export default function AdminDocuments() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <p className="text-sm text-muted-foreground">
-          {documents.length} {documents.length === 1 ? "dokument" : "dokumenata"}
+          {(documents ?? []).length} {(documents ?? []).length === 1 ? "dokument" : "dokumenata"}
         </p>
         <Button onClick={openCreate} className="gap-2">
           <Plus size={16} />
@@ -228,7 +191,7 @@ export default function AdminDocuments() {
       </div>
 
       {/* Table */}
-      {documents.length === 0 ? (
+      {(documents ?? []).length === 0 ? (
         <div className="text-center py-12 text-muted-foreground">
           <FileText size={40} className="mx-auto mb-3 opacity-50" />
           <p className="font-medium">Nema dokumenata</p>
@@ -249,8 +212,8 @@ export default function AdminDocuments() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {documents.map((doc, idx) => (
-                <TableRow key={doc._id}>
+              {(documents ?? []).map((doc, idx) => (
+                <TableRow key={doc.id}>
                   <TableCell className="text-muted-foreground text-xs">
                     {idx + 1}
                   </TableCell>
@@ -288,8 +251,8 @@ export default function AdminDocuments() {
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center justify-end gap-1">
-                      {doc.fileUrl && (
-                        <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer">
+                      {doc.fileName && (
+                        <a href={`${apiBaseUrl}/uploads/${doc.fileName}`} target="_blank" rel="noopener noreferrer">
                           <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
                             <Download size={14} />
                           </Button>
@@ -307,7 +270,7 @@ export default function AdminDocuments() {
                         size="sm"
                         variant="ghost"
                         className="h-8 w-8 p-0 text-destructive"
-                        onClick={() => handleDelete(doc._id)}
+                        onClick={() => deleteMutation.mutate(doc.id)}
                       >
                         <Trash2 size={14} />
                       </Button>
@@ -325,7 +288,7 @@ export default function AdminDocuments() {
         <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>
-              {editingId ? "Izmeni dokument" : "Novi dokument"}
+              {editingId !== null ? "Izmeni dokument" : "Novi dokument"}
             </DialogTitle>
           </DialogHeader>
 
@@ -398,7 +361,7 @@ export default function AdminDocuments() {
                     {uploading ? "Otpremanje..." : "Kliknite za otpremanje fajla"}
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    PDF, DOC, XLS, JPG, PNG...
+                    PDF, JPG, PNG, WebP...
                   </p>
                 </div>
               )}
@@ -425,7 +388,7 @@ export default function AdminDocuments() {
               Otkaži
             </Button>
             <Button onClick={handleSave} disabled={saving || uploading}>
-              {saving ? "Čuvanje..." : editingId ? "Sačuvaj" : "Dodaj"}
+              {saving ? "Čuvanje..." : editingId !== null ? "Sačuvaj" : "Dodaj"}
             </Button>
           </DialogFooter>
         </DialogContent>

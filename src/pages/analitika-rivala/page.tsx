@@ -1,5 +1,5 @@
-import { useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api.js";
+import { useQuery } from "@tanstack/react-query";
+import { matchAnalyticsApi } from "@/lib/api.ts";
 import { Skeleton } from "@/components/ui/skeleton.tsx";
 import { Link } from "react-router-dom";
 import {
@@ -14,8 +14,10 @@ import Header from "../home/_components/Header.tsx";
 import Footer from "../home/_components/Footer.tsx";
 
 export default function AnalitikaRivalaPage() {
-  const analytics = useQuery(api.matchAnalytics.getCurrent);
-  const isLoading = analytics === undefined;
+  const { data: analytics, isLoading } = useQuery({
+    queryKey: ["matchAnalytics"],
+    queryFn: () => matchAnalyticsApi.get(),
+  });
 
   return (
     <div className="min-h-screen bg-[oklch(0.97_0.01_228)] font-sans text-foreground">

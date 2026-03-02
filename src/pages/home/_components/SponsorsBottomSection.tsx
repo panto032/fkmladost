@@ -1,10 +1,12 @@
-import { useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api.js";
+import { useQuery } from "@tanstack/react-query";
+import { partnersApi } from "@/lib/api.ts";
 import { Skeleton } from "@/components/ui/skeleton.tsx";
 
 export default function SponsorsBottomSection() {
-  const partners = useQuery(api.partners.getAll);
-  const isLoading = partners === undefined;
+  const { data: partners, isLoading } = useQuery({
+    queryKey: ["partners"],
+    queryFn: () => partnersApi.get(),
+  });
 
   if (isLoading) {
     return (
@@ -34,7 +36,7 @@ export default function SponsorsBottomSection() {
         <div className="flex flex-wrap justify-center items-center gap-10 md:gap-16 lg:gap-20">
           {withLogos.map((sponsor) => (
             <div
-              key={sponsor._id}
+              key={sponsor.id}
               className="group relative"
             >
               {/* Glow effect on hover */}

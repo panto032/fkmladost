@@ -1,7 +1,6 @@
 import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import { DefaultProviders } from "./components/providers/default.tsx";
-import AuthCallback from "./pages/auth/Callback.tsx";
 import Index from "./pages/Index.tsx";
 import AdminPage from "./pages/admin/page.tsx";
 import PrviTimPage from "./pages/prvi-tim/page.tsx";
@@ -54,7 +53,6 @@ export default function App() {
           <Route path="/kontakt" element={<KontaktPage />} />
           <Route path="/dokumenta" element={<DokumentaPage />} />
           <Route path="/multimedija" element={<MultimedijaPage />} />
-          <Route path="/auth/callback" element={<AuthCallback />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

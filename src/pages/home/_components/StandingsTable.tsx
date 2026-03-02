@@ -1,6 +1,6 @@
-import type { Doc } from "@/convex/_generated/dataModel.d.ts";
+import type { Standing } from "@/lib/api.ts";
 
-type StandingRow = Doc<"standings">;
+type StandingRow = Standing;
 
 /* ── Form dot colors ── */
 function formColor(ch: string): string {
@@ -99,7 +99,7 @@ export default function StandingsTable({
 
               return (
                 <tr
-                  key={row._id}
+                  key={row.id}
                   className={`transition-colors ${
                     isOurTeam
                       ? "bg-accent/10 hover:bg-accent/15"

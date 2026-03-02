@@ -1,13 +1,15 @@
-import { useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api.js";
+import { useQuery } from "@tanstack/react-query";
+import { playersApi } from "@/lib/api.ts";
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton.tsx";
 import { useRef } from "react";
 import { Link } from "react-router-dom";
 
 export default function TeamSection() {
-  const players = useQuery(api.players.getAll);
-  const isLoading = players === undefined;
+  const { data: players, isLoading } = useQuery({
+    queryKey: ["players"],
+    queryFn: () => playersApi.get(),
+  });
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const scroll = (direction: "left" | "right") => {
@@ -79,7 +81,7 @@ export default function TeamSection() {
           {players.map((player) => (
             <Link
               to="/prvi-tim"
-              key={player._id}
+              key={player.id}
               className="group cursor-pointer flex-shrink-0 w-64 md:w-72"
             >
               <div className="relative overflow-hidden rounded-t-xl bg-[oklch(0.20_0.04_252)] aspect-[3/4]">

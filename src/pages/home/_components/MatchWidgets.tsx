@@ -1,13 +1,16 @@
-import { useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api.js";
+import { useQuery } from "@tanstack/react-query";
+import { matchesApi } from "@/lib/api.ts";
 import { Calendar, Clock, MapPin } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton.tsx";
 
 export default function MatchWidgets() {
-  const nextMatch = useQuery(api.matches.getByType, { type: "next" });
-  const lastMatch = useQuery(api.matches.getByType, { type: "last" });
+  const { data: matches, isLoading } = useQuery({
+    queryKey: ["matches"],
+    queryFn: () => matchesApi.get(),
+  });
 
-  const isLoading = nextMatch === undefined || lastMatch === undefined;
+  const nextMatch = matches?.find((m) => m.type === "next");
+  const lastMatch = matches?.find((m) => m.type === "last");
 
   return (
     <section className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-24 z-10">

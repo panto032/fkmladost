@@ -1,5 +1,5 @@
-import { useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api.js";
+import { useQuery } from "@tanstack/react-query";
+import { pagesApi } from "@/lib/api.ts";
 import { ArrowLeft, Landmark } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton.tsx";
@@ -7,8 +7,10 @@ import Header from "../home/_components/Header.tsx";
 import Footer from "../home/_components/Footer.tsx";
 
 export default function IstorijaKluba() {
-  const page = useQuery(api.pages.getBySlug, { slug: "istorija-kluba" });
-  const isLoading = page === undefined;
+  const { data: page, isLoading } = useQuery({
+    queryKey: ["page", "istorija-kluba"],
+    queryFn: () => pagesApi.getBySlug("istorija-kluba"),
+  });
 
   return (
     <div className="min-h-screen bg-background font-sans text-foreground">

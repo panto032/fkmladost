@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api.js";
+import { useQuery } from "@tanstack/react-query";
+import { pioneerLeagueApi } from "@/lib/api.ts";
 import { Trophy, Calendar, Star, MapPin } from "lucide-react";
 import Header from "../home/_components/Header.tsx";
 import Footer from "../home/_components/Footer.tsx";
@@ -132,8 +132,14 @@ export default function PionirskeLigaPage() {
   const [activeTab, setActiveTab] = useState<Tab>("tabela");
 
   // Database queries
-  const dbStandings = useQuery(api.admin.pioneerLeague.getStandings);
-  const dbMatches = useQuery(api.admin.pioneerLeague.getMatches);
+  const { data: dbStandings } = useQuery({
+    queryKey: ["pioneerLeague", "standings"],
+    queryFn: () => pioneerLeagueApi.getStandings(),
+  });
+  const { data: dbMatches } = useQuery({
+    queryKey: ["pioneerLeague", "matches"],
+    queryFn: () => pioneerLeagueApi.getMatches(),
+  });
 
   // Use DB data if present, otherwise fall back to static data
   const standings: StandingRow[] = (dbStandings && dbStandings.length > 0)

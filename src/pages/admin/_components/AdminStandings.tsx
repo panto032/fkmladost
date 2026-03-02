@@ -1,7 +1,6 @@
 import { useState } from "react";
-import { useQuery, useMutation, useAction } from "convex/react";
-import { api } from "@/convex/_generated/api.js";
-import type { Doc } from "@/convex/_generated/dataModel.d.ts";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { adminCrudApi, adminScrapeApi, type Standing } from "@/lib/api.ts";
 import { Button } from "@/components/ui/button.tsx";
 import { Input } from "@/components/ui/input.tsx";
 import { Label } from "@/components/ui/label.tsx";
@@ -24,9 +23,6 @@ import {
 import { Skeleton } from "@/components/ui/skeleton.tsx";
 import { Pencil, Trash2, Plus, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
-import { ConvexError } from "convex/values";
-
-type StandingItem = Doc<"standings">;
 
 const EMPTY_FORM = {
   position: 1,
@@ -41,17 +37,60 @@ const EMPTY_FORM = {
 };
 
 export default function AdminStandings() {
-  const standings = useQuery(api.admin.standings.getAll);
-  const createStanding = useMutation(api.admin.standings.create);
-  const updateStanding = useMutation(api.admin.standings.update);
-  const removeStanding = useMutation(api.admin.standings.remove);
-  const scrapeStandings = useAction(api.sync.scrapeFromWeb.scrapeStandings);
+  const qc = useQueryClient();
+
+  const { data: standings, isLoading } = useQuery({
+    queryKey: ["standings"],
+    queryFn: () => adminCrudApi.getStandings(),
+  });
+
+  const createStanding = useMutation({
+    mutationFn: (data: typeof EMPTY_FORM) => adminCrudApi.createStanding(data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["standings"] });
+      toast.success("Tim je dodat u tabelu");
+      setIsOpen(false);
+    },
+    onError: (err) => toast.error(err instanceof Error ? err.message : "Greška"),
+  });
+
+  const updateStanding = useMutation({
+    mutationFn: ({ id, ...data }: { id: number } & typeof EMPTY_FORM) =>
+      adminCrudApi.updateStanding(id, data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["standings"] });
+      toast.success("Tabela je uspešno ažurirana");
+      setIsOpen(false);
+    },
+    onError: (err) => toast.error(err instanceof Error ? err.message : "Greška"),
+  });
+
+  const removeStanding = useMutation({
+    mutationFn: (id: number) => adminCrudApi.deleteStanding(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["standings"] });
+      toast.success("Tim je obrisan iz tabele");
+    },
+    onError: (err) => toast.error(err instanceof Error ? err.message : "Greška"),
+  });
+
+  const scrapeStandingsMutation = useMutation({
+    mutationFn: () => adminScrapeApi.scrapeStandings(),
+    onSuccess: (result) => {
+      qc.invalidateQueries({ queryKey: ["standings"] });
+      toast.success(
+        `Sinhronizacija uspešna! Učitano ${result.standings} timova sa superliga.rs`,
+      );
+    },
+    onError: (err) =>
+      toast.error(
+        `Greška pri sinhronizaciji: ${err instanceof Error ? err.message : "Greška pri sinhronizaciji sa superliga.rs"}`,
+      ),
+  });
 
   const [isOpen, setIsOpen] = useState(false);
-  const [editing, setEditing] = useState<StandingItem | null>(null);
+  const [editing, setEditing] = useState<Standing | null>(null);
   const [form, setForm] = useState(EMPTY_FORM);
-  const [saving, setSaving] = useState(false);
-  const [syncing, setSyncing] = useState(false);
 
   const openCreate = () => {
     setEditing(null);
@@ -59,7 +98,7 @@ export default function AdminStandings() {
     setIsOpen(true);
   };
 
-  const openEdit = (item: StandingItem) => {
+  const openEdit = (item: Standing) => {
     setEditing(item);
     setForm({
       position: item.position,
@@ -75,67 +114,21 @@ export default function AdminStandings() {
     setIsOpen(true);
   };
 
-  const handleSave = async () => {
+  const handleSave = () => {
     if (!form.team) {
       toast.error("Ime tima je obavezno");
       return;
     }
-    setSaving(true);
-    try {
-      if (editing) {
-        await updateStanding({ id: editing._id, ...form });
-        toast.success("Tabela je uspešno ažurirana");
-      } else {
-        await createStanding(form);
-        toast.success("Tim je dodat u tabelu");
-      }
-      setIsOpen(false);
-    } catch (error) {
-      if (error instanceof ConvexError) {
-        const { message } = error.data as { code: string; message: string };
-        toast.error(message);
-      } else {
-        toast.error("Greška pri čuvanju");
-      }
-    } finally {
-      setSaving(false);
+    if (editing) {
+      updateStanding.mutate({ id: editing.id, ...form });
+    } else {
+      createStanding.mutate(form);
     }
   };
 
-  const handleDelete = async (id: StandingItem["_id"]) => {
-    try {
-      await removeStanding({ id });
-      toast.success("Tim je obrisan iz tabele");
-    } catch (error) {
-      if (error instanceof ConvexError) {
-        const { message } = error.data as { code: string; message: string };
-        toast.error(message);
-      } else {
-        toast.error("Greška pri brisanju");
-      }
-    }
-  };
+  const saving = createStanding.isPending || updateStanding.isPending;
 
-  const handleSync = async () => {
-    setSyncing(true);
-    try {
-      const result = await scrapeStandings();
-      toast.success(
-        `Sinhronizacija uspešna! Učitano ${result.standings} timova sa superliga.rs`,
-      );
-    } catch (error) {
-      if (error instanceof ConvexError) {
-        const { message } = error.data as { code: string; message: string };
-        toast.error(`Greška pri sinhronizaciji: ${message}`);
-      } else {
-        toast.error("Greška pri sinhronizaciji sa superliga.rs");
-      }
-    } finally {
-      setSyncing(false);
-    }
-  };
-
-  if (standings === undefined) {
+  if (isLoading) {
     return (
       <div className="space-y-3">
         {Array.from({ length: 5 }).map((_, i) => (
@@ -144,6 +137,8 @@ export default function AdminStandings() {
       </div>
     );
   }
+
+  const standingList = standings ?? [];
 
   return (
     <div>
@@ -157,18 +152,18 @@ export default function AdminStandings() {
         </div>
         <Button
           size="sm"
-          onClick={handleSync}
-          disabled={syncing}
+          onClick={() => scrapeStandingsMutation.mutate()}
+          disabled={scrapeStandingsMutation.isPending}
           className="bg-[oklch(0.55_0.18_250)] hover:bg-[oklch(0.50_0.18_250)] text-white shrink-0"
         >
-          <RefreshCw size={14} className={syncing ? "animate-spin" : ""} />
-          {syncing ? "Sinhronizujem..." : "Sinhronizuj sada"}
+          <RefreshCw size={14} className={scrapeStandingsMutation.isPending ? "animate-spin" : ""} />
+          {scrapeStandingsMutation.isPending ? "Sinhronizujem..." : "Sinhronizuj sada"}
         </Button>
       </div>
 
       <div className="flex justify-between items-center mb-6">
         <h3 className="text-lg font-bold">
-          Tabela Superlige ({standings.length} timova)
+          Tabela Superlige ({standingList.length} timova)
         </h3>
         <Button onClick={openCreate} size="sm">
           <Plus size={16} /> Dodaj tim
@@ -190,12 +185,10 @@ export default function AdminStandings() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {standings.map((item) => (
+            {standingList.map((item) => (
               <TableRow
-                key={item._id}
-                className={
-                  item.isHighlighted ? "bg-accent/10" : ""
-                }
+                key={item.id}
+                className={item.isHighlighted ? "bg-accent/10" : ""}
               >
                 <TableCell className="font-bold text-muted-foreground">
                   {item.position}.
@@ -240,7 +233,7 @@ export default function AdminStandings() {
                       size="icon-sm"
                       variant="ghost"
                       className="text-destructive hover:text-destructive"
-                      onClick={() => handleDelete(item._id)}
+                      onClick={() => removeStanding.mutate(item.id)}
                     >
                       <Trash2 size={14} />
                     </Button>

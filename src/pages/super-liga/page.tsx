@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api.js";
+import { useQuery } from "@tanstack/react-query";
+import { superLeagueApi } from "@/lib/api.ts";
 import { Trophy, Calendar, Star, MapPin, AlertCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton.tsx";
 import Header from "../home/_components/Header.tsx";
@@ -52,11 +52,17 @@ const TABS: { id: Tab; label: string; icon: typeof Trophy }[] = [
 export default function SuperLigaPage() {
   const [activeTab, setActiveTab] = useState<Tab>("tabela");
 
-  // Database queries — populated by scraping superliga.rs from admin
-  const dbStandings = useQuery(api.admin.superLeague.getStandings);
-  const dbMatches = useQuery(api.admin.superLeague.getMatches);
+  // Database queries
+  const { data: dbStandings, isLoading: standingsLoading } = useQuery({
+    queryKey: ["superLeague", "standings"],
+    queryFn: () => superLeagueApi.getStandings(),
+  });
+  const { data: dbMatches, isLoading: matchesLoading } = useQuery({
+    queryKey: ["superLeague", "matches"],
+    queryFn: () => superLeagueApi.getMatches(),
+  });
 
-  const isLoading = dbStandings === undefined || dbMatches === undefined;
+  const isLoading = standingsLoading || matchesLoading;
 
   // Map DB data to display types
   const standings: StandingRow[] = (dbStandings ?? []).map((s) => ({

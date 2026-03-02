@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api.js";
+import { useQuery } from "@tanstack/react-query";
+import { youthLeagueApi } from "@/lib/api.ts";
 import { Trophy, Target, Calendar, ChevronLeft, ChevronRight, Star } from "lucide-react";
 import Header from "../home/_components/Header.tsx";
 import Footer from "../home/_components/Footer.tsx";
@@ -163,9 +163,18 @@ export default function OmladinskaLigaPage() {
   const [activeTab, setActiveTab] = useState<Tab>("tabela");
 
   // Database queries — public (no auth required)
-  const dbStandings = useQuery(api.admin.youthLeague.getStandings);
-  const dbMatches = useQuery(api.admin.youthLeague.getMatches);
-  const dbScorers = useQuery(api.admin.youthLeague.getScorers);
+  const { data: dbStandings } = useQuery({
+    queryKey: ["youthLeague", "standings"],
+    queryFn: () => youthLeagueApi.getStandings(),
+  });
+  const { data: dbMatches } = useQuery({
+    queryKey: ["youthLeague", "matches"],
+    queryFn: () => youthLeagueApi.getMatches(),
+  });
+  const { data: dbScorers } = useQuery({
+    queryKey: ["youthLeague", "scorers"],
+    queryFn: () => youthLeagueApi.getScorers(),
+  });
 
   // Use DB data if present, otherwise fall back to static data
   const standings: StandingRow[] = (dbStandings && dbStandings.length > 0)

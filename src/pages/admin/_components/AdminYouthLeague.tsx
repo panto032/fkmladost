@@ -1,7 +1,6 @@
 import { useState } from "react";
-import { useQuery, useMutation, useAction } from "convex/react";
-import { api } from "@/convex/_generated/api.js";
-import type { Doc } from "@/convex/_generated/dataModel.d.ts";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { youthLeagueApi, adminCrudApi, adminScrapeApi, type LeagueStanding, type LeagueMatch, type Scorer } from "@/lib/api.ts";
 import { Button } from "@/components/ui/button.tsx";
 import { Input } from "@/components/ui/input.tsx";
 import { Label } from "@/components/ui/label.tsx";
@@ -24,7 +23,6 @@ import {
 import { Skeleton } from "@/components/ui/skeleton.tsx";
 import { Pencil, Trash2, Plus, Trophy, Calendar, Target, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
-import { ConvexError } from "convex/values";
 
 /* ------------------------------------------------------------------ */
 /*  Sub-tab selector                                                   */
@@ -33,32 +31,25 @@ import { ConvexError } from "convex/values";
 type SubTab = "standings" | "matches" | "scorers";
 
 export default function AdminYouthLeague() {
+  const qc = useQueryClient();
   const [subTab, setSubTab] = useState<SubTab>("standings");
-  const scrapeStandings = useAction(api.sync.scrapeYouthLeague.scrapeYouthLeagueStandings);
-  const scrapeMatches = useAction(api.sync.scrapeYouthLeague.scrapeYouthLeagueMatches);
-  const [syncing, setSyncing] = useState(false);
 
-  const handleSync = async () => {
-    setSyncing(true);
-    try {
-      const [standingsResult, matchesResult] = await Promise.all([
-        scrapeStandings(),
-        scrapeMatches(),
-      ]);
+  const syncMutation = useMutation({
+    mutationFn: () =>
+      Promise.all([
+        adminScrapeApi.youthStandings(),
+        adminScrapeApi.youthMatches(),
+      ]),
+    onSuccess: ([standingsResult, matchesResult]) => {
+      qc.invalidateQueries({ queryKey: ["youthStandings"] });
+      qc.invalidateQueries({ queryKey: ["youthMatches"] });
       toast.success(
         `Uspešno učitano sa fss.rs: ${standingsResult.count} klubova, ${matchesResult.count} utakmica`,
       );
-    } catch (error) {
-      if (error instanceof ConvexError) {
-        const { message } = error.data as { code: string; message: string };
-        toast.error(message);
-      } else {
-        toast.error("Greška pri sinhronizaciji sa fss.rs");
-      }
-    } finally {
-      setSyncing(false);
-    }
-  };
+    },
+    onError: (err) =>
+      toast.error(err instanceof Error ? err.message : "Greška pri sinhronizaciji sa fss.rs"),
+  });
 
   return (
     <div>
@@ -69,12 +60,12 @@ export default function AdminYouthLeague() {
         </p>
         <Button
           size="sm"
-          onClick={handleSync}
-          disabled={syncing}
+          onClick={() => syncMutation.mutate()}
+          disabled={syncMutation.isPending}
           className="gap-1.5 flex-shrink-0"
         >
-          <RefreshCw size={14} className={syncing ? "animate-spin" : ""} />
-          {syncing ? "Učitavanje..." : "Sinhronizuj sa fss.rs"}
+          <RefreshCw size={14} className={syncMutation.isPending ? "animate-spin" : ""} />
+          {syncMutation.isPending ? "Učitavanje..." : "Sinhronizuj sa fss.rs"}
         </Button>
       </div>
 
@@ -111,8 +102,6 @@ export default function AdminYouthLeague() {
 /*  Standings Admin                                                    */
 /* ================================================================== */
 
-type StandingDoc = Doc<"youthStandings">;
-
 const EMPTY_STANDING = {
   position: 1,
   club: "",
@@ -128,15 +117,46 @@ const EMPTY_STANDING = {
 };
 
 function StandingsAdmin() {
-  const standings = useQuery(api.admin.youthLeague.getStandings);
-  const create = useMutation(api.admin.youthLeague.createStanding);
-  const update = useMutation(api.admin.youthLeague.updateStanding);
-  const remove = useMutation(api.admin.youthLeague.removeStanding);
+  const qc = useQueryClient();
+
+  const { data: standings, isLoading } = useQuery({
+    queryKey: ["youthStandings"],
+    queryFn: () => youthLeagueApi.getStandings(),
+  });
+
+  const create = useMutation({
+    mutationFn: (data: typeof EMPTY_STANDING) => adminCrudApi.createYouthStanding(data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["youthStandings"] });
+      toast.success("Klub dodat");
+      setIsOpen(false);
+    },
+    onError: (err) => toast.error(err instanceof Error ? err.message : "Greška pri čuvanju"),
+  });
+
+  const update = useMutation({
+    mutationFn: ({ id, ...data }: { id: number } & typeof EMPTY_STANDING) =>
+      adminCrudApi.updateYouthStanding(id, data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["youthStandings"] });
+      toast.success("Tabela ažurirana");
+      setIsOpen(false);
+    },
+    onError: (err) => toast.error(err instanceof Error ? err.message : "Greška pri čuvanju"),
+  });
+
+  const remove = useMutation({
+    mutationFn: (id: number) => adminCrudApi.deleteYouthStanding(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["youthStandings"] });
+      toast.success("Klub obrisan");
+    },
+    onError: (err) => toast.error(err instanceof Error ? err.message : "Greška pri brisanju"),
+  });
 
   const [isOpen, setIsOpen] = useState(false);
-  const [editing, setEditing] = useState<StandingDoc | null>(null);
+  const [editing, setEditing] = useState<LeagueStanding | null>(null);
   const [form, setForm] = useState(EMPTY_STANDING);
-  const [saving, setSaving] = useState(false);
 
   const openCreate = () => {
     setEditing(null);
@@ -144,7 +164,7 @@ function StandingsAdmin() {
     setIsOpen(true);
   };
 
-  const openEdit = (item: StandingDoc) => {
+  const openEdit = (item: LeagueStanding) => {
     setEditing(item);
     setForm({
       position: item.position,
@@ -162,52 +182,27 @@ function StandingsAdmin() {
     setIsOpen(true);
   };
 
-  const handleSave = async () => {
+  const handleSave = () => {
     if (!form.club) { toast.error("Ime kluba je obavezno"); return; }
-    setSaving(true);
-    try {
-      if (editing) {
-        await update({ id: editing._id, ...form });
-        toast.success("Tabela ažurirana");
-      } else {
-        await create(form);
-        toast.success("Klub dodat");
-      }
-      setIsOpen(false);
-    } catch (error) {
-      if (error instanceof ConvexError) {
-        const { message } = error.data as { code: string; message: string };
-        toast.error(message);
-      } else {
-        toast.error("Greška pri čuvanju");
-      }
-    } finally {
-      setSaving(false);
+    if (editing) {
+      update.mutate({ id: editing.id, ...form });
+    } else {
+      create.mutate(form);
     }
   };
 
-  const handleDelete = async (id: StandingDoc["_id"]) => {
-    try {
-      await remove({ id });
-      toast.success("Klub obrisan");
-    } catch (error) {
-      if (error instanceof ConvexError) {
-        const { message } = error.data as { code: string; message: string };
-        toast.error(message);
-      } else {
-        toast.error("Greška pri brisanju");
-      }
-    }
-  };
+  const saving = create.isPending || update.isPending;
 
-  if (standings === undefined) {
+  if (isLoading) {
     return <div className="space-y-3">{Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-14 w-full" />)}</div>;
   }
+
+  const list = standings ?? [];
 
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h3 className="text-lg font-bold">Tabela Omladinske Lige ({standings.length} klubova)</h3>
+        <h3 className="text-lg font-bold">Tabela Omladinske Lige ({list.length} klubova)</h3>
         <Button onClick={openCreate} size="sm"><Plus size={16} /> Dodaj klub</Button>
       </div>
 
@@ -228,8 +223,8 @@ function StandingsAdmin() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {standings.map((item) => (
-              <TableRow key={item._id} className={item.isHighlighted ? "bg-accent/10" : ""}>
+            {list.map((item) => (
+              <TableRow key={item.id} className={item.isHighlighted ? "bg-accent/10" : ""}>
                 <TableCell className="font-bold text-muted-foreground">{item.position}.</TableCell>
                 <TableCell className={`font-medium ${item.isHighlighted ? "text-accent font-bold" : ""}`}>{item.club}</TableCell>
                 <TableCell className="hidden sm:table-cell">{item.played}</TableCell>
@@ -242,7 +237,7 @@ function StandingsAdmin() {
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-1">
                     <Button size="icon-sm" variant="ghost" onClick={() => openEdit(item)}><Pencil size={14} /></Button>
-                    <Button size="icon-sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => handleDelete(item._id)}><Trash2 size={14} /></Button>
+                    <Button size="icon-sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => remove.mutate(item.id)}><Trash2 size={14} /></Button>
                   </div>
                 </TableCell>
               </TableRow>
@@ -290,8 +285,6 @@ function StandingsAdmin() {
 /*  Matches Admin                                                      */
 /* ================================================================== */
 
-type MatchDoc = Doc<"youthMatches">;
-
 const EMPTY_MATCH = {
   round: 1,
   date: "",
@@ -303,15 +296,46 @@ const EMPTY_MATCH = {
 };
 
 function MatchesAdmin() {
-  const matches = useQuery(api.admin.youthLeague.getMatches);
-  const createMatch = useMutation(api.admin.youthLeague.createMatch);
-  const updateMatch = useMutation(api.admin.youthLeague.updateMatch);
-  const removeMatch = useMutation(api.admin.youthLeague.removeMatch);
+  const qc = useQueryClient();
+
+  const { data: matches, isLoading } = useQuery({
+    queryKey: ["youthMatches"],
+    queryFn: () => youthLeagueApi.getMatches(),
+  });
+
+  const createMatch = useMutation({
+    mutationFn: (data: typeof EMPTY_MATCH) => adminCrudApi.createYouthMatch(data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["youthMatches"] });
+      toast.success("Utakmica dodata");
+      setIsOpen(false);
+    },
+    onError: (err) => toast.error(err instanceof Error ? err.message : "Greška pri čuvanju"),
+  });
+
+  const updateMatch = useMutation({
+    mutationFn: ({ id, ...data }: { id: number } & typeof EMPTY_MATCH) =>
+      adminCrudApi.updateYouthMatch(id, data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["youthMatches"] });
+      toast.success("Utakmica ažurirana");
+      setIsOpen(false);
+    },
+    onError: (err) => toast.error(err instanceof Error ? err.message : "Greška pri čuvanju"),
+  });
+
+  const removeMatch = useMutation({
+    mutationFn: (id: number) => adminCrudApi.deleteYouthMatch(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["youthMatches"] });
+      toast.success("Utakmica obrisana");
+    },
+    onError: (err) => toast.error(err instanceof Error ? err.message : "Greška pri brisanju"),
+  });
 
   const [isOpen, setIsOpen] = useState(false);
-  const [editing, setEditing] = useState<MatchDoc | null>(null);
+  const [editing, setEditing] = useState<LeagueMatch | null>(null);
   const [form, setForm] = useState(EMPTY_MATCH);
-  const [saving, setSaving] = useState(false);
 
   const openCreate = () => {
     setEditing(null);
@@ -319,7 +343,7 @@ function MatchesAdmin() {
     setIsOpen(true);
   };
 
-  const openEdit = (item: MatchDoc) => {
+  const openEdit = (item: LeagueMatch) => {
     setEditing(item);
     setForm({
       round: item.round,
@@ -333,61 +357,36 @@ function MatchesAdmin() {
     setIsOpen(true);
   };
 
-  const handleSave = async () => {
+  const handleSave = () => {
     if (!form.home || !form.away) { toast.error("Timovi su obavezni"); return; }
-    setSaving(true);
-    try {
-      const payload = {
-        round: form.round,
-        date: form.date,
-        home: form.home,
-        away: form.away,
-        score: form.score || undefined,
-        city: form.city || undefined,
-        isHome: form.isHome,
-      };
-      if (editing) {
-        await updateMatch({ id: editing._id, ...payload });
-        toast.success("Utakmica ažurirana");
-      } else {
-        await createMatch(payload);
-        toast.success("Utakmica dodata");
-      }
-      setIsOpen(false);
-    } catch (error) {
-      if (error instanceof ConvexError) {
-        const { message } = error.data as { code: string; message: string };
-        toast.error(message);
-      } else {
-        toast.error("Greška pri čuvanju");
-      }
-    } finally {
-      setSaving(false);
+    const payload = {
+      round: form.round,
+      date: form.date,
+      home: form.home,
+      away: form.away,
+      score: form.score || undefined,
+      city: form.city || undefined,
+      isHome: form.isHome,
+    };
+    if (editing) {
+      updateMatch.mutate({ id: editing.id, ...payload });
+    } else {
+      createMatch.mutate(payload);
     }
   };
 
-  const handleDelete = async (id: MatchDoc["_id"]) => {
-    try {
-      await removeMatch({ id });
-      toast.success("Utakmica obrisana");
-    } catch (error) {
-      if (error instanceof ConvexError) {
-        const { message } = error.data as { code: string; message: string };
-        toast.error(message);
-      } else {
-        toast.error("Greška pri brisanju");
-      }
-    }
-  };
+  const saving = createMatch.isPending || updateMatch.isPending;
 
-  if (matches === undefined) {
+  if (isLoading) {
     return <div className="space-y-3">{Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-14 w-full" />)}</div>;
   }
+
+  const list = matches ?? [];
 
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h3 className="text-lg font-bold">Utakmice Mladosti ({matches.length})</h3>
+        <h3 className="text-lg font-bold">Utakmice Mladosti ({list.length})</h3>
         <Button onClick={openCreate} size="sm"><Plus size={16} /> Dodaj utakmicu</Button>
       </div>
 
@@ -405,8 +404,8 @@ function MatchesAdmin() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {matches.map((item) => (
-              <TableRow key={item._id}>
+            {list.map((item) => (
+              <TableRow key={item.id}>
                 <TableCell className="font-bold text-muted-foreground">{item.round}</TableCell>
                 <TableCell className="text-sm">{item.date}</TableCell>
                 <TableCell className={`font-medium ${item.isHome ? "text-accent font-bold" : ""}`}>{item.home}</TableCell>
@@ -416,7 +415,7 @@ function MatchesAdmin() {
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-1">
                     <Button size="icon-sm" variant="ghost" onClick={() => openEdit(item)}><Pencil size={14} /></Button>
-                    <Button size="icon-sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => handleDelete(item._id)}><Trash2 size={14} /></Button>
+                    <Button size="icon-sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => removeMatch.mutate(item.id)}><Trash2 size={14} /></Button>
                   </div>
                 </TableCell>
               </TableRow>
@@ -460,8 +459,6 @@ function MatchesAdmin() {
 /*  Scorers Admin                                                      */
 /* ================================================================== */
 
-type ScorerDoc = Doc<"youthScorers">;
-
 const EMPTY_SCORER = {
   rank: 1,
   name: "",
@@ -471,15 +468,46 @@ const EMPTY_SCORER = {
 };
 
 function ScorersAdmin() {
-  const scorers = useQuery(api.admin.youthLeague.getScorers);
-  const createScorer = useMutation(api.admin.youthLeague.createScorer);
-  const updateScorer = useMutation(api.admin.youthLeague.updateScorer);
-  const removeScorer = useMutation(api.admin.youthLeague.removeScorer);
+  const qc = useQueryClient();
+
+  const { data: scorers, isLoading } = useQuery({
+    queryKey: ["youthScorers"],
+    queryFn: () => youthLeagueApi.getScorers(),
+  });
+
+  const createScorer = useMutation({
+    mutationFn: (data: typeof EMPTY_SCORER) => adminCrudApi.createYouthScorer(data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["youthScorers"] });
+      toast.success("Strelac dodat");
+      setIsOpen(false);
+    },
+    onError: (err) => toast.error(err instanceof Error ? err.message : "Greška pri čuvanju"),
+  });
+
+  const updateScorer = useMutation({
+    mutationFn: ({ id, ...data }: { id: number } & typeof EMPTY_SCORER) =>
+      adminCrudApi.updateYouthScorer(id, data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["youthScorers"] });
+      toast.success("Strelac ažuriran");
+      setIsOpen(false);
+    },
+    onError: (err) => toast.error(err instanceof Error ? err.message : "Greška pri čuvanju"),
+  });
+
+  const removeScorer = useMutation({
+    mutationFn: (id: number) => adminCrudApi.deleteYouthScorer(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["youthScorers"] });
+      toast.success("Strelac obrisan");
+    },
+    onError: (err) => toast.error(err instanceof Error ? err.message : "Greška pri brisanju"),
+  });
 
   const [isOpen, setIsOpen] = useState(false);
-  const [editing, setEditing] = useState<ScorerDoc | null>(null);
+  const [editing, setEditing] = useState<Scorer | null>(null);
   const [form, setForm] = useState(EMPTY_SCORER);
-  const [saving, setSaving] = useState(false);
 
   const openCreate = () => {
     setEditing(null);
@@ -487,7 +515,7 @@ function ScorersAdmin() {
     setIsOpen(true);
   };
 
-  const openEdit = (item: ScorerDoc) => {
+  const openEdit = (item: Scorer) => {
     setEditing(item);
     setForm({
       rank: item.rank,
@@ -499,52 +527,27 @@ function ScorersAdmin() {
     setIsOpen(true);
   };
 
-  const handleSave = async () => {
+  const handleSave = () => {
     if (!form.name) { toast.error("Ime igrača je obavezno"); return; }
-    setSaving(true);
-    try {
-      if (editing) {
-        await updateScorer({ id: editing._id, ...form });
-        toast.success("Strelac ažuriran");
-      } else {
-        await createScorer(form);
-        toast.success("Strelac dodat");
-      }
-      setIsOpen(false);
-    } catch (error) {
-      if (error instanceof ConvexError) {
-        const { message } = error.data as { code: string; message: string };
-        toast.error(message);
-      } else {
-        toast.error("Greška pri čuvanju");
-      }
-    } finally {
-      setSaving(false);
+    if (editing) {
+      updateScorer.mutate({ id: editing.id, ...form });
+    } else {
+      createScorer.mutate(form);
     }
   };
 
-  const handleDelete = async (id: ScorerDoc["_id"]) => {
-    try {
-      await removeScorer({ id });
-      toast.success("Strelac obrisan");
-    } catch (error) {
-      if (error instanceof ConvexError) {
-        const { message } = error.data as { code: string; message: string };
-        toast.error(message);
-      } else {
-        toast.error("Greška pri brisanju");
-      }
-    }
-  };
+  const saving = createScorer.isPending || updateScorer.isPending;
 
-  if (scorers === undefined) {
+  if (isLoading) {
     return <div className="space-y-3">{Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-14 w-full" />)}</div>;
   }
+
+  const list = scorers ?? [];
 
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h3 className="text-lg font-bold">Lista strelaca ({scorers.length})</h3>
+        <h3 className="text-lg font-bold">Lista strelaca ({list.length})</h3>
         <Button onClick={openCreate} size="sm"><Plus size={16} /> Dodaj strelca</Button>
       </div>
 
@@ -560,8 +563,8 @@ function ScorersAdmin() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {scorers.map((item) => (
-              <TableRow key={item._id} className={item.isHighlighted ? "bg-accent/10" : ""}>
+            {list.map((item) => (
+              <TableRow key={item.id} className={item.isHighlighted ? "bg-accent/10" : ""}>
                 <TableCell className="font-bold text-muted-foreground">{item.rank}.</TableCell>
                 <TableCell className={`font-medium ${item.isHighlighted ? "text-accent font-bold" : ""}`}>{item.name}</TableCell>
                 <TableCell className="text-muted-foreground">{item.club}</TableCell>
@@ -569,7 +572,7 @@ function ScorersAdmin() {
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-1">
                     <Button size="icon-sm" variant="ghost" onClick={() => openEdit(item)}><Pencil size={14} /></Button>
-                    <Button size="icon-sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => handleDelete(item._id)}><Trash2 size={14} /></Button>
+                    <Button size="icon-sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => removeScorer.mutate(item.id)}><Trash2 size={14} /></Button>
                   </div>
                 </TableCell>
               </TableRow>

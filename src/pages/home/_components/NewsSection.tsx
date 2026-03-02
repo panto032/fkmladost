@@ -1,27 +1,35 @@
-import { useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api.js";
+import { useQuery } from "@tanstack/react-query";
+import { newsApi } from "@/lib/api.ts";
 import { Calendar, ArrowRight } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton.tsx";
+import { Link } from "react-router-dom";
+import { apiBaseUrl } from "@/lib/api.ts";
+
+function getImageSrc(imageUrl: string, imageFileName?: string | null): string {
+  if (imageFileName) return `${apiBaseUrl}/uploads/${imageFileName}`;
+  return imageUrl;
+}
 
 export default function NewsSection() {
-  const news = useQuery(api.news.getLatest);
-  const isLoading = news === undefined;
+  const { data, isLoading } = useQuery({
+    queryKey: ["news", "latest"],
+    queryFn: () => newsApi.getLatest(6),
+  });
+
+  const news = data?.items ?? [];
 
   return (
     <section id="vesti" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
       <div className="flex justify-between items-end mb-8 border-b border-border pb-4">
         <div>
           <h3 className="text-3xl font-extrabold text-foreground uppercase tracking-tight">
-            Najnovije{" "}
-            <span className="text-accent">Vesti</span>
+            Najnovije <span className="text-accent">Vesti</span>
           </h3>
-          <p className="text-muted-foreground mt-1">
-            Sva aktuelna dešavanja iz kluba
-          </p>
+          <p className="text-muted-foreground mt-1">Sva aktuelna dešavanja iz kluba</p>
         </div>
-        <button className="hidden sm:flex items-center text-accent font-semibold hover:text-accent/80 transition-colors">
+        <Link to="/vesti" className="hidden sm:flex items-center text-accent font-semibold hover:text-accent/80 transition-colors">
           Sve vesti <ArrowRight size={16} className="ml-1" />
-        </button>
+        </Link>
       </div>
 
       {isLoading ? (
@@ -39,20 +47,19 @@ export default function NewsSection() {
         </div>
       ) : news.length === 0 ? (
         <div className="text-center py-16">
-          <p className="text-muted-foreground text-lg">
-            Još nema objavljenih vesti. Pratite nas za najnovije informacije.
-          </p>
+          <p className="text-muted-foreground text-lg">Još nema objavljenih vesti.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {news.map((item) => (
-            <article
-              key={item._id}
+            <Link
+              key={item.id}
+              to={`/vesti/${item.id}`}
               className="bg-card rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group border border-border"
             >
               <div className="relative h-56 overflow-hidden">
                 <img
-                  src={item.imageUrl}
+                  src={getImageSrc(item.imageUrl, item.imageFileName)}
                   alt={item.title}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
@@ -69,11 +76,9 @@ export default function NewsSection() {
                 <h4 className="text-xl font-bold text-card-foreground mb-3 leading-tight group-hover:text-accent transition-colors">
                   {item.title}
                 </h4>
-                <p className="text-muted-foreground text-sm line-clamp-2">
-                  {item.excerpt}
-                </p>
+                <p className="text-muted-foreground text-sm line-clamp-2">{item.excerpt}</p>
               </div>
-            </article>
+            </Link>
           ))}
         </div>
       )}

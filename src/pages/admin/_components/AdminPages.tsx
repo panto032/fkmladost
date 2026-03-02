@@ -1,7 +1,6 @@
 import { useState } from "react";
-import { useQuery, useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api.js";
-import type { Doc } from "@/convex/_generated/dataModel.d.ts";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { adminCrudApi, type PageContent } from "@/lib/api.ts";
 import { Button } from "@/components/ui/button.tsx";
 import { Input } from "@/components/ui/input.tsx";
 import { Label } from "@/components/ui/label.tsx";
@@ -24,10 +23,9 @@ import {
 import { Skeleton } from "@/components/ui/skeleton.tsx";
 import { Pencil, Trash2, Plus, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
-import { ConvexError } from "convex/values";
 import RichTextEditor from "./RichTextEditor.tsx";
 
-type PageItem = Doc<"pages">;
+type PageItem = PageContent;
 
 type FormState = {
   slug: string;
@@ -44,15 +42,31 @@ const EMPTY_FORM: FormState = {
 };
 
 export default function AdminPages() {
-  const pages = useQuery(api.admin.pages.getAll);
-  const createPage = useMutation(api.admin.pages.create);
-  const updatePage = useMutation(api.admin.pages.update);
-  const removePage = useMutation(api.admin.pages.remove);
+  const qc = useQueryClient();
+  const { data: pages, isLoading } = useQuery({
+    queryKey: ["admin", "pages"],
+    queryFn: () => adminCrudApi.getPages(),
+  });
+  const createMutation = useMutation({
+    mutationFn: (data: Partial<PageContent>) => adminCrudApi.createPage(data),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin", "pages"] }); setIsOpen(false); },
+    onError: () => { toast.error("Greška pri kreiranju"); },
+  });
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: Partial<PageContent> }) => adminCrudApi.updatePage(id, data),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin", "pages"] }); setIsOpen(false); },
+    onError: () => { toast.error("Greška pri ažuriranju"); },
+  });
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => adminCrudApi.deletePage(id),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin", "pages"] }); toast.success("Stranica je obrisana"); },
+    onError: () => { toast.error("Greška pri brisanju"); },
+  });
 
   const [isOpen, setIsOpen] = useState(false);
   const [editing, setEditing] = useState<PageItem | null>(null);
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
-  const [saving, setSaving] = useState(false);
+  const saving = createMutation.isPending || updateMutation.isPending;
 
   const openCreate = () => {
     setEditing(null);
@@ -71,48 +85,25 @@ export default function AdminPages() {
     setIsOpen(true);
   };
 
-  const handleSave = async () => {
+  const handleSave = () => {
     if (!form.title || !form.slug) {
       toast.error("Naslov i slug su obavezni");
       return;
     }
-    setSaving(true);
-    try {
-      if (editing) {
-        await updatePage({ id: editing._id, ...form });
-        toast.success("Stranica je uspešno ažurirana");
-      } else {
-        await createPage(form);
-        toast.success("Stranica je uspešno kreirana");
-      }
-      setIsOpen(false);
-    } catch (error) {
-      if (error instanceof ConvexError) {
-        const { message } = error.data as { code: string; message: string };
-        toast.error(message);
-      } else {
-        toast.error("Greška pri čuvanju");
-      }
-    } finally {
-      setSaving(false);
+    if (editing) {
+      updateMutation.mutate({ id: editing.id, data: form });
+      toast.success("Stranica je uspešno ažurirana");
+    } else {
+      createMutation.mutate(form);
+      toast.success("Stranica je uspešno kreirana");
     }
   };
 
-  const handleDelete = async (id: PageItem["_id"]) => {
-    try {
-      await removePage({ id });
-      toast.success("Stranica je obrisana");
-    } catch (error) {
-      if (error instanceof ConvexError) {
-        const { message } = error.data as { code: string; message: string };
-        toast.error(message);
-      } else {
-        toast.error("Greška pri brisanju");
-      }
-    }
+  const handleDelete = (id: number) => {
+    deleteMutation.mutate(id);
   };
 
-  if (pages === undefined) {
+  if (isLoading) {
     return (
       <div className="space-y-3">
         {Array.from({ length: 3 }).map((_, i) => (
@@ -143,7 +134,7 @@ export default function AdminPages() {
           </TableHeader>
           <TableBody>
             {pages.map((item) => (
-              <TableRow key={item._id}>
+              <TableRow key={item.id}>
                 <TableCell className="font-medium max-w-[200px] truncate">
                   {item.title}
                 </TableCell>
@@ -174,7 +165,7 @@ export default function AdminPages() {
                       size="icon-sm"
                       variant="ghost"
                       className="text-destructive hover:text-destructive"
-                      onClick={() => handleDelete(item._id)}
+                      onClick={() => handleDelete(item.id)}
                     >
                       <Trash2 size={14} />
                     </Button>

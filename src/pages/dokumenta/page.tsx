@@ -1,5 +1,5 @@
-import { useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api.js";
+import { useQuery } from "@tanstack/react-query";
+import { documentsApi, apiBaseUrl } from "@/lib/api.ts";
 import Header from "@/pages/home/_components/Header.tsx";
 import Footer from "@/pages/home/_components/Footer.tsx";
 import { Skeleton } from "@/components/ui/skeleton.tsx";
@@ -29,7 +29,10 @@ function fileTypeLabel(fileType: string): string {
 }
 
 export default function DokumentaPage() {
-  const documents = useQuery(api.documents.getPublished);
+  const { data: documents, isLoading } = useQuery({
+    queryKey: ["documents"],
+    queryFn: () => documentsApi.get(),
+  });
 
   // Group documents by category
   const grouped = documents
@@ -68,13 +71,13 @@ export default function DokumentaPage() {
       {/* Content */}
       <section className="py-16">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          {documents === undefined ? (
+          {isLoading ? (
             <div className="space-y-6">
               {Array.from({ length: 4 }).map((_, i) => (
                 <Skeleton key={i} className="h-20 w-full rounded-xl" />
               ))}
             </div>
-          ) : documents.length === 0 ? (
+          ) : (documents ?? []).length === 0 ? (
             <div className="text-center py-20">
               <FolderOpen
                 size={48}
@@ -106,7 +109,7 @@ export default function DokumentaPage() {
                   <div className="space-y-3">
                     {grouped![category].map((doc) => (
                       <div
-                        key={doc._id}
+                        key={doc.id}
                         className="group flex items-center gap-4 p-4 rounded-xl border bg-card hover:shadow-md transition-all"
                       >
                         {/* File icon */}
@@ -136,9 +139,9 @@ export default function DokumentaPage() {
                         </div>
 
                         {/* Download */}
-                        {doc.fileUrl && (
+                        {doc.fileName && (
                           <a
-                            href={doc.fileUrl}
+                            href={`${apiBaseUrl}/uploads/${doc.fileName}`}
                             target="_blank"
                             rel="noopener noreferrer"
                           >

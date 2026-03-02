@@ -1,5 +1,5 @@
-import { useQuery, useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api.js";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { adminCrudApi, type ContactMessage } from "@/lib/api.ts";
 import { Skeleton } from "@/components/ui/skeleton.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { Mail, MailOpen, Trash2, Clock } from "lucide-react";
@@ -11,30 +11,31 @@ import {
   EmptyDescription,
 } from "@/components/ui/empty.tsx";
 import { toast } from "sonner";
-import type { Id } from "@/convex/_generated/dataModel.d.ts";
 
 export default function AdminContactMessages() {
-  const messages = useQuery(api.contact.getAll);
-  const markRead = useMutation(api.contact.markAsRead);
-  const remove = useMutation(api.contact.remove);
-  const isLoading = messages === undefined;
+  const qc = useQueryClient();
 
-  const handleMarkRead = async (id: Id<"contactMessages">) => {
-    try {
-      await markRead({ id });
-    } catch {
-      toast.error("Greška pri označavanju poruke.");
-    }
-  };
+  const { data: messages, isLoading } = useQuery({
+    queryKey: ["contactMessages"],
+    queryFn: () => adminCrudApi.getContactMessages(),
+  });
 
-  const handleDelete = async (id: Id<"contactMessages">) => {
-    try {
-      await remove({ id });
+  const markRead = useMutation({
+    mutationFn: (id: number) => adminCrudApi.markContactMessageRead(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["contactMessages"] });
+    },
+    onError: () => toast.error("Greška pri označavanju poruke."),
+  });
+
+  const remove = useMutation({
+    mutationFn: (id: number) => adminCrudApi.deleteContactMessage(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["contactMessages"] });
       toast.success("Poruka obrisana.");
-    } catch {
-      toast.error("Greška pri brisanju poruke.");
-    }
-  };
+    },
+    onError: () => toast.error("Greška pri brisanju poruke."),
+  });
 
   if (isLoading) {
     return (
@@ -46,7 +47,9 @@ export default function AdminContactMessages() {
     );
   }
 
-  if (messages.length === 0) {
+  const messageList = messages ?? [];
+
+  if (messageList.length === 0) {
     return (
       <Empty>
         <EmptyHeader>
@@ -62,7 +65,7 @@ export default function AdminContactMessages() {
     );
   }
 
-  const unread = messages.filter((m) => !m.isRead).length;
+  const unread = messageList.filter((m) => !m.isRead).length;
 
   return (
     <div>
@@ -72,9 +75,9 @@ export default function AdminContactMessages() {
         </p>
       )}
       <div className="space-y-3">
-        {messages.map((msg) => (
+        {messageList.map((msg) => (
           <div
-            key={msg._id}
+            key={msg.id}
             className={`rounded-xl border p-4 transition-colors ${
               msg.isRead
                 ? "bg-card border-border"
@@ -102,7 +105,7 @@ export default function AdminContactMessages() {
                 </p>
                 <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground">
                   <Clock size={12} />
-                  {new Date(msg._creationTime).toLocaleDateString("sr-Latn-RS", {
+                  {new Date(msg.createdAt).toLocaleDateString("sr-Latn-RS", {
                     day: "numeric",
                     month: "short",
                     year: "numeric",
@@ -117,7 +120,7 @@ export default function AdminContactMessages() {
                     size="sm"
                     variant="ghost"
                     className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
-                    onClick={() => handleMarkRead(msg._id)}
+                    onClick={() => markRead.mutate(msg.id)}
                     title="Označi kao pročitano"
                   >
                     <MailOpen size={16} />
@@ -127,7 +130,7 @@ export default function AdminContactMessages() {
                   size="sm"
                   variant="ghost"
                   className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
-                  onClick={() => handleDelete(msg._id)}
+                  onClick={() => remove.mutate(msg.id)}
                   title="Obriši"
                 >
                   <Trash2 size={16} />

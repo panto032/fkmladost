@@ -1,7 +1,6 @@
 import { useState } from "react";
-import { useQuery, useMutation, useAction } from "convex/react";
-import { api } from "@/convex/_generated/api.js";
-import type { Doc } from "@/convex/_generated/dataModel.d.ts";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { adminCrudApi, adminScrapeApi, type Match } from "@/lib/api.ts";
 import { Button } from "@/components/ui/button.tsx";
 import { Input } from "@/components/ui/input.tsx";
 import { Label } from "@/components/ui/label.tsx";
@@ -30,9 +29,6 @@ import {
 import { Skeleton } from "@/components/ui/skeleton.tsx";
 import { Pencil, Trash2, Plus, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
-import { ConvexError } from "convex/values";
-
-type MatchItem = Doc<"matches">;
 
 const EMPTY_FORM = {
   type: "next" as "next" | "last",
@@ -50,21 +46,84 @@ const EMPTY_FORM = {
 };
 
 export default function AdminMatches() {
-  const matches = useQuery(api.admin.matches.getAll);
-  const createMatch = useMutation(api.admin.matches.create);
-  const updateMatch = useMutation(api.admin.matches.update);
-  const removeMatch = useMutation(api.admin.matches.remove);
-  const scrapeMatches = useAction(api.sync.scrapeFromWeb.scrapeMatches);
-  const scrapeRoundPreview = useAction(api.sync.scrapeFromWeb.scrapeRoundPreview);
-  const scrapeAnalytics = useAction(api.sync.scrapeFromWeb.scrapeMatchAnalytics);
+  const qc = useQueryClient();
+
+  const { data: matches, isLoading } = useQuery({
+    queryKey: ["matches"],
+    queryFn: () => adminCrudApi.getMatches(),
+  });
+
+  const createMatch = useMutation({
+    mutationFn: (data: typeof EMPTY_FORM) => adminCrudApi.createMatch(data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["matches"] });
+      toast.success("Meč je uspešno kreiran");
+      setIsOpen(false);
+    },
+    onError: (err) => toast.error(err instanceof Error ? err.message : "Greška"),
+  });
+
+  const updateMatch = useMutation({
+    mutationFn: ({ id, ...data }: { id: number } & typeof EMPTY_FORM) =>
+      adminCrudApi.updateMatch(id, data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["matches"] });
+      toast.success("Meč je uspešno ažuriran");
+      setIsOpen(false);
+    },
+    onError: (err) => toast.error(err instanceof Error ? err.message : "Greška"),
+  });
+
+  const removeMatch = useMutation({
+    mutationFn: (id: number) => adminCrudApi.deleteMatch(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["matches"] });
+      toast.success("Meč je obrisan");
+    },
+    onError: (err) => toast.error(err instanceof Error ? err.message : "Greška"),
+  });
+
+  const scrapeMatchesMutation = useMutation({
+    mutationFn: () => adminScrapeApi.scrapeMatches(),
+    onSuccess: (result) => {
+      qc.invalidateQueries({ queryKey: ["matches"] });
+      toast.success(
+        `Sinhronizacija uspešna! Učitano ${result.matches} meč(eva) sa superliga.rs`,
+      );
+    },
+    onError: (err) =>
+      toast.error(
+        `Greška pri sinhronizaciji: ${err instanceof Error ? err.message : "Greška pri sinhronizaciji sa superliga.rs"}`,
+      ),
+  });
+
+  const scrapeRoundMutation = useMutation({
+    mutationFn: () => adminScrapeApi.scrapeRoundPreview(),
+    onSuccess: (result) => {
+      qc.invalidateQueries({ queryKey: ["matches"] });
+      toast.success(
+        `Najava kola sinhronizovana! Kolo ${result.roundNumber}, učitano ${result.matches} utakmica.`,
+      );
+    },
+    onError: (err) =>
+      toast.error(`Greška: ${err instanceof Error ? err.message : "Greška pri sinhronizaciji najave kola"}`),
+  });
+
+  const scrapeAnalyticsMutation = useMutation({
+    mutationFn: () => adminScrapeApi.scrapeMatchAnalytics(),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["matches"] });
+      toast.success(
+        "Analitika rivala sinhronizovana! H2H, statistika i forma su učitani.",
+      );
+    },
+    onError: (err) =>
+      toast.error(`Greška: ${err instanceof Error ? err.message : "Greška pri sinhronizaciji analitike"}`),
+  });
 
   const [isOpen, setIsOpen] = useState(false);
-  const [editing, setEditing] = useState<MatchItem | null>(null);
+  const [editing, setEditing] = useState<Match | null>(null);
   const [form, setForm] = useState(EMPTY_FORM);
-  const [saving, setSaving] = useState(false);
-  const [syncing, setSyncing] = useState(false);
-  const [syncingRound, setSyncingRound] = useState(false);
-  const [syncingAnalytics, setSyncingAnalytics] = useState(false);
 
   const openCreate = () => {
     setEditing(null);
@@ -72,7 +131,7 @@ export default function AdminMatches() {
     setIsOpen(true);
   };
 
-  const openEdit = (item: MatchItem) => {
+  const openEdit = (item: Match) => {
     setEditing(item);
     setForm({
       type: item.type,
@@ -91,105 +150,21 @@ export default function AdminMatches() {
     setIsOpen(true);
   };
 
-  const handleSave = async () => {
+  const handleSave = () => {
     if (!form.home || !form.away || !form.date) {
       toast.error("Domaćin, gost i datum su obavezni");
       return;
     }
-    setSaving(true);
-    try {
-      if (editing) {
-        await updateMatch({ id: editing._id, ...form });
-        toast.success("Meč je uspešno ažuriran");
-      } else {
-        await createMatch(form);
-        toast.success("Meč je uspešno kreiran");
-      }
-      setIsOpen(false);
-    } catch (error) {
-      if (error instanceof ConvexError) {
-        const { message } = error.data as { code: string; message: string };
-        toast.error(message);
-      } else {
-        toast.error("Greška pri čuvanju");
-      }
-    } finally {
-      setSaving(false);
+    if (editing) {
+      updateMatch.mutate({ id: editing.id, ...form });
+    } else {
+      createMatch.mutate(form);
     }
   };
 
-  const handleDelete = async (id: MatchItem["_id"]) => {
-    try {
-      await removeMatch({ id });
-      toast.success("Meč je obrisan");
-    } catch (error) {
-      if (error instanceof ConvexError) {
-        const { message } = error.data as { code: string; message: string };
-        toast.error(message);
-      } else {
-        toast.error("Greška pri brisanju");
-      }
-    }
-  };
+  const saving = createMatch.isPending || updateMatch.isPending;
 
-  const handleSync = async () => {
-    setSyncing(true);
-    try {
-      const result = await scrapeMatches();
-      toast.success(
-        `Sinhronizacija uspešna! Učitano ${result.matches} meč(eva) sa superliga.rs`,
-      );
-    } catch (error) {
-      if (error instanceof ConvexError) {
-        const { message } = error.data as { code: string; message: string };
-        toast.error(`Greška pri sinhronizaciji: ${message}`);
-      } else {
-        toast.error("Greška pri sinhronizaciji sa superliga.rs");
-      }
-    } finally {
-      setSyncing(false);
-    }
-  };
-
-  const handleSyncRound = async () => {
-    setSyncingRound(true);
-    try {
-      const result = await scrapeRoundPreview();
-      toast.success(
-        `Najava kola sinhronizovana! Kolo ${result.roundNumber}, učitano ${result.matches} utakmica.`,
-      );
-    } catch (error) {
-      if (error instanceof ConvexError) {
-        const { message } = error.data as { code: string; message: string };
-        toast.error(`Greška: ${message}`);
-      } else {
-        toast.error("Greška pri sinhronizaciji najave kola");
-      }
-    } finally {
-      setSyncingRound(false);
-    }
-  };
-
-  const handleSyncAnalytics = async () => {
-    setSyncingAnalytics(true);
-    try {
-      await scrapeAnalytics();
-      toast.success(
-        "Analitika rivala sinhronizovana! H2H, statistika i forma su učitani.",
-      );
-    } catch (error) {
-      if (error instanceof ConvexError) {
-        const { message } = error.data as { code: string; message: string };
-        toast.error(`Greška: ${message}`);
-      } else {
-        toast.error("Greška pri sinhronizaciji analitike");
-      }
-    } finally {
-      setSyncingAnalytics(false);
-    }
-  };
-
-  if (matches === undefined) {
+  if (isLoading) {
     return (
       <div className="space-y-3">
         {Array.from({ length: 3 }).map((_, i) => (
@@ -198,6 +173,8 @@ export default function AdminMatches() {
       </div>
     );
   }
+
+  const matchList = matches ?? [];
 
   return (
     <div>
@@ -211,12 +188,12 @@ export default function AdminMatches() {
         </div>
         <Button
           size="sm"
-          onClick={handleSync}
-          disabled={syncing}
+          onClick={() => scrapeMatchesMutation.mutate()}
+          disabled={scrapeMatchesMutation.isPending}
           className="bg-[oklch(0.55_0.18_250)] hover:bg-[oklch(0.50_0.18_250)] text-white shrink-0"
         >
-          <RefreshCw size={14} className={syncing ? "animate-spin" : ""} />
-          {syncing ? "Sinhronizujem..." : "Sinhronizuj sada"}
+          <RefreshCw size={14} className={scrapeMatchesMutation.isPending ? "animate-spin" : ""} />
+          {scrapeMatchesMutation.isPending ? "Sinhronizujem..." : "Sinhronizuj sada"}
         </Button>
       </div>
 
@@ -230,12 +207,12 @@ export default function AdminMatches() {
         </div>
         <Button
           size="sm"
-          onClick={handleSyncRound}
-          disabled={syncingRound}
+          onClick={() => scrapeRoundMutation.mutate()}
+          disabled={scrapeRoundMutation.isPending}
           className="bg-[oklch(0.69_0.095_228)] hover:bg-[oklch(0.63_0.095_228)] text-white shrink-0"
         >
-          <RefreshCw size={14} className={syncingRound ? "animate-spin" : ""} />
-          {syncingRound ? "Sinhronizujem..." : "Sinhronizuj najavu kola"}
+          <RefreshCw size={14} className={scrapeRoundMutation.isPending ? "animate-spin" : ""} />
+          {scrapeRoundMutation.isPending ? "Sinhronizujem..." : "Sinhronizuj najavu kola"}
         </Button>
       </div>
 
@@ -249,17 +226,17 @@ export default function AdminMatches() {
         </div>
         <Button
           size="sm"
-          onClick={handleSyncAnalytics}
-          disabled={syncingAnalytics}
+          onClick={() => scrapeAnalyticsMutation.mutate()}
+          disabled={scrapeAnalyticsMutation.isPending}
           className="bg-[oklch(0.77_0.10_225)] hover:bg-[oklch(0.70_0.10_225)] text-[oklch(0.16_0.04_252)] shrink-0"
         >
-          <RefreshCw size={14} className={syncingAnalytics ? "animate-spin" : ""} />
-          {syncingAnalytics ? "Sinhronizujem..." : "Sinhronizuj analitiku"}
+          <RefreshCw size={14} className={scrapeAnalyticsMutation.isPending ? "animate-spin" : ""} />
+          {scrapeAnalyticsMutation.isPending ? "Sinhronizujem..." : "Sinhronizuj analitiku"}
         </Button>
       </div>
 
       <div className="flex justify-between items-center mb-6">
-        <h3 className="text-lg font-bold">Mečevi ({matches.length})</h3>
+        <h3 className="text-lg font-bold">Mečevi ({matchList.length})</h3>
         <Button onClick={openCreate} size="sm">
           <Plus size={16} /> Dodaj meč
         </Button>
@@ -278,8 +255,8 @@ export default function AdminMatches() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {matches.map((item) => (
-              <TableRow key={item._id}>
+            {matchList.map((item) => (
+              <TableRow key={item.id}>
                 <TableCell>
                   <span
                     className={`text-xs font-bold px-2 py-1 rounded-full uppercase ${
@@ -314,7 +291,7 @@ export default function AdminMatches() {
                       size="icon-sm"
                       variant="ghost"
                       className="text-destructive hover:text-destructive"
-                      onClick={() => handleDelete(item._id)}
+                      onClick={() => removeMatch.mutate(item.id)}
                     >
                       <Trash2 size={14} />
                     </Button>

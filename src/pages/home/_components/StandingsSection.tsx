@@ -1,5 +1,5 @@
-import { useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api.js";
+import { useQuery } from "@tanstack/react-query";
+import { standingsApi } from "@/lib/api.ts";
 import { ArrowRight } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton.tsx";
 
@@ -16,8 +16,10 @@ const FALLBACK_STANDINGS = [
 ];
 
 export default function StandingsSection() {
-  const standings = useQuery(api.standings.getAll);
-  const isLoading = standings === undefined;
+  const { data: standings, isLoading } = useQuery({
+    queryKey: ["standings"],
+    queryFn: () => standingsApi.get(),
+  });
   const rows = standings && standings.length > 0 ? standings : FALLBACK_STANDINGS;
 
   return (
