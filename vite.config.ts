@@ -9,6 +9,10 @@ export default defineConfig({
     port: 5173,
     allowedHosts: true,
     hmr: { overlay: false },
+    proxy: {
+      "/api": "http://localhost:3000",
+      "/uploads": "http://localhost:3000",
+    },
   },
   plugins: [react(), tailwindcss()],
   resolve: {

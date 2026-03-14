@@ -59,6 +59,26 @@ await app.register(uploadRoutes, { prefix: "/api/admin/upload" });
 // Health check
 app.get("/health", async () => ({ status: "ok", timestamp: new Date().toISOString() }));
 
+// ── Serve frontend (production) ──────────────────────────────────────
+const clientDistPath = path.resolve(__dirname, "../../dist");
+
+if (config.nodeEnv === "production") {
+  await app.register(staticFiles, {
+    root: clientDistPath,
+    prefix: "/",
+    decorateReply: false,
+    wildcard: false,
+  });
+
+  // SPA fallback — serve index.html for all non-API, non-upload routes
+  app.setNotFoundHandler(async (req, reply) => {
+    if (req.url.startsWith("/api/") || req.url.startsWith("/uploads/")) {
+      return reply.code(404).send({ error: "Not found" });
+    }
+    return reply.sendFile("index.html", clientDistPath);
+  });
+}
+
 // ── Start ─────────────────────────────────────────────────────────────
 try {
   await app.listen({ port: config.port, host: config.host });

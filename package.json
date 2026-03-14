@@ -5,8 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:server": "cd server && pnpm run dev",
     "preview": "vite preview",
-    "build": "vite build",
+    "build": "vite build && cd server && pnpm exec prisma generate && pnpm run build",
+    "start": "cd server && npx prisma migrate deploy && cd .. && NODE_ENV=production node server/dist/index.js",
     "lint": "eslint .",
     "prettier-fix": "prettier --write .",
     "prettier-check": "prettier --check ."
@@ -64,6 +66,16 @@
     "use-debounce": "^10.1.0",
     "vaul": "^1.1.2",
     "zod": "^3.25.76"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@swc/core",
+      "@tailwindcss/oxide",
+      "esbuild",
+      "prisma",
+      "@prisma/client",
+      "@prisma/engines"
+    ]
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",

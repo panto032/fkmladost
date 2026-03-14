@@ -2,7 +2,7 @@
  * Central API client — wraps fetch with auth headers and token refresh.
  */
 
-const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:3001";
+const API_BASE = import.meta.env.VITE_API_URL ?? "";
 
 // ── Token storage ────────────────────────────────────────────────────
 export const tokens = {
