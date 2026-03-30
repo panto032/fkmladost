@@ -1,31 +1,20 @@
 import { useQuery } from "@tanstack/react-query";
 import { partnersApi } from "@/lib/api.ts";
-import { Skeleton } from "@/components/ui/skeleton.tsx";
+
+// Static logos (loaded directly from public/, not from database)
+const staticLogos = [
+  { id: "dunav", name: "Dunav Osiguranje", logoUrl: "/dunav-logo.png" },
+];
 
 export default function SponsorsBottomSection() {
-  const { data: partners, isLoading } = useQuery({
+  const { data: partners } = useQuery({
     queryKey: ["partners"],
     queryFn: () => partnersApi.get(),
   });
 
-  if (isLoading) {
-    return (
-      <section className="bg-card py-12 border-t border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Skeleton className="h-4 w-64 mx-auto mb-8" />
-          <div className="flex justify-center gap-12">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <Skeleton key={i} className="w-36 h-16 rounded-lg" />
-            ))}
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  // Only show partners that have a logoUrl
-  const withLogos = partners?.filter((p) => p.logoUrl) ?? [];
-  if (withLogos.length === 0) return null;
+  // Combine static logos with database logos
+  const dbLogos = partners?.filter((p) => p.logoUrl) ?? [];
+  const withLogos = [...staticLogos, ...dbLogos];
 
   return (
     <section className="bg-card py-14 border-t border-border">
