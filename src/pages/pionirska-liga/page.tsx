@@ -226,7 +226,7 @@ export default function PionirskeLigaPage() {
               <div className="relative">
                 <div className="absolute inset-0 bg-[oklch(0.45_0.15_30/0.3)] blur-3xl rounded-full scale-150" />
                 <img
-                  src="https://cdn.hercules.app/file_O3xXQalJmikyjBgRaWY6p4A8"
+                  src="/logo.png"
                   alt="FK Mladost"
                   className="relative w-40 h-40 md:w-52 md:h-52 object-contain drop-shadow-2xl"
                 />
