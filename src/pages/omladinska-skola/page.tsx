@@ -1,17 +1,9 @@
-import { useQuery } from "@tanstack/react-query";
-import { pagesApi } from "@/lib/api.ts";
 import { ArrowLeft, GraduationCap } from "lucide-react";
 import { Link } from "react-router-dom";
-import { Skeleton } from "@/components/ui/skeleton.tsx";
 import Header from "../home/_components/Header.tsx";
 import Footer from "../home/_components/Footer.tsx";
 
 export default function OmladinskaSkola() {
-  const { data: page, isLoading } = useQuery({
-    queryKey: ["page", "omladinska-skola"],
-    queryFn: () => pagesApi.getBySlug("omladinska-skola"),
-  });
-
   return (
     <div className="min-h-screen bg-background font-sans text-foreground">
       <Header />
@@ -52,23 +44,46 @@ export default function OmladinskaSkola() {
 
       {/* Content */}
       <section className="bg-[oklch(0.16_0.035_252)] pb-20">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          {isLoading ? (
-            <div className="space-y-6">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Skeleton key={i} className="h-32 w-full rounded-2xl bg-white/5" />
-              ))}
-            </div>
-          ) : page ? (
-            <div
-              className="prose-page"
-              dangerouslySetInnerHTML={{ __html: page.content }}
-            />
-          ) : (
-            <p className="text-[oklch(0.50_0.03_252)] text-center py-12">
-              Sadržaj još nije dodat.
-            </p>
-          )}
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+          <p className="text-[oklch(0.75_0.03_252)] text-lg leading-relaxed">
+            {'Na inicijativu fudbalskog saveza sa sedištem u Čačku 1962. godine, oformljen je omladinski pogon FK "Mladost". Sekretar kluba Vasović Vujadin je prema preporuci i samom uviđaju okupio dečake iz varošice i okolnih sela i registrovao ih u savezu u Čačku.'}
+          </p>
+
+          <img
+            src="/omladinska-skola-1.png"
+            alt="Omladinski pogon FK Mladost"
+            className="w-full rounded-2xl shadow-xl"
+          />
+
+          <p className="text-[oklch(0.75_0.03_252)] text-lg leading-relaxed">
+            {'Prva prijateljska utakmica odigrana je u leto 1962. g. u Čačku na stadionu FK Borac, sa FK "Borcem" koji je tada trenirao čuveni trener Dragan Bojović "Patak", i rezultat je bio 7:2 za FK "Borac". Kapiten te prve ekipe je bio Radoš Milovanović, a trener ekipe Bogoljub Janićijević "Bule". Ispostavilo se da je ta ekipa postala okosnica budućeg napredka koji je dosegao do grupe jug Srpske lige tadašnje Jugoslavije i Prve Srpske lige. Igrači iz te generacije su Radoš Milovanović, Radosav Ćebić, Vladan Jevđović, Petar Jakovljević i drugi.'}
+          </p>
+
+          <p className="text-[oklch(0.75_0.03_252)] text-lg leading-relaxed">
+            {'Generacija rođena 1952. i 1953. godine pod vođstvom trenera Siniše Brkovića, imala je velike uspehe pa je sa reprezentacijom Srbije koja je 1971. god. bila na pripremama u Lučanima igrala 2:2, i iz te generacije je i Tadić koji je godinama bio glavni oslonac FK "Borac" iz Čačka i reprezentativac mlade reprezentacije, Zoran Đenadić okosnica prvog tima, Grujičić Ljubo dugogodišnji igrač Mladosti, Slobode i Majdanpeka. Iz sledećih generacija koje su prošle omladinsku školu Mladosti iz Lučana, izašli su igrači koji su obeležili uspehe FK Mladosti i to: Mićo Lugonja, Petar Karajičić, Dragoslav Zlatić, Milan Simeunović, Dragan Janićijević koji je igrao u FK "Borcu" i OFK "Beograd". Trener te generacije je bio Stevan Krasojević.'}
+          </p>
+
+          <p className="text-[oklch(0.75_0.03_252)] text-lg leading-relaxed">
+            {'U sezoni 1985/1986. generacija rođena 1968. i 1969. godine postigla je do tada najveći uspeh osvojivši prvo mesto u ligi Čačak-Užice i Kraljevo i na turniru u Lučanima kvalifikovala se u najvišu ligu Srbije. U toj ekipi igrali su Dragan Janković, Nenad Milovanović, Nenad Nikolić i drugi. Ova ekipa pojačana sa igračima Predragom Plazinićem, Radojkom Pantelićem i drugim, igrala je zapaženu ulogu u eliti gde su se takmičili Crvena Zvezda, Partizan, OFK Beograd i drugi elitni takmičari, i ovu ekipu je vodio iskusni trener Siniša Brković.'}
+          </p>
+
+          <img
+            src="/omladinska-skola-2.png"
+            alt="Omladinska škola FK Mladost"
+            className="w-full rounded-2xl shadow-xl"
+          />
+
+          <p className="text-[oklch(0.75_0.03_252)] text-lg leading-relaxed">
+            {'Igrači Nenad Milovanović, Dejan Nikolić, Predrag Plazinić, Radojko Pantelić i drugi su kao prvotimci dostigli vrhunac i ulazak u drugu saveznu ligu, a zatim u ligu Srbija-Crna Gora. Iz mlade selekcije izašla su i poznata imena Vladimir Matijašević i Igor Dimitrijević, kao i standardni prvotimac Uroš Stamatović, Dejan Stojanović i Radoica Vasić koji je postao sinonim Mladosti.'}
+          </p>
+
+          <p className="text-[oklch(0.75_0.03_252)] text-lg leading-relaxed">
+            {'Posle izvesnih problema i dugogodišnjeg igranja u eliti, klub je nastavio takmičenje u Zapadnoj Srbiji. U sezoni 2001/2002. godine pod vođstvom trenera Zorana Perkovića klub se ponovo vraća u najviši stepen takmičenja, a u toj generaciji su bili Nenad Novaković, Ivan Milošević, Dragan Ćirjaković i drugi. Iz ove generacije Ivan Milošević je postigao veliki uspeh — igranje u prvom timu i angažman u inostranstvu.'}
+          </p>
+
+          <p className="text-[oklch(0.75_0.03_252)] text-lg leading-relaxed">
+            {'Klub se sada sa uspehom takmiči u ligi Zapadne Srbije pod vođstvom trenera Dejana Vasilića. Pored omladinskog pogona, klub poseduje kadete koji se takmiče u Zapadnoj Srbiji, pionire i petliće koji se takmiče u ligi Moravičkog okruga.'}
+          </p>
         </div>
       </section>
 
