@@ -10,9 +10,9 @@ export default function Footer() {
           <div>
             <div className="flex items-center mb-4">
               <img
-                src="https://cdn.hercules.app/file_O3xXQalJmikyjBgRaWY6p4A8"
+                src="/logo.png"
                 alt="FK Mladost Lučani"
-                className="w-10 h-10 rounded-full object-cover mr-3"
+                className="w-10 h-10 object-contain mr-3"
               />
               <h4 className="text-xl font-bold uppercase">FK Mladost</h4>
             </div>
@@ -148,27 +148,21 @@ export default function Footer() {
         <div className="border-t border-[oklch(0.26_0.04_252)] pt-8 pb-8">
           <div className="flex items-center justify-center gap-8 flex-wrap">
             <img
-              src="https://cdn.hercules.app/file_dqOXXSNAxrK08T7IquGfAAtu"
+              src="/msls-logo.png"
               alt="Mozzart Bet SuperLiga"
               className="h-10 object-contain"
             />
             <div className="w-px h-8 bg-[oklch(0.28_0.04_252)] hidden sm:block" />
             <img
-              src="https://cdn.hercules.app/file_usixoQAS2hJa8900TJh3WrYo"
+              src="/zajednica-logo.png"
               alt="Zajednica SuperLige i Prve Lige"
               className="h-24 object-contain brightness-0 invert opacity-70"
             />
             <div className="w-px h-8 bg-[oklch(0.28_0.04_252)] hidden sm:block" />
             <img
-              src="https://cdn.hercules.app/file_UoSZIoqaYPoUjHDaxEZ7fVeT"
+              src="/mts-logo.svg"
               alt="mts"
               className="h-14 object-contain"
-            />
-            <div className="w-px h-8 bg-[oklch(0.28_0.04_252)] hidden sm:block" />
-            <img
-              src="https://cdn.hercules.app/file_aoV49Bnn8jun5pPK76p81e6c"
-              alt="Arena Sport"
-              className="h-10 object-contain brightness-0 invert opacity-70"
             />
           </div>
         </div>
