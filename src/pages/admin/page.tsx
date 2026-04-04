@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth.ts";
 import { Skeleton } from "@/components/ui/skeleton.tsx";
 import { Button } from "@/components/ui/button.tsx";
@@ -7,10 +7,11 @@ import { Label } from "@/components/ui/label.tsx";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils.ts";
 import { Spinner } from "@/components/ui/spinner.tsx";
+import { apiBaseUrl } from "@/lib/api.ts";
 import {
   Newspaper, Trophy, Handshake, TableProperties, ArrowLeft, LogOut,
   Users, FileText, GraduationCap, Shield, Baby, Zap, MessageSquare,
-  ChevronRight, Menu, X, Settings, Camera, Lock,
+  ChevronRight, Menu, X, Settings, Camera, Lock, AlertTriangle, KeyRound,
 } from "lucide-react";
 import AdminNews from "./_components/AdminNews.tsx";
 import AdminMatches from "./_components/AdminMatches.tsx";
@@ -26,6 +27,7 @@ import AdminContactMessages from "./_components/AdminContactMessages.tsx";
 import AdminSettings from "./_components/AdminSettings.tsx";
 import AdminDocuments from "./_components/AdminDocuments.tsx";
 import AdminMedia from "./_components/AdminMedia.tsx";
+import AdminLicense from "./_components/AdminLicense.tsx";
 
 type NavItem = { id: string; label: string; icon: React.ReactNode };
 type NavGroup = { title: string; items: NavItem[] };
@@ -68,6 +70,7 @@ const NAV_GROUPS: NavGroup[] = [
     title: "Podešavanja",
     items: [
       { id: "settings", label: "Tim", icon: <Settings size={18} /> },
+      { id: "license", label: "Licenca", icon: <KeyRound size={18} /> },
     ],
   },
 ];
@@ -87,7 +90,80 @@ const CONTENT_MAP: Record<string, React.ReactNode> = {
   superleague: <AdminSuperLeague />,
   messages: <AdminContactMessages />,
   settings: <AdminSettings />,
+  license: <AdminLicense />,
 };
+
+/* ─── License check ────────────────────────────────────────────────── */
+function useLicenseCheck() {
+  const [status, setStatus] = useState<{
+    loading: boolean;
+    valid: boolean;
+    reason?: string;
+  }>({ loading: true, valid: true });
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+
+    fetch(`${apiBaseUrl}/api/license/status`, { signal: controller.signal })
+      .then((res) => res.json())
+      .then((data) => {
+        setStatus({ loading: false, valid: data.valid, reason: data.reason });
+      })
+      .catch(() => {
+        // Offline/timeout — allow access
+        setStatus({ loading: false, valid: true });
+      })
+      .finally(() => clearTimeout(timeout));
+
+    return () => {
+      controller.abort();
+      clearTimeout(timeout);
+    };
+  }, []);
+
+  return status;
+}
+
+function LicenseBlockedScreen({ reason }: { reason?: string }) {
+  const reasonText =
+    reason === "expired"
+      ? "Vaša licenca je istekla."
+      : reason === "suspended"
+        ? "Vaša licenca je suspendovana."
+        : "Nevalidna licenca.";
+
+  return (
+    <AdminLoginShell>
+      <div className="flex flex-col items-center gap-4 max-w-sm text-center">
+        <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center">
+          <AlertTriangle size={32} className="text-red-400" />
+        </div>
+        <h2 className="text-lg font-bold text-white uppercase tracking-wide">
+          Pristup blokiran
+        </h2>
+        <p className="text-sm text-[oklch(0.65_0.03_252)]">
+          {reasonText} Kontaktirajte IMPULSE podršku za pomoć.
+        </p>
+        <a
+          href="https://impulsee.dev"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-sm text-[oklch(0.69_0.095_228)] hover:underline"
+        >
+          impulsee.dev
+        </a>
+        <Link
+          to="/"
+          className="inline-flex items-center gap-1.5 text-sm text-[oklch(0.55_0.03_252)] hover:text-white transition-colors mt-2"
+        >
+          <ArrowLeft size={14} />
+          Nazad na početnu
+        </Link>
+      </div>
+    </AdminLoginShell>
+  );
+}
 
 /* ─── Login Form ────────────────────────────────────────────────────── */
 function LoginForm() {
@@ -269,8 +345,9 @@ function AdminDashboard() {
 /* ─── Main export ────────────────────────────────────────────────────── */
 export default function AdminPage() {
   const { isLoading, isAuthenticated } = useAuth();
+  const license = useLicenseCheck();
 
-  if (isLoading) {
+  if (isLoading || license.loading) {
     return (
       <AdminLoginShell>
         <div className="space-y-4 w-full max-w-xs">
@@ -281,6 +358,7 @@ export default function AdminPage() {
     );
   }
 
+  if (!license.valid) return <LicenseBlockedScreen reason={license.reason} />;
   if (!isAuthenticated) return <LoginForm />;
   return <AdminDashboard />;
 }

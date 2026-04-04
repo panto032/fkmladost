@@ -1,5 +1,6 @@
 import type { FastifyRequest, FastifyReply } from "fastify";
 import { verifyAccessToken, type JwtPayload } from "./jwt.js";
+import { isLicenseValid } from "../license.js";
 
 declare module "fastify" {
   interface FastifyRequest {
@@ -32,5 +33,17 @@ export async function requireAdmin(
   if (reply.sent) return;
   if (request.user?.role !== "admin") {
     reply.code(403).send({ error: "Admin access required" });
+  }
+}
+
+export async function requireLicense(
+  request: FastifyRequest,
+  reply: FastifyReply
+): Promise<void> {
+  if (!isLicenseValid()) {
+    reply.code(403).send({
+      error: "License expired or invalid",
+      code: "LICENSE_INVALID",
+    });
   }
 }

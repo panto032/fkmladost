@@ -7,6 +7,7 @@ import { fileURLToPath } from "url";
 import fs from "fs/promises";
 
 import { config } from "./config.js";
+import { verifyLicense, getLicenseState } from "./license.js";
 import { authRoutes } from "./routes/auth.js";
 import { newsRoutes } from "./routes/news.js";
 import { publicRoutes } from "./routes/public.js";
@@ -45,16 +46,26 @@ await app.register(staticFiles, {
   prefix: "/uploads/",
 });
 
+// ── License ──────────────────────────────────────────────────────────
+await verifyLicense();
+
 // ── Routes ────────────────────────────────────────────────────────────
 await app.register(authRoutes, { prefix: "/api/auth" });
 await app.register(newsRoutes, { prefix: "/api/news" });
 await app.register(publicRoutes, { prefix: "/api" });
 
-// Admin routes
-await app.register(adminNewsRoutes, { prefix: "/api/admin/news" });
-await app.register(adminCrudRoutes, { prefix: "/api/admin" });
-await app.register(adminScrapeRoutes, { prefix: "/api/admin/scrape" });
-await app.register(uploadRoutes, { prefix: "/api/admin/upload" });
+// License status endpoint (for frontend)
+app.get("/api/license/status", async () => getLicenseState());
+
+// Admin routes (license-gated)
+import { requireLicense } from "./auth/middleware.js";
+await app.register(async (adminScope) => {
+  adminScope.addHook("preHandler", requireLicense);
+  await adminScope.register(adminNewsRoutes, { prefix: "/api/admin/news" });
+  await adminScope.register(adminCrudRoutes, { prefix: "/api/admin" });
+  await adminScope.register(adminScrapeRoutes, { prefix: "/api/admin/scrape" });
+  await adminScope.register(uploadRoutes, { prefix: "/api/admin/upload" });
+});
 
 // Health check
 app.get("/health", async () => ({ status: "ok", timestamp: new Date().toISOString() }));

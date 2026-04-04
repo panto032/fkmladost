@@ -8,4 +8,5 @@ export const config = {
   nodeEnv: process.env.NODE_ENV ?? "development",
   apiFootballKey: process.env.API_FOOTBALL_KEY ?? "",
   frontendUrl: process.env.FRONTEND_URL ?? "http://localhost:5173",
+  impulseLicenseKey: process.env.IMPULSE_LICENSE_KEY ?? "",
 };
