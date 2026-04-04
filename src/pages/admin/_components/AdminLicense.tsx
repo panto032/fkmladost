@@ -18,6 +18,8 @@ export default function AdminLicense() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const [rechecking, setRechecking] = useState(false);
+
   const fetchLicense = () => {
     setLoading(true);
     setError(null);
@@ -30,6 +32,21 @@ export default function AdminLicense() {
       .catch(() => {
         setError("Nije moguće dohvatiti status licence.");
         setLoading(false);
+      });
+  };
+
+  const recheckLicense = () => {
+    setRechecking(true);
+    setError(null);
+    fetch(`${apiBaseUrl}/api/license/recheck`, { method: "POST" })
+      .then((res) => res.json())
+      .then((d) => {
+        setData(d);
+        setRechecking(false);
+      })
+      .catch(() => {
+        setError("Nije moguće proveriti licencu.");
+        setRechecking(false);
       });
   };
 
@@ -140,6 +157,18 @@ export default function AdminLicense() {
             </p>
           </div>
         )}
+
+        {/* Re-check button */}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={recheckLicense}
+          disabled={rechecking}
+          className="w-full"
+        >
+          <RefreshCw size={14} className={`mr-2 ${rechecking ? "animate-spin" : ""}`} />
+          {rechecking ? "Proveravam..." : "Proveri ponovo"}
+        </Button>
       </div>
 
       {/* Support link */}

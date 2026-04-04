@@ -345,14 +345,4 @@ export default defineSchema({
     .index("by_category", ["category"])
     .index("by_sort_order", ["sortOrder"]),
 
-  /** Licenca za admin panel */
-  license: defineTable({
-    key: v.string(),
-    status: v.string(),
-    customerName: v.optional(v.string()),
-    customerEmail: v.optional(v.string()),
-    expiresAt: v.optional(v.string()),
-    productName: v.optional(v.string()),
-    lastChecked: v.string(),
-  }),
 });

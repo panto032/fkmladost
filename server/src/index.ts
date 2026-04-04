@@ -57,6 +57,12 @@ await app.register(publicRoutes, { prefix: "/api" });
 // License status endpoint (for frontend)
 app.get("/api/license/status", async () => getLicenseState());
 
+// Re-verify license on demand (e.g. after activation)
+app.post("/api/license/recheck", async () => {
+  await verifyLicense();
+  return getLicenseState();
+});
+
 // Admin routes (license-gated)
 import { requireLicense } from "./auth/middleware.js";
 await app.register(async (adminScope) => {
