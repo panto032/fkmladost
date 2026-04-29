@@ -52,26 +52,26 @@ function extractCity(venue: string, homeTeam: string): string {
 export async function scrapeSuperLeagueStandings(): Promise<{ count: number }> {
   const html = await fetchHtml(STANDINGS_URL);
   const $ = cheerio.load(html);
-  const rows = $("table.preliminarno tbody tr");
+  const rows = $("table.playout tbody tr");
 
-  if (rows.length === 0) throw new Error("SuperLeague standings table not found");
+  if (rows.length === 0) throw new Error("SuperLeague playout table not found");
 
   const standings: Prisma.SuperLeagueStandingCreateManyInput[] = [];
 
   rows.each((_, row) => {
     const cells = $(row).find("td");
-    if (cells.length < 12) return;
+    if (cells.length < 11) return;
 
     const position = parseInt($(cells[0]).text().trim(), 10);
-    const club = $(cells[3]).text().trim();
-    const played = parseInt($(cells[4]).text().trim(), 10) || 0;
-    const won = parseInt($(cells[5]).text().trim(), 10) || 0;
-    const drawn = parseInt($(cells[6]).text().trim(), 10) || 0;
-    const lost = parseInt($(cells[7]).text().trim(), 10) || 0;
-    const goalsFor = parseInt($(cells[8]).text().trim(), 10) || 0;
-    const goalsAgainst = parseInt($(cells[9]).text().trim(), 10) || 0;
-    const goalDiff = parseInt($(cells[10]).text().trim(), 10) || 0;
-    const points = parseInt($(cells[11]).text().trim(), 10) || 0;
+    const club = $(cells[2]).text().trim();
+    const played = parseInt($(cells[3]).text().trim(), 10) || 0;
+    const won = parseInt($(cells[4]).text().trim(), 10) || 0;
+    const drawn = parseInt($(cells[5]).text().trim(), 10) || 0;
+    const lost = parseInt($(cells[6]).text().trim(), 10) || 0;
+    const goalsFor = parseInt($(cells[7]).text().trim(), 10) || 0;
+    const goalsAgainst = parseInt($(cells[8]).text().trim(), 10) || 0;
+    const goalDiff = parseInt($(cells[9]).text().trim(), 10) || 0;
+    const points = parseInt($(cells[10]).text().trim(), 10) || 0;
     const isHighlighted = club.toLowerCase().includes("mladost");
 
     if (club && !isNaN(position)) {

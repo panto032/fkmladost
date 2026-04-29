@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client";
 import { db } from "../db.js";
 
 const STANDINGS_URL = "https://www.superliga.rs/sezona/tabela-takmicenja/";
+const SCHEDULE_URL = "https://www.superliga.rs/sezona/raspored-i-rezultati/";
 const NAJAVA_KOLA_URL = "https://www.superliga.rs/sezona/najava-kola/";
 const TEAM_PAGE_URL = "https://www.superliga.rs/tim/mladost/";
 const LOGO_BASE =
@@ -52,33 +53,33 @@ async function fetchHtml(url: string): Promise<string> {
 export async function scrapeStandings(): Promise<{ standings: number }> {
   const html = await fetchHtml(STANDINGS_URL);
   const $ = cheerio.load(html);
-  const rows = $("table.preliminarno tbody tr");
+  const rows = $("table.playout tbody tr");
 
-  if (rows.length === 0) throw new Error("Standings table not found on superliga.rs");
+  if (rows.length === 0) throw new Error("Playout table not found on superliga.rs");
 
   const standings: Prisma.StandingCreateManyInput[] = [];
 
   rows.each((_, row) => {
     const cells = $(row).find("td");
-    if (cells.length < 12) return;
+    if (cells.length < 11) return;
 
     const position = parseInt($(cells[0]).text().trim(), 10);
-    const imgEl = $(cells[2]).find("img");
+    const imgEl = $(cells[1]).find("img");
     let logoUrl = "";
     if (imgEl.length > 0) {
       const src = imgEl.attr("src") ?? "";
       logoUrl = src.startsWith("http") ? src : `${LOGO_BASE}${src}`;
     }
 
-    const team = $(cells[3]).text().trim();
-    const played = parseInt($(cells[4]).text().trim(), 10) || 0;
-    const wins = parseInt($(cells[5]).text().trim(), 10) || 0;
-    const draws = parseInt($(cells[6]).text().trim(), 10) || 0;
-    const losses = parseInt($(cells[7]).text().trim(), 10) || 0;
-    const goalsFor = parseInt($(cells[8]).text().trim(), 10) || 0;
-    const goalsAgainst = parseInt($(cells[9]).text().trim(), 10) || 0;
-    const goalDifference = $(cells[10]).text().trim();
-    const points = parseInt($(cells[11]).text().trim(), 10) || 0;
+    const team = $(cells[2]).text().trim();
+    const played = parseInt($(cells[3]).text().trim(), 10) || 0;
+    const wins = parseInt($(cells[4]).text().trim(), 10) || 0;
+    const draws = parseInt($(cells[5]).text().trim(), 10) || 0;
+    const losses = parseInt($(cells[6]).text().trim(), 10) || 0;
+    const goalsFor = parseInt($(cells[7]).text().trim(), 10) || 0;
+    const goalsAgainst = parseInt($(cells[8]).text().trim(), 10) || 0;
+    const goalDifference = $(cells[9]).text().trim();
+    const points = parseInt($(cells[10]).text().trim(), 10) || 0;
     const isHighlighted = team.toLowerCase().includes("mladost");
 
     if (team && !isNaN(position)) {
@@ -109,32 +110,10 @@ export async function scrapeStandings(): Promise<{ standings: number }> {
 }
 
 export async function scrapeMatches(): Promise<{ matches: number }> {
-  const html = await fetchHtml(TEAM_PAGE_URL);
+  const html = await fetchHtml(SCHEDULE_URL);
   const $ = cheerio.load(html);
 
-  const teamMap: Record<string, { displayName: string; logoUrl: string }> = {};
-  $("img.grbovi").each((_, el) => {
-    const alt = $(el).attr("alt") ?? "";
-    const src = $(el).attr("src") ?? "";
-    if (alt && src) teamMap[alt.toUpperCase()] = { displayName: alt, logoUrl: src };
-  });
-
-  const findTeam = (rawName: string): { displayName: string; logoUrl: string } => {
-    const upper = rawName.toUpperCase().trim();
-    if (teamMap[upper]) return teamMap[upper];
-    for (const [key, val] of Object.entries(teamMap)) {
-      if (upper.includes(key) || key.includes(upper)) return val;
-    }
-    const firstWord = upper.split(" ")[0];
-    if (firstWord) {
-      for (const [key, val] of Object.entries(teamMap)) {
-        if (key.startsWith(firstWord)) return val;
-      }
-    }
-    return { displayName: rawName, logoUrl: "" };
-  };
-
-  // Scrape TV channel from najava-kola
+  // Scrape TV channel from najava-kola (optional)
   let ourTvChannel = "";
   let ourTvLogoUrl = "";
   try {
@@ -157,8 +136,85 @@ export async function scrapeMatches(): Promise<{ matches: number }> {
     // TV channel is optional
   }
 
-  const matchBlocks = $(".prev-next-match");
-  if (matchBlocks.length === 0) throw new Error("No match blocks found");
+  type Entry = {
+    home: string;
+    away: string;
+    homeLogoUrl: string;
+    awayLogoUrl: string;
+    homeScore?: number;
+    awayScore?: number;
+    date: string;
+    time: string;
+    dateObj: Date;
+    isPlayed: boolean;
+  };
+
+  const mladostEntries: Entry[] = [];
+
+  $(".widget-single-match").each((_, block) => {
+    const $b = $(block);
+    const participants = $b.find(".match-participants").first();
+
+    const home = participants.find(".match-home").text().trim();
+    const away = participants.find(".match-away").text().trim();
+    if (!home || !away) return;
+    if (
+      !home.toLowerCase().includes("mladost") &&
+      !away.toLowerCase().includes("mladost")
+    ) return;
+
+    const date = participants.find(".match-date").first().text().trim();
+    const time = participants.find(".match-time").first().text().trim();
+
+    const badgeText = $b.find(".match-bagde .badge").first().text().trim();
+    const isPlayed = badgeText.toLowerCase().includes("odigran");
+
+    const logos = $b.find(".match-team-logo img");
+    const rawHomeLogo = (logos.eq(0).attr("src") ?? "").trim();
+    const rawAwayLogo = (logos.eq(1).attr("src") ?? "").trim();
+    const homeLogoUrl = rawHomeLogo.startsWith("http")
+      ? rawHomeLogo
+      : `${LOGO_BASE}${rawHomeLogo.replace(/^\/+/, "")}`;
+    const awayLogoUrl = rawAwayLogo.startsWith("http")
+      ? rawAwayLogo
+      : `${LOGO_BASE}${rawAwayLogo.replace(/^\/+/, "")}`;
+
+    const scoreText = participants.find(".match-result").first().text().trim();
+    const scoreMatch = scoreText.match(/^(\d+)\s*:\s*(\d+)$/);
+    const homeScore = scoreMatch ? parseInt(scoreMatch[1], 10) : undefined;
+    const awayScore = scoreMatch ? parseInt(scoreMatch[2], 10) : undefined;
+
+    // Parse "dd.mm.yyyy"
+    const parts = date.split(".");
+    const dateObj =
+      parts.length === 3
+        ? new Date(
+            `${parts[2]}-${parts[1].padStart(2, "0")}-${parts[0].padStart(2, "0")}`,
+          )
+        : new Date(0);
+
+    mladostEntries.push({
+      home,
+      away,
+      homeLogoUrl,
+      awayLogoUrl,
+      homeScore,
+      awayScore,
+      date,
+      time,
+      dateObj,
+      isPlayed,
+    });
+  });
+
+  if (mladostEntries.length === 0) {
+    throw new Error("Nije pronađena ni jedna Mladostova utakmica na rasporedu");
+  }
+
+  mladostEntries.sort((a, b) => a.dateObj.getTime() - b.dateObj.getTime());
+
+  const last = [...mladostEntries].reverse().find((m) => m.isPlayed);
+  const next = mladostEntries.find((m) => !m.isPlayed);
 
   const matches: Array<{
     type: "next" | "last";
@@ -177,55 +233,42 @@ export async function scrapeMatches(): Promise<{ matches: number }> {
     tvChannelLogoUrl?: string;
   }> = [];
 
-  matchBlocks.each((_, block) => {
-    const label = $(block).find("span.theme-color-2.fw-8").first().text().trim();
-    const isLast = label.toLowerCase().includes("prethodna");
-    const type: "next" | "last" = isLast ? "last" : "next";
-
-    const dateTimeText = $(block).find(".match-date").text().trim();
-    const spaceIdx = dateTimeText.indexOf(" ");
-    const datePart = spaceIdx > -1 ? dateTimeText.slice(0, spaceIdx) : dateTimeText;
-    const timePart = spaceIdx > -1 ? dateTimeText.slice(spaceIdx + 1) : "";
-
-    const homeRaw = $(block).find(".match-home").text().trim();
-    const awayRaw = $(block).find(".match-away").text().trim();
-    if (!homeRaw || !awayRaw) return;
-
-    const homeTeam = findTeam(homeRaw);
-    const awayTeam = findTeam(awayRaw);
-
-    let homeScore: number | undefined;
-    let awayScore: number | undefined;
-
-    if (isLast) {
-      const resultEls = $(block).find(".match-result");
-      if (resultEls.length >= 2) {
-        const hs = parseInt($(resultEls[0]).text().trim(), 10);
-        const as_ = parseInt($(resultEls[1]).text().trim(), 10);
-        if (!isNaN(hs)) homeScore = hs;
-        if (!isNaN(as_)) awayScore = as_;
-      }
-    }
-
+  if (last) {
     matches.push({
-      type,
-      home: homeTeam.displayName,
-      away: awayTeam.displayName,
-      homeLogoUrl: homeTeam.logoUrl,
-      awayLogoUrl: awayTeam.logoUrl,
-      homeScore,
-      awayScore,
-      date: datePart,
-      time: timePart,
-      stadium: findStadium(homeTeam.displayName),
+      type: "last",
+      home: last.home,
+      away: last.away,
+      homeLogoUrl: last.homeLogoUrl,
+      awayLogoUrl: last.awayLogoUrl,
+      homeScore: last.homeScore,
+      awayScore: last.awayScore,
+      date: last.date,
+      time: last.time,
+      stadium: findStadium(last.home),
       competition: "Mozzart Bet Superliga",
-      status: isLast ? "Završeno" : undefined,
-      tvChannel: !isLast ? ourTvChannel || undefined : undefined,
-      tvChannelLogoUrl: !isLast ? ourTvLogoUrl || undefined : undefined,
+      status: "Završeno",
     });
-  });
+  }
 
-  if (matches.length === 0) throw new Error("No match data found");
+  if (next) {
+    matches.push({
+      type: "next",
+      home: next.home,
+      away: next.away,
+      homeLogoUrl: next.homeLogoUrl,
+      awayLogoUrl: next.awayLogoUrl,
+      date: next.date,
+      time: next.time,
+      stadium: findStadium(next.home),
+      competition: "Mozzart Bet Superliga",
+      tvChannel: ourTvChannel || undefined,
+      tvChannelLogoUrl: ourTvLogoUrl || undefined,
+    });
+  }
+
+  if (matches.length === 0) {
+    throw new Error("Nema ni prošle ni sledeće utakmice za prikaz");
+  }
 
   await db.match.deleteMany();
   for (const m of matches) {
