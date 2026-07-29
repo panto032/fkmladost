@@ -22,10 +22,10 @@ export default function HeroSection() {
         <span className="inline-block py-1.5 px-4 rounded-full bg-white/10 backdrop-blur-sm text-[oklch(0.85_0.08_225)] text-xs sm:text-sm font-bold mb-5 border border-white/15 uppercase tracking-widest">
           Zvanična prezentacija
         </span>
-        <h2 className="text-4xl sm:text-5xl md:text-7xl font-black tracking-tight mb-5 uppercase leading-[1.05] text-balance">
+        <h1 className="text-4xl sm:text-5xl md:text-7xl font-black tracking-tight mb-5 uppercase leading-[1.05] text-balance">
           Plavo-Bela{" "}
           <span className="text-[oklch(0.82_0.09_225)]">Porodica</span>
-        </h2>
+        </h1>
         <p className="text-base sm:text-lg text-white/65 max-w-2xl mx-auto md:mx-0 mb-8 leading-relaxed">
           Dobrodošli na novi dom FK Mladost Lučani. Pratite najnovije vesti,
           rezultate i dešavanja iz našeg kluba.

@@ -222,10 +222,10 @@ export default function StrucniStabPage() {
           >
             <ArrowLeft size={16} className="mr-1" /> Nazad na početnu
           </Link>
-          <h2 className="text-4xl md:text-6xl font-extrabold tracking-tight uppercase">
+          <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight uppercase">
             Stručni{" "}
             <span className="text-[oklch(0.77_0.10_225)]">Štab</span>
-          </h2>
+          </h1>
           <p className="text-lg text-[oklch(0.55_0.04_228)] max-w-2xl mt-3">
             Ljudi koji vode FK Mladost Lučani — sezonu 2025/2026
           </p>

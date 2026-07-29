@@ -47,18 +47,28 @@ export default function Header() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
             {/* Logo */}
-            <Link to="/" className="flex items-center gap-3">
-              <div className="relative">
+            <Link to="/" className="flex items-center gap-2 sm:gap-3 min-w-0">
+              <div className="relative flex-shrink-0">
                 <div className="absolute inset-0 bg-[oklch(0.55_0.12_240)]/40 blur-xl rounded-full scale-125" />
                 <img
                   src="/logo.png"
                   alt="FK Mladost Lučani grb"
-                  className="relative h-16 w-auto object-contain drop-shadow-[0_2px_16px_rgba(0,0,0,0.6)]"
+                  className="relative h-14 sm:h-16 w-auto object-contain drop-shadow-[0_2px_16px_rgba(0,0,0,0.6)]"
                 />
               </div>
-              <h1 className="hidden sm:block text-2xl font-bold uppercase tracking-wide leading-none text-white drop-shadow-[0_1px_8px_rgba(0,0,0,0.4)]" style={{ fontFamily: "'Inter', sans-serif" }}>
+              {/*
+                Naziv kluba je ranije bio sakriven ispod 640px (hidden sm:block),
+                pa se na telefonu video samo grb. Google indeksira mobilnu
+                verziju, tako da je naziv tamo i najbitniji — sada se prikazuje
+                na svim sirinama, samo manji. truncate je osigurac da na vrlo
+                uskim ekranima tekst ne gura dugme menija.
+              */}
+              <span
+                className="text-lg sm:text-2xl font-bold uppercase tracking-wide leading-none text-white drop-shadow-[0_1px_8px_rgba(0,0,0,0.4)] truncate"
+                style={{ fontFamily: "'Inter', sans-serif" }}
+              >
                 FK Mladost
-              </h1>
+              </span>
             </Link>
 
             {/* Desktop nav */}

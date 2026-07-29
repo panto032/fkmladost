@@ -264,9 +264,9 @@ export default function PrviTimPage() {
           >
             <ArrowLeft size={16} className="mr-1" /> Nazad na početnu
           </Link>
-          <h2 className="text-4xl md:text-6xl font-extrabold tracking-tight uppercase">
+          <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight uppercase">
             Prvi <span className="text-[oklch(0.77_0.10_225)]">Tim</span>
-          </h2>
+          </h1>
           <p className="text-lg text-[oklch(0.55_0.04_228)] max-w-2xl mt-3">
             Kompletni roster FK Mladost Lučani za sezonu 2025/2026
           </p>

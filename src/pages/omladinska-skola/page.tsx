@@ -32,10 +32,10 @@ export default function OmladinskaSkola() {
             </span>
           </div>
 
-          <h2 className="text-4xl md:text-6xl font-extrabold tracking-tight uppercase text-balance">
+          <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight uppercase text-balance">
             Omladinski{" "}
             <span className="text-[oklch(0.77_0.10_225)]">Pogon</span>
-          </h2>
+          </h1>
           <p className="text-lg text-[oklch(0.55_0.04_228)] max-w-2xl mt-4 leading-relaxed">
             {'Od 1962. godine, omladinska škola FK "Mladost" je rasadnik talenata koji su obeležili istoriju kluba i srpskog fudbala.'}
           </p>
