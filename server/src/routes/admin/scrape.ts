@@ -17,6 +17,10 @@ import {
   scrapeSuperLeagueStandings,
   scrapeSuperLeagueMatches,
 } from "../../scraping/scrapeSuperLeague.js";
+import {
+  scrapePioneerLeagueStandings,
+  scrapePioneerLeagueMatches,
+} from "../../scraping/scrapeSrbijaSport.js";
 
 type ScrapeResult = Record<string, unknown>;
 
@@ -72,6 +76,14 @@ export async function adminScrapeRoutes(app: FastifyInstance) {
     run(scrapeCadetLeagueMatches, reply)
   );
 
+  app.post("/pioneer-league/standings", async (_req, reply) =>
+    run(scrapePioneerLeagueStandings, reply)
+  );
+
+  app.post("/pioneer-league/matches", async (_req, reply) =>
+    run(scrapePioneerLeagueMatches, reply)
+  );
+
   app.post("/super-league/standings", async (_req, reply) =>
     run(scrapeSuperLeagueStandings, reply)
   );
@@ -95,6 +107,8 @@ export async function adminScrapeRoutes(app: FastifyInstance) {
       ["youthMatches", scrapeYouthLeagueMatches],
       ["cadetStandings", scrapeCadetLeagueStandings],
       ["cadetMatches", scrapeCadetLeagueMatches],
+      ["pioneerStandings", scrapePioneerLeagueStandings],
+      ["pioneerMatches", scrapePioneerLeagueMatches],
       ["superLeagueStandings", scrapeSuperLeagueStandings],
       ["superLeagueMatches", scrapeSuperLeagueMatches],
     ];

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { pioneerLeagueApi, adminCrudApi, type LeagueStanding, type LeagueMatch } from "@/lib/api.ts";
+import { pioneerLeagueApi, adminCrudApi, adminScrapeApi, type LeagueStanding, type LeagueMatch } from "@/lib/api.ts";
 import { Button } from "@/components/ui/button.tsx";
 import { Input } from "@/components/ui/input.tsx";
 import { Label } from "@/components/ui/label.tsx";
@@ -21,7 +21,7 @@ import {
   TableRow,
 } from "@/components/ui/table.tsx";
 import { Skeleton } from "@/components/ui/skeleton.tsx";
-import { Pencil, Trash2, Plus, Trophy, Calendar } from "lucide-react";
+import { Pencil, Trash2, Plus, Trophy, Calendar, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 
 /* ------------------------------------------------------------------ */
@@ -31,10 +31,47 @@ import { toast } from "sonner";
 type SubTab = "standings" | "matches";
 
 export default function AdminPioneerLeague() {
+  const qc = useQueryClient();
   const [subTab, setSubTab] = useState<SubTab>("standings");
+
+  const syncMutation = useMutation({
+    mutationFn: () =>
+      Promise.all([
+        adminScrapeApi.pioneerStandings(),
+        adminScrapeApi.pioneerMatches(),
+      ]),
+    onSuccess: ([standingsResult, matchesResult]) => {
+      qc.invalidateQueries({ queryKey: ["pioneerStandings"] });
+      qc.invalidateQueries({ queryKey: ["pioneerMatches"] });
+      toast.success(
+        `Uspešno učitano sa srbijasport.net: ${standingsResult.count} klubova, ${matchesResult.count} utakmica`,
+      );
+    },
+    onError: (err) =>
+      toast.error(
+        err instanceof Error ? err.message : "Greška pri sinhronizaciji sa srbijasport.net",
+      ),
+  });
 
   return (
     <div>
+      {/* Sync banner */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6 p-4 rounded-xl bg-accent/10 border border-accent/20">
+        <p className="text-sm text-muted-foreground">
+          Automatski povuci <span className="font-semibold">tabelu i utakmice</span> sa
+          srbijasport.net (Prva pionirska liga FSRZS).
+        </p>
+        <Button
+          size="sm"
+          onClick={() => syncMutation.mutate()}
+          disabled={syncMutation.isPending}
+          className="gap-1.5 flex-shrink-0"
+        >
+          <RefreshCw size={14} className={syncMutation.isPending ? "animate-spin" : ""} />
+          {syncMutation.isPending ? "Učitavanje..." : "Sinhronizuj sa srbijasport.net"}
+        </Button>
+      </div>
+
       <div className="flex gap-2 mb-6 flex-wrap">
         {([
           { id: "standings" as const, label: "Tabela", icon: Trophy },

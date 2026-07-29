@@ -1,9 +1,6 @@
 import * as cheerio from "cheerio";
 import { db } from "../db.js";
 
-const YOUTH_URL = "https://fss.rs/takmicenje/omladinska-liga-srbije-25-26/?script=lat";
-const CADET_URL = "https://fss.rs/takmicenje/kadetska-liga-srbije-25-26/?script=lat";
-
 const HEADERS = {
   "User-Agent": "Mozilla/5.0 (compatible; FKMladostBot/1.0; +https://fkmladost.rs)",
   Accept: "text/html",
@@ -14,6 +11,61 @@ async function fetchHtml(url: string): Promise<string> {
   if (!res.ok) throw new Error(`HTTP ${res.status} fetching ${url}`);
   return res.text();
 }
+
+// ── Sezona ────────────────────────────────────────────────────────────
+
+/**
+ * Oznaka sezone kakvu fss.rs koristi u URL-u ("25-26"). Takmicarska sezona
+ * pocinje u julu, pa sve pre jula pripada sezoni koja je pocela prethodne
+ * godine.
+ */
+function seasonSlug(startYear: number): string {
+  const pad = (y: number) => String(y % 100).padStart(2, "0");
+  return `${pad(startYear)}-${pad(startYear + 1)}`;
+}
+
+function currentSeasonStartYear(now = new Date()): number {
+  return now.getMonth() >= 6 ? now.getFullYear() : now.getFullYear() - 1;
+}
+
+/** Kes razresenih URL-ova da jedan sync ne proverava sezonu vise puta. */
+const resolvedUrls = new Map<string, string>();
+
+/**
+ * Sklapa URL takmicenja za tekucu sezonu i proverava da li postoji; ako je
+ * fss.rs jos nije objavio, vraca prethodnu.
+ *
+ * Zbog ovoga se pocetkom sezone ne mora menjati kod — cim FSS objavi novo
+ * takmicenje, sync sam prelazi na njega.
+ */
+async function resolveCompetitionUrl(baseSlug: string): Promise<string> {
+  const cached = resolvedUrls.get(baseSlug);
+  if (cached) return cached;
+
+  const startYear = currentSeasonStartYear();
+  const candidates = [seasonSlug(startYear), seasonSlug(startYear - 1)].map(
+    (s) => `https://fss.rs/takmicenje/${baseSlug}-${s}/?script=lat`,
+  );
+
+  for (const url of candidates) {
+    try {
+      const res = await fetch(url, { headers: HEADERS });
+      if (res.ok) {
+        resolvedUrls.set(baseSlug, url);
+        return url;
+      }
+    } catch {
+      // Sledeci kandidat.
+    }
+  }
+
+  throw new Error(
+    `Takmičenje "${baseSlug}" nije pronađeno na fss.rs ni za tekuću ni za prethodnu sezonu`,
+  );
+}
+
+const youthUrl = () => resolveCompetitionUrl("omladinska-liga-srbije");
+const cadetUrl = () => resolveCompetitionUrl("kadetska-liga-srbije");
 
 function normalizeName(raw: string): string {
   const trimmed = raw.trim();
@@ -132,17 +184,15 @@ function scrapeStandingsFromHtml(html: string): StandingRow[] {
     const position = parseInt(texts[0], 10);
     if (isNaN(position)) return;
 
-    let nameIdx = 1;
-    let statsStartIdx = 2;
-
-    const cell1HasImg = $(cells[1]).find("img").length > 0;
-    if (cell1HasImg) {
-      nameIdx = 2;
-      statsStartIdx = 3;
-    } else {
-      const maybeNum = parseInt(texts[1], 10);
-      if (!isNaN(maybeNum) && texts.length <= 10) return;
-    }
+    // Kolone se broje od kraja: poslednjih osam su uvek odigrano, pobede,
+    // nereseno, porazi, dati, primljeni, gol-razlika i bodovi. Ranije se
+    // pogadjalo s pocetka, uz zastitu "ako je druga celija broj, preskoci
+    // red" — zbog cega je klub 011 (11. mesto u kadetskoj ligi) tiho
+    // ispadao iz tabele.
+    const STAT_COLUMNS = 8;
+    const statsStartIdx = texts.length - STAT_COLUMNS;
+    const nameIdx = statsStartIdx - 1;
+    if (nameIdx < 1) return;
 
     const club = texts[nameIdx] || "";
     if (!club) return;
@@ -239,7 +289,7 @@ function scrapeMatchesFromHtml(html: string): MatchRow[] {
 // ── Youth League ─────────────────────────────────────────────────────
 
 export async function scrapeYouthLeagueStandings(): Promise<{ count: number }> {
-  const html = await fetchHtml(YOUTH_URL);
+  const html = await fetchHtml(await youthUrl());
   const standings = scrapeStandingsFromHtml(html);
   if (standings.length === 0) throw new Error("No youth standings found");
 
@@ -249,7 +299,7 @@ export async function scrapeYouthLeagueStandings(): Promise<{ count: number }> {
 }
 
 export async function scrapeYouthLeagueMatches(): Promise<{ count: number }> {
-  const html = await fetchHtml(YOUTH_URL);
+  const html = await fetchHtml(await youthUrl());
   const matches = scrapeMatchesFromHtml(html);
   if (matches.length === 0) throw new Error("No youth matches found for Mladost");
 
@@ -261,7 +311,7 @@ export async function scrapeYouthLeagueMatches(): Promise<{ count: number }> {
 // ── Cadet League ─────────────────────────────────────────────────────
 
 export async function scrapeCadetLeagueStandings(): Promise<{ count: number }> {
-  const html = await fetchHtml(CADET_URL);
+  const html = await fetchHtml(await cadetUrl());
   const standings = scrapeStandingsFromHtml(html);
   if (standings.length === 0) throw new Error("No cadet standings found");
 
@@ -271,7 +321,7 @@ export async function scrapeCadetLeagueStandings(): Promise<{ count: number }> {
 }
 
 export async function scrapeCadetLeagueMatches(): Promise<{ count: number }> {
-  const html = await fetchHtml(CADET_URL);
+  const html = await fetchHtml(await cadetUrl());
   const matches = scrapeMatchesFromHtml(html);
   if (matches.length === 0) throw new Error("No cadet matches found for Mladost");
 
