@@ -15,24 +15,27 @@ const HEADERS = {
   Accept: "text/html",
 };
 
+/**
+ * Stadion domacina — rezerva za slucaj da raspored ne da mesto odigravanja.
+ * Vrednosti su preuzete iz stvarnih podataka rasporeda superliga.rs za sezonu
+ * 2026/27; nekoliko klubova ne igra u svom maticnom gradu.
+ */
 const STADIUM_MAP: Record<string, string> = {
-  "CRVENA ZVEZDA": "Stadion Rajko Mitić, Beograd",
-  "ČUKARIČKI": "Stadion Čukarički, Beograd",
-  IMT: "Stadion IMT, Novi Beograd",
-  "JAVOR MATIS": "Stadion kraj Moravice, Ivanjica",
-  MLADOST: "SRC MR Radoš Milovanović, Lučani",
-  NAPREDAK: "Stadion Mladost, Kruševac",
+  "CRVENA ZVEZDA": "Rajko Mitić, Beograd",
+  "ČUKARIČKI": "Stadion FK Čukarički, Beograd",
+  IMT: 'Gradski stadion "Lagator", Loznica',
+  "MAČVA": "Stadion FK Mačva, Šabac",
+  MLADOST: "SRC Mr Radoš Milovanović, Lučani",
   "NOVI PAZAR": "Gradski stadion, Novi Pazar",
-  "OFK BEOGRAD": "Stadion Omladinski, Beograd",
+  "OFK BEOGRAD": "SC FSS, Stara Pazova",
   PARTIZAN: "Stadion Partizana, Beograd",
   "RADNIČKI 1923": "Stadion Čika Dača, Kragujevac",
-  "RADNIČKI NIŠ": "Stadion Čair, Niš",
+  "RADNIČKI NIŠ": "Gradski stadion Čair, Niš",
+  "RADNIČKI": "Gradski stadion Čair, Niš",
   RADNIK: "Gradski stadion, Surdulica",
-  "SPARTAK ŽK": "Gradski stadion, Subotica",
-  SPARTAK: "Gradski stadion, Subotica",
-  TSC: "Stadion TSC, Bačka Topola",
-  VOJVODINA: "Stadion Karađorđe, Novi Sad",
-  ŽELEZNIČAR: "Stadion Železničar, Pančevo",
+  VOJVODINA: "Karađorđe, Novi Sad",
+  ZEMUN: 'Stadion "Dragan Džajić", Ub',
+  ŽELEZNIČAR: "SC Mladost, Pančevo",
 };
 
 function findStadium(teamName: string): string {
@@ -53,9 +56,15 @@ async function fetchHtml(url: string): Promise<string> {
 export async function scrapeStandings(): Promise<{ standings: number }> {
   const html = await fetchHtml(STANDINGS_URL);
   const $ = cheerio.load(html);
-  const rows = $("table.playout tbody tr");
+  // Vidi napomenu u scrapeSuperLeague.ts — regularni deo sezone koristi
+  // table.preliminarno; playoff/playout tabele postoje tek u zavrsnici.
+  const rows = $("table.preliminarno tbody tr");
 
-  if (rows.length === 0) throw new Error("Playout table not found on superliga.rs");
+  if (rows.length === 0) {
+    throw new Error(
+      "Tabela table.preliminarno nije pronađena na superliga.rs — verovatno je promenjena struktura stranice ili je liga ušla u playoff/playout fazu",
+    );
+  }
 
   const standings: Prisma.StandingCreateManyInput[] = [];
 
@@ -278,6 +287,53 @@ export async function scrapeMatches(): Promise<{ matches: number }> {
   return { matches: matches.length };
 }
 
+/**
+ * Mapira "kolo + slugovi timova" na URL izvestaja utakmice.
+ *
+ * Stranica najave kola vise ne sadrzi linkove ka izvestajima (klasa
+ * .izvestaj-link je ugasena), ali stranica rasporeda ima <a href="/utakmica/…">
+ * omotan oko bloka utakmice — doduse samo za odigrana i najskorija kola.
+ * Za ostale se URL sklapa po istom obrascu i proverava jednim zahtevom, jer
+ * slug ne prati uvek prikazano ime tima (npr. "Radnički Niš" -> "radnicki").
+ */
+async function resolveReportUrl(
+  round: number,
+  homeSlug: string,
+  awaySlug: string,
+  fromSchedule: Map<string, string>,
+): Promise<string> {
+  if (!homeSlug || !awaySlug) return "";
+
+  const known = fromSchedule.get(`${round}|${homeSlug}-${awaySlug}`);
+  if (known) return known;
+
+  const guess = `https://www.superliga.rs/utakmica/${round}-kolo-${homeSlug}-${awaySlug}/`;
+  try {
+    const res = await fetch(guess, { headers: HEADERS });
+    return res.ok ? guess : "";
+  } catch {
+    return "";
+  }
+}
+
+/** Cita /utakmica/ linkove sa stranice rasporeda, kljucevane po kolu i timovima. */
+async function fetchScheduleReportUrls(): Promise<Map<string, string>> {
+  const map = new Map<string, string>();
+  try {
+    const $ = cheerio.load(await fetchHtml(SCHEDULE_URL));
+    $("a[href*='/utakmica/']").each((_, link) => {
+      const href = $(link).attr("href") ?? "";
+      // Obrazac: /utakmica/<kolo>-kolo-<domacin>-<gost>/
+      const m = /\/utakmica\/(\d+)-kolo-(.+?)\/?$/.exec(href);
+      if (!m) return;
+      map.set(`${m[1]}|${m[2]}`, href.startsWith("http") ? href : `https://www.superliga.rs${href}`);
+    });
+  } catch {
+    // Bez rasporeda se oslanjamo iskljucivo na sklapanje URL-a.
+  }
+  return map;
+}
+
 export async function scrapeRoundPreview(): Promise<{ roundNumber: number; matches: number }> {
   const html = await fetchHtml(NAJAVA_KOLA_URL);
   const $ = cheerio.load(html);
@@ -287,9 +343,11 @@ export async function scrapeRoundPreview(): Promise<{ roundNumber: number; match
   const roundNumber = roundMatch ? parseInt(roundMatch[1], 10) : 0;
   if (roundNumber === 0) throw new Error("Round number not found");
 
+  const scheduleUrls = await fetchScheduleReportUrls();
   const roundMatches: Prisma.RoundMatchCreateManyInput[] = [];
+  const boxes = $(".najava-box").toArray();
 
-  $(".najava-box").each((_, box) => {
+  for (const box of boxes) {
     const boxEl = $(box);
     const dateTimeEl = boxEl.find(".najava-time");
     const dateTimeParts = dateTimeEl.text().trim().split(/\s+/);
@@ -300,6 +358,13 @@ export async function scrapeRoundPreview(): Promise<{ roundNumber: number; match
     const teamParts = teamsText.split(/\s*-\s*/);
     const home = (teamParts[0] ?? "").trim();
     const away = (teamParts[1] ?? "").trim();
+
+    // Slugovi timova iz linkova ka /tim/<slug>/ — pouzdaniji od pretvaranja
+    // prikazanog imena, jer sajt koristi svoje skracenice.
+    const teamSlugs = boxEl
+      .find("a[href*='/tim/']")
+      .map((_i, a) => ($(a).attr("href") ?? "").replace(/\/+$/, "").split("/").pop() ?? "")
+      .get();
 
     const stadium = boxEl.find(".text-muted.uppercase").first().text().trim();
 
@@ -333,12 +398,12 @@ export async function scrapeRoundPreview(): Promise<{ roundNumber: number; match
       }
     });
 
-    let reportUrl = "";
-    const reportLink = boxEl.find("a.izvestaj-link, a.button");
-    if (reportLink.length > 0) {
-      const href = reportLink.first().attr("href") ?? "";
-      reportUrl = href.startsWith("http") ? href : href ? `https://www.superliga.rs${href}` : "";
-    }
+    const reportUrl = await resolveReportUrl(
+      roundNumber,
+      teamSlugs[0] ?? "",
+      teamSlugs[1] ?? "",
+      scheduleUrls,
+    );
 
     const isOurMatch =
       home.toUpperCase().includes("MLADOST") || away.toUpperCase().includes("MLADOST");
@@ -365,7 +430,7 @@ export async function scrapeRoundPreview(): Promise<{ roundNumber: number; match
         isOurMatch,
       });
     }
-  });
+  }
 
   if (roundMatches.length === 0) throw new Error("No round matches found");
 
@@ -384,73 +449,84 @@ export async function scrapeMatchAnalytics(): Promise<{ success: boolean }> {
   const html = await fetchHtml(ourMatch.reportUrl);
   const $ = cheerio.load(html);
 
-  let h2hTotalPlayed = 0, h2hHomeWins = 0, h2hDraws = 0,
-    h2hAwayWins = 0, h2hHomeGoals = 0, h2hAwayGoals = 0;
+  // Od sezone 2026/27 statistika je u tabeli .h2h-table unutar taba INFO
+  // (#tab-01). Format redova:
+  //   zaglavlje       -> [DOMACIN, "", GOST]                       (3 celije)
+  //   statistika      -> [vrednost, "", NAZIV, "", vrednost]       (5 celija)
+  //   forma           -> ["? W", "FORMA", "? D D"]                 (3 celije)
+  const teamStats: Array<{ label: string; homeValue: string; awayValue: string }> = [];
+  let homeFormLetters: string[] = [];
+  let awayFormLetters: string[] = [];
 
-  const h2hDiv = $(".h2h");
-  const h2hCols = h2hDiv.children();
-  h2hCols.each((_, col) => {
-    const spans = $(col).find("span");
-    const text = spans.map((__, s) => $(s).text().trim()).get();
+  $(".h2h-table tr").each((_, row) => {
+    const cells = $(row)
+      .find("td, th")
+      .map((__, c) => $(c).text().replace(/\s+/g, " ").trim())
+      .get();
 
-    if ($(col).hasClass("h2h-total")) {
-      spans.each((___, s) => {
-        const val = parseInt($(s).text().trim(), 10);
-        if (!isNaN(val) && val > 10) h2hTotalPlayed = val;
-      });
+    if (cells.length === 5) {
+      const [homeValue, , label, , awayValue] = cells;
+      if (label && (homeValue || awayValue)) {
+        teamStats.push({ label, homeValue, awayValue });
+      }
+      return;
     }
 
-    if (text.includes("Uk. pobeda") && $(col).prev().find("span").length > 0) {
-      const nums = $(col).prev().find("span")
-        .map((___, s) => parseInt($(s).text().trim(), 10))
-        .get()
-        .filter((n: number) => !isNaN(n));
-      if (nums.length >= 3) { h2hHomeWins = nums[0]; h2hDraws = nums[1]; h2hHomeGoals = nums[2]; }
-    }
-
-    if (text.includes("Uk. pobeda") && $(col).next().find("span").length > 0) {
-      const nums = $(col).next().find("span")
-        .map((___, s) => parseInt($(s).text().trim(), 10))
-        .get()
-        .filter((n: number) => !isNaN(n));
-      if (nums.length >= 3) { h2hAwayWins = nums[0]; h2hDraws = nums[1]; h2hAwayGoals = nums[2]; }
+    if (cells.length === 3 && cells[1].toUpperCase().includes("FORMA")) {
+      homeFormLetters = cells[0].split(/\s+/).filter(Boolean);
+      awayFormLetters = cells[2].split(/\s+/).filter(Boolean);
     }
   });
+
+  // Sajt vise ne daje datume i rezultate uz formu — samo slova W/D/L
+  // (i "?" za neodigrano). Prikaz nizom bedzeva i dalje radi.
+  const toForm = (letters: string[]) =>
+    letters.map((result) => ({ date: "", result, score: "", teams: "" }));
+  const homeForm = toForm(homeFormLetters);
+  const awayForm = toForm(awayFormLetters);
 
   const previousMatches: Array<{ date: string; homeTeam: string; awayTeam: string; score: string }> = [];
   $(".previous-match").each((_, el) => {
     const date = $(el).find(".h2h-date").text().trim();
-    const teamNames = $(el).find(".h2h-team-name span");
+    // .h2h-team-name je sam <span>, a ne omotac oko njega kao ranije.
+    const teamNames = $(el).find(".h2h-team-name");
     const homeTeam = teamNames.eq(0).text().trim();
     const awayTeam = teamNames.eq(1).text().trim();
-    const score = $(el).find(".h2h-result span").text().trim();
-    if (date && homeTeam && awayTeam && score) previousMatches.push({ date, homeTeam, awayTeam, score });
+    // Rezultat je u dva odvojena <span class="h2h-prev-result">.
+    const goals = $(el)
+      .find(".h2h-prev-result")
+      .map((__, s) => $(s).text().trim())
+      .get();
+
+    if (date && homeTeam && awayTeam && goals.length >= 2) {
+      previousMatches.push({ date, homeTeam, awayTeam, score: `${goals[0]}:${goals[1]}` });
+    }
   });
 
-  const teamStats: Array<{ label: string; homeValue: string; awayValue: string }> = [];
-  $("#tab-02 .stat-box").each((_, el) => {
-    const spans = $(el).find(".stat-number span");
-    const label = $(el).find(".stat-details span").text().trim();
-    const homeValue = spans.eq(0).text().trim();
-    const awayValue = spans.eq(1).text().trim();
-    if (label && homeValue && awayValue) teamStats.push({ label, homeValue, awayValue });
-  });
+  // Zbirni medjusobni skor vise ne postoji kao gotov blok (.h2h / .h2h-total),
+  // pa se racuna iz spiska prethodnih susreta. Golovi i pobede se pripisuju
+  // timovima iz aktuelne utakmice, bez obzira ko je tada bio domacin.
+  const key = (s: string) => s.toUpperCase().replace(/[^A-ZŠĐČĆŽ0-9]/g, "");
+  const currentHomeKey = key(ourMatch.home);
 
-  const parseForm = (sectionEl: ReturnType<typeof $>) => {
-    const form: Array<{ date: string; result: string; score: string; teams: string }> = [];
-    sectionEl.find(".d-flex.justify-content-start.align-items-center.mb-10").each((_, row) => {
-      const date = $(row).find(".form-date").text().trim();
-      const result = $(row).find(".form-color div").text().trim();
-      const score = $(row).find(".form-result span").text().trim();
-      const teams = $(row).find(".form-teams span").text().trim().replace(/\s+/g, " ");
-      if (date && score) form.push({ date, result, score, teams });
-    });
-    return form;
-  };
+  let h2hTotalPlayed = 0, h2hHomeWins = 0, h2hDraws = 0,
+    h2hAwayWins = 0, h2hHomeGoals = 0, h2hAwayGoals = 0;
 
-  const formSections = $("#tab-01 .col-lg-6.mb-20");
-  const homeForm = formSections.eq(0).length ? parseForm(formSections.eq(0)) : [];
-  const awayForm = formSections.eq(1).length ? parseForm(formSections.eq(1)) : [];
+  for (const pm of previousMatches) {
+    const [a, b] = pm.score.split(":").map((n) => parseInt(n.trim(), 10));
+    if (isNaN(a) || isNaN(b)) continue;
+
+    const prevHomeIsCurrentHome = key(pm.homeTeam) === currentHomeKey;
+    const homeGoals = prevHomeIsCurrentHome ? a : b;
+    const awayGoals = prevHomeIsCurrentHome ? b : a;
+
+    h2hTotalPlayed++;
+    h2hHomeGoals += homeGoals;
+    h2hAwayGoals += awayGoals;
+    if (homeGoals > awayGoals) h2hHomeWins++;
+    else if (homeGoals < awayGoals) h2hAwayWins++;
+    else h2hDraws++;
+  }
 
   await db.matchAnalytics.deleteMany();
   await db.matchAnalytics.create({
@@ -475,106 +551,129 @@ export async function scrapeMatchAnalytics(): Promise<{ success: boolean }> {
   return { success: true };
 }
 
-function determinePosition(rawText: string): string | null {
-  const t = rawText.toLowerCase()
-    .replace(/č/g, "c").replace(/ć/g, "c")
-    .replace(/š/g, "s").replace(/ž/g, "z").replace(/đ/g, "dj");
-  if (t.includes("golman")) return "Golman";
-  if (t.includes("odbran") || t.includes("defanz")) return "Odbrana";
-  if (t.includes("vezn")) return "Vezni red";
-  if (t.includes("napad")) return "Napad";
-  return null;
+interface ScrapedPlayer {
+  name: string;
+  number: number;
+  imageUrl: string;
+  superligaUrl: string;
+  appearances?: number;
+  minutes?: number;
+  goals?: number;
+  yellowCards?: number;
+}
+
+/**
+ * Cita zbirnu statistiku sa stranice pojedinacnog igraca.
+ *
+ * Od sezone 2026/27 timska stranica vise ne nosi statistiku uz karticu igraca,
+ * pa se ona dohvata sa /sezona/igrac/… gde stoji u .counter blokovima
+ * (<label>NASTUPI</label> + <span class="timer">2</span>).
+ *
+ * Asistencije i primljeni golovi se vise ne objavljuju, pa se ne vracaju —
+ * pozivalac ih namerno ostavlja netaknutim u bazi.
+ */
+type PlayerStats = Pick<
+  ScrapedPlayer,
+  "appearances" | "minutes" | "goals" | "yellowCards"
+>;
+
+async function fetchPlayerStats(url: string): Promise<PlayerStats> {
+  const $ = cheerio.load(await fetchHtml(url));
+  const stats: PlayerStats = {};
+
+  $(".counter").each((_, el) => {
+    const label = $(el).find("label").text().trim().toLowerCase();
+    const value = parseInt($(el).find("span.timer").text().trim(), 10);
+    if (isNaN(value)) return;
+
+    if (label.includes("nastup")) stats.appearances = value;
+    else if (label.includes("minut")) stats.minutes = value;
+    else if (label.includes("golova") || label.includes("gol")) {
+      // "GOLOVA" da, ali "AUTOGOLOVI" ne — to je zaseban podatak.
+      if (!label.includes("auto")) stats.goals = value;
+    } else if (label.includes("žut") || label.includes("zut")) {
+      stats.yellowCards = value;
+    }
+  });
+
+  return stats;
 }
 
 export async function scrapePlayers(): Promise<{ players: number }> {
   const html = await fetchHtml(TEAM_PAGE_URL);
   const $ = cheerio.load(html);
 
-  const players: Array<{
-    name: string;
-    number: number;
-    position: string;
-    imageUrl: string;
-    superligaUrl?: string;
-    appearances?: number;
-    minutes?: number;
-    goals?: number;
-    assists?: number;
-    goalsConceded?: number;
-    yellowCards?: number;
-  }> = [];
-
+  const players: ScrapedPlayer[] = [];
   const seenNames = new Set<string>();
 
-  $(".owl-carousel").each((_, carousel) => {
-    const carouselEl = $(carousel);
-    const playerLinks = carouselEl.find("a[href*='/sezona/igrac/']");
-    if (playerLinks.length === 0) return;
-    if (carouselEl.closest(".istaknuti-igraci").length > 0) return;
+  // Sve kartice igraca su u jednoj sekciji "Postava"; podela po pozicijama
+  // (Golmani/Odbrana/Vezni red/Napad) vise ne postoji na sajtu.
+  $("a[href*='/sezona/igrac/']").each((_, link) => {
+    const el = $(link);
 
-    const carouselRow = carouselEl.closest(".row");
-    let position = "Nepoznato";
+    // Ime je od 2026/27 u .blog-name-right (span = ime, h5 = prezime);
+    // atribut alt na slici je sada prazan.
+    const nameBox = el.find(".blog-name-right");
+    const firstName = nameBox.find("span").first().text().trim();
+    const lastName = nameBox.find("h5").first().text().trim();
+    const name = `${firstName} ${lastName}`.replace(/\s+/g, " ").trim();
 
-    let prevEl = carouselRow.prev();
-    for (let i = 0; i < 5 && prevEl.length > 0; i++) {
-      const h3 = prevEl.find(".team-stat-title h3.title, .team-stat-title h2.title");
-      if (h3.length > 0) {
-        position = determinePosition(h3.first().text().trim()) ?? "Nepoznato";
-        break;
-      }
-      if (prevEl.find(".owl-carousel").length > 0) break;
-      prevEl = prevEl.prev();
+    if (!name || seenNames.has(name.toLowerCase())) return;
+    seenNames.add(name.toLowerCase());
+
+    const number = parseInt(el.find(".blog-name-left span").first().text().trim(), 10) || 0;
+
+    let imageUrl = (el.find("img.img-fluid").attr("src") ?? "").trim();
+    if (imageUrl && !imageUrl.startsWith("http")) {
+      imageUrl = `https://www.superliga.rs${imageUrl}`;
     }
 
-    playerLinks.each((__, link) => {
-      const numberText = $(link).find(".blog-name-left span").text().trim();
-      const number = parseInt(numberText, 10) || 0;
-      const img = $(link).find("img.img-fluid");
-      const name = (img.attr("alt") ?? "").trim();
+    const href = el.attr("href") ?? "";
+    const superligaUrl = href.startsWith("http")
+      ? href
+      : href
+        ? `https://www.superliga.rs${href}`
+        : "";
 
-      if (!name || seenNames.has(name.toLowerCase())) return;
-      seenNames.add(name.toLowerCase());
-
-      let imageUrl = (img.attr("src") ?? "").trim();
-      if (imageUrl && !imageUrl.startsWith("http")) imageUrl = `https://www.superliga.rs${imageUrl}`;
-
-      const href = $(link).attr("href") ?? "";
-      const superligaUrl = href.startsWith("http") ? href : href ? `https://www.superliga.rs${href}` : "";
-
-      let appearances: number | undefined, minutes: number | undefined,
-        goals: number | undefined, assists: number | undefined,
-        goalsConceded: number | undefined, yellowCards: number | undefined;
-
-      $(link).find(".d-flex.justify-content-between .p-1").each((___, statEl) => {
-        const title = $(statEl).find("img").attr("title") ?? "";
-        const val = parseInt($(statEl).find("span").text().trim(), 10) || 0;
-        const t = title.toLowerCase();
-        if (t.includes("nastupi")) appearances = val;
-        else if (t.includes("minut")) minutes = val;
-        else if (t.includes("pogod") || t.includes("pogoc")) goals = val;
-        else if (t.includes("asist")) assists = val;
-        else if (t.includes("primljen")) goalsConceded = val;
-        else if (t.includes("žut") || t.includes("zut")) yellowCards = val;
-      });
-
-      players.push({ name, number, position, imageUrl, superligaUrl, appearances, minutes, goals, assists, goalsConceded, yellowCards });
-    });
+    players.push({ name, number, imageUrl, superligaUrl });
   });
 
-  if (players.length === 0) throw new Error("No players found");
+  if (players.length === 0) {
+    throw new Error(
+      "Nije pronađen nijedan igrač na superliga.rs — verovatno je promenjena struktura timske stranice",
+    );
+  }
 
-  // Upsert by name
+  // Statistika trazi po jedan zahtev na igraca; ide u malim grupama da ne
+  // zasipamo superliga.rs. Neuspeh na jednom igracu ne rusi ceo sync.
+  const BATCH = 5;
+  for (let i = 0; i < players.length; i += BATCH) {
+    const batch = players.slice(i, i + BATCH);
+    await Promise.all(
+      batch.map(async (p) => {
+        if (!p.superligaUrl) return;
+        try {
+          Object.assign(p, await fetchPlayerStats(p.superligaUrl));
+        } catch {
+          // Bez statistike — postojece vrednosti u bazi ostaju netaknute.
+        }
+      }),
+    );
+  }
+
   for (let i = 0; i < players.length; i++) {
     const p = players[i];
     const existing = await db.player.findFirst({ where: { name: p.name } });
     if (existing) {
+      // position, assists i goalsConceded se namerno ne diraju: superliga.rs
+      // ih vise ne objavljuje, pa ostaju onakvi kakvim ih je admin podesio.
       await db.player.update({
         where: { id: existing.id },
         data: { ...p, sortOrder: existing.sortOrder, isActive: true },
       });
     } else {
       await db.player.create({
-        data: { ...p, sortOrder: i, isActive: true },
+        data: { ...p, position: "Nepoznato", sortOrder: i, isActive: true },
       });
     }
   }

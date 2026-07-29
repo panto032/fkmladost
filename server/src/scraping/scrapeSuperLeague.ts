@@ -10,24 +10,28 @@ const HEADERS = {
   Accept: "text/html",
 };
 
+/**
+ * Grad domacina — koristi se samo kad superliga.rs ne da mesto odigravanja uz
+ * utakmicu. Vrednosti su preuzete iz stvarnih podataka rasporeda za sezonu
+ * 2026/27, pa neki klubovi nisu u svom maticnom gradu (Zemun igra u Ubu, IMT
+ * u Loznici, OFK Beograd u Staroj Pazovi).
+ */
 const CITY_MAP: Record<string, string> = {
   MLADOST: "Lučani",
   "CRVENA ZVEZDA": "Beograd",
   PARTIZAN: "Beograd",
   VOJVODINA: "Novi Sad",
-  "ČUKARIČKI": "Pančevo",
+  "ČUKARIČKI": "Beograd",
   "OFK BEOGRAD": "Stara Pazova",
-  TSC: "Bačka Topola",
   "RADNIČKI 1923": "Kragujevac",
   "RADNIČKI NIŠ": "Niš",
+  "RADNIČKI": "Niš",
   "NOVI PAZAR": "Novi Pazar",
   "ŽELEZNIČAR": "Pančevo",
-  NAPREDAK: "Kruševac",
-  SPARTAK: "Subotica",
-  "SPARTAK ŽK": "Subotica",
   RADNIK: "Surdulica",
-  IMT: "Beograd",
-  "JAVOR MATIS": "Ivanjica",
+  IMT: "Loznica",
+  ZEMUN: "Ub",
+  "MAČVA": "Šabac",
 };
 
 async function fetchHtml(url: string): Promise<string> {
@@ -52,9 +56,16 @@ function extractCity(venue: string, homeTeam: string): string {
 export async function scrapeSuperLeagueStandings(): Promise<{ count: number }> {
   const html = await fetchHtml(STANDINGS_URL);
   const $ = cheerio.load(html);
-  const rows = $("table.playout tbody tr");
+  // Sezona 2026/27 je u regularnom delu, pa je tabela "preliminarno" (svih 14
+  // timova). Tokom playoff/playout faze sajt dodaje table.playoff i
+  // table.playout — tada treba prebaciti selektor na odgovarajucu grupu.
+  const rows = $("table.preliminarno tbody tr");
 
-  if (rows.length === 0) throw new Error("SuperLeague playout table not found");
+  if (rows.length === 0) {
+    throw new Error(
+      "Tabela table.preliminarno nije pronađena na superliga.rs — verovatno je promenjena struktura stranice ili je liga ušla u playoff/playout fazu",
+    );
+  }
 
   const standings: Prisma.SuperLeagueStandingCreateManyInput[] = [];
 

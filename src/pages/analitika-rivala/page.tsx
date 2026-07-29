@@ -518,6 +518,10 @@ function FormSection({
   }>;
   isHome: boolean;
 }) {
+  // Superliga.rs od sezone 2026/27 uz formu daje samo slova (W/D/L), bez
+  // datuma i rezultata — tada prikazujemo samo red bedževa.
+  const hasDetails = matches.some((m) => m.date || m.score);
+
   return (
     <div>
       <h3
@@ -531,7 +535,7 @@ function FormSection({
       </h3>
 
       {/* Form badges row */}
-      <div className="flex gap-1.5 mb-4">
+      <div className={`flex gap-1.5 ${hasDetails ? "mb-4" : ""}`}>
         {matches.map((m, i) => (
           <FormBadge key={i} result={m.result} />
         ))}
@@ -539,7 +543,7 @@ function FormSection({
 
       {/* Match list */}
       <div className="space-y-2">
-        {matches.map((m, i) => (
+        {hasDetails && matches.map((m, i) => (
           <div
             key={i}
             className="flex items-center gap-3 px-3 py-2 rounded-lg bg-[oklch(0.97_0.01_228)] border border-[oklch(0.93_0.01_228)]"
