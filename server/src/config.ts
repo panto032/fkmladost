@@ -9,4 +9,7 @@ export const config = {
   apiFootballKey: process.env.API_FOOTBALL_KEY ?? "",
   frontendUrl: process.env.FRONTEND_URL ?? "http://localhost:5173",
   impulseLicenseKey: process.env.IMPULSE_LICENSE_KEY ?? "",
+  // Kanonski javni URL sajta — koristi se za canonical linkove, OG tagove i sitemap.
+  // Bez zavrsne kose crte.
+  siteUrl: (process.env.SITE_URL ?? "https://fkmladostlucani.com").replace(/\/+$/, ""),
 };

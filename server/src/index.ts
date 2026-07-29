@@ -15,6 +15,7 @@ import { adminNewsRoutes } from "./routes/admin/news.js";
 import { adminCrudRoutes } from "./routes/admin/crud.js";
 import { adminScrapeRoutes } from "./routes/admin/scrape.js";
 import { uploadRoutes } from "./routes/admin/upload.js";
+import { registerSeoRoutes, registerHtmlSeo } from "./seo/index.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -76,10 +77,18 @@ await app.register(async (adminScope) => {
 // Health check
 app.get("/health", async () => ({ status: "ok", timestamp: new Date().toISOString() }));
 
+// ── SEO ───────────────────────────────────────────────────────────────
+// robots.txt i sitemap.xml se serviraju uvek; sitemap cita vesti iz baze.
+await registerSeoRoutes(app);
+
 // ── Serve frontend (production) ──────────────────────────────────────
 const clientDistPath = path.resolve(__dirname, "../../dist");
 
 if (config.nodeEnv === "production") {
+  // Mora pre staticFiles: hook presrece zahteve za HTML dokumente i ubacuje
+  // meta tagove za trazenu rutu umesto da servira sirov index.html.
+  await registerHtmlSeo(app, clientDistPath);
+
   await app.register(staticFiles, {
     root: clientDistPath,
     prefix: "/",

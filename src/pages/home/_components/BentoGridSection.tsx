@@ -9,6 +9,7 @@ import {
   MapPin,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { newsPath } from "@/lib/seo.ts";
 import { Skeleton } from "@/components/ui/skeleton.tsx";
 import StandingsTable from "./StandingsTable.tsx";
 
@@ -44,7 +45,7 @@ function SmallNewsCard({
 }) {
   return (
     <Link
-      to={`/vesti/${article.id}`}
+      to={newsPath(article.id, article.title)}
       className={`rounded-2xl overflow-hidden border border-border shadow-lg group cursor-pointer bg-card flex flex-col ${className}`}
     >
       <div className="relative h-36 overflow-hidden flex-shrink-0">
@@ -93,7 +94,7 @@ function MediumNewsCard({
 
   return (
     <Link
-      to={`/vesti/${article.id}`}
+      to={newsPath(article.id, article.title)}
       className={`rounded-2xl overflow-hidden border border-border shadow-lg group cursor-pointer bg-card flex flex-col h-full ${className}`}
     >
       {/* Large image fills most of the card */}
@@ -170,7 +171,7 @@ export default function BentoGridSection() {
         {/* ── CELL: FEATURED NEWS ───────────────────────── col 5-12, row 1 */}
         {featuredNews ? (
           <Link
-            to={`/vesti/${featuredNews.id}`}
+            to={newsPath(featuredNews.id, featuredNews.title)}
             className="lg:col-start-5 lg:col-end-13 lg:row-start-1 lg:row-end-2 rounded-2xl overflow-hidden border border-border shadow-lg relative group cursor-pointer min-h-[280px] lg:min-h-0"
           >
             <img

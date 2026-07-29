@@ -4,6 +4,7 @@ import { Calendar, ArrowRight } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton.tsx";
 import { Link } from "react-router-dom";
 import { apiBaseUrl } from "@/lib/api.ts";
+import { newsPath } from "@/lib/seo.ts";
 
 function getImageSrc(imageUrl: string, imageFileName?: string | null): string {
   if (imageFileName) return `${apiBaseUrl}/uploads/${imageFileName}`;
@@ -54,7 +55,7 @@ export default function NewsSection() {
           {news.map((item) => (
             <Link
               key={item.id}
-              to={`/vesti/${item.id}`}
+              to={newsPath(item.id, item.title)}
               className="bg-card rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group border border-border"
             >
               <div className="relative h-56 overflow-hidden">
@@ -62,6 +63,8 @@ export default function NewsSection() {
                   src={getImageSrc(item.imageUrl, item.imageFileName)}
                   alt={item.title}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  loading="lazy"
+                  decoding="async"
                 />
                 <div className="absolute top-4 left-4">
                   <span className="bg-accent text-accent-foreground text-xs font-bold px-3 py-1 rounded-full uppercase shadow-md">

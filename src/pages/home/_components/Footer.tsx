@@ -13,6 +13,8 @@ export default function Footer() {
                 src="/logo.png"
                 alt="FK Mladost Lučani"
                 className="w-10 h-10 object-contain mr-3"
+                loading="lazy"
+                decoding="async"
               />
               <h4 className="text-xl font-bold uppercase">FK Mladost</h4>
             </div>
@@ -151,18 +153,24 @@ export default function Footer() {
               src="/msls-logo.png"
               alt="Mozzart Bet SuperLiga"
               className="h-10 object-contain"
+              loading="lazy"
+              decoding="async"
             />
             <div className="w-px h-8 bg-[oklch(0.28_0.04_252)] hidden sm:block" />
             <img
               src="/zajednica-logo.png"
               alt="Zajednica SuperLige i Prve Lige"
               className="h-24 object-contain brightness-0 invert opacity-70"
+              loading="lazy"
+              decoding="async"
             />
             <div className="w-px h-8 bg-[oklch(0.28_0.04_252)] hidden sm:block" />
             <img
               src="/mts-logo.svg"
               alt="mts"
               className="h-14 object-contain"
+              loading="lazy"
+              decoding="async"
             />
           </div>
         </div>

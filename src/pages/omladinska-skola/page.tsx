@@ -50,9 +50,11 @@ export default function OmladinskaSkola() {
           </p>
 
           <img
-            src="/omladinska-skola-1.png"
-            alt="Omladinski pogon FK Mladost"
+            src="/omladinska-skola-1.jpg"
+            alt="Omladinski pogon FK Mladost Lučani, generacija 1962. godine"
             className="w-full rounded-2xl shadow-xl"
+            loading="lazy"
+            decoding="async"
           />
 
           <p className="text-[oklch(0.75_0.03_252)] text-lg leading-relaxed">
@@ -68,9 +70,11 @@ export default function OmladinskaSkola() {
           </p>
 
           <img
-            src="/omladinska-skola-2.png"
-            alt="Omladinska škola FK Mladost"
+            src="/omladinska-skola-2.jpg"
+            alt="Omladinska škola FK Mladost Lučani"
             className="w-full rounded-2xl shadow-xl"
+            loading="lazy"
+            decoding="async"
           />
 
           <p className="text-[oklch(0.75_0.03_252)] text-lg leading-relaxed">

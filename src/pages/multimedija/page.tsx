@@ -490,6 +490,8 @@ function MediaLightbox({
             alt={current.title}
             className="max-w-full max-h-full object-contain rounded-lg select-none"
             draggable={false}
+            loading="lazy"
+            decoding="async"
           />
         ) : current.type === "video" && current.youtubeVideoId ? (
           <div className="w-full max-w-5xl aspect-video">

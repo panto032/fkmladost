@@ -1,31 +1,43 @@
 <!doctype html>
-<html lang="en">
+<html lang="sr">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <title>FK Mladost Lučani</title>
-    <meta name="description" content="Zvanični sajt FK Mladost Lučani — Super Liga Srbije. Vesti, rezultati, tabela, raspored utakmica i sve o plavo-belima iz Lučana. Tradicija od 1952." />
-    <meta name="author" content="FK Mladost Lučani" />
-    <meta name="keywords" content="FK Mladost Lučani, fudbal, Super Liga Srbije, Lučani, fudbalski klub, rezultati, tabela" />
-    <link rel="icon" href="/logo.png" />
+    <!--
+      SEO blok. U produkciji server zamenjuje sve izmedju <!==seo==> markera
+      sadrzajem specificnim za rutu (vidi server/src/seo.ts), tako da i crawleri
+      koji ne izvrsavaju JavaScript (Facebook, Viber, WhatsApp) vide tacne
+      podatke. Vrednosti ispod su fallback za dev i za slucaj greske.
+    -->
+    <!--seo-->
+    <title>FK Mladost Lučani — Zvanični sajt kluba</title>
+    <meta name="description" content="Zvanični sajt FK Mladost Lučani — Super liga Srbije. Vesti, rezultati, tabela, raspored utakmica i sve o plavo-belima iz Lučana. Tradicija od 1952." />
+    <link rel="canonical" href="https://fkmladostlucani.com/" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
 
-    <!-- Open Graph -->
-    <meta property="og:title" content="FK Mladost Lučani — Zvanični sajt" />
-    <meta property="og:description" content="Vesti, rezultati, tabela i raspored utakmica FK Mladost Lučani. Super Liga Srbije — tradicija od 1952. godine." />
+    <meta property="og:title" content="FK Mladost Lučani — Zvanični sajt kluba" />
+    <meta property="og:description" content="Vesti, rezultati, tabela i raspored utakmica FK Mladost Lučani. Super liga Srbije — tradicija od 1952. godine." />
     <meta property="og:type" content="website" />
-    <meta property="og:image" content="/logo.png" />
-    <meta property="og:image:type" content="image/png" />
-    <meta property="og:image:width" content="1536" />
-    <meta property="og:image:height" content="864" />
+    <meta property="og:url" content="https://fkmladostlucani.com/" />
+    <meta property="og:image" content="https://fkmladostlucani.com/og-image.jpg" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Stadion FK Mladost Lučani" />
     <meta property="og:locale" content="sr_RS" />
     <meta property="og:site_name" content="FK Mladost Lučani" />
 
-    <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="FK Mladost Lučani — Zvanični sajt" />
-    <meta name="twitter:description" content="Vesti, rezultati, tabela i raspored utakmica FK Mladost Lučani. Super Liga Srbije — tradicija od 1952. godine." />
-    <meta name="twitter:image" content="/logo.png" />
+    <meta name="twitter:title" content="FK Mladost Lučani — Zvanični sajt kluba" />
+    <meta name="twitter:description" content="Vesti, rezultati, tabela i raspored utakmica FK Mladost Lučani. Super liga Srbije — tradicija od 1952. godine." />
+    <meta name="twitter:image" content="https://fkmladostlucani.com/og-image.jpg" />
+    <!--/seo-->
+
+    <meta name="author" content="FK Mladost Lučani" />
+    <meta name="theme-color" content="#131f33" />
+    <link rel="icon" href="/logo.png" />
+    <link rel="apple-touch-icon" href="/logo.png" />
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />

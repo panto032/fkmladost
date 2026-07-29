@@ -1,4 +1,4 @@
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, Navigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { newsApi } from "@/lib/api.ts";
 import { ArrowLeft, Calendar, Tag } from "lucide-react";
@@ -6,6 +6,14 @@ import { Skeleton } from "@/components/ui/skeleton.tsx";
 import Header from "../../home/_components/Header.tsx";
 import Footer from "../../home/_components/Footer.tsx";
 import { apiBaseUrl } from "@/lib/api.ts";
+import {
+  articleJsonLd,
+  newsPath,
+  parseNewsId,
+  stripHtml,
+  truncate,
+  useSEO,
+} from "@/lib/seo.ts";
 
 function getImageSrc(imageUrl: string, imageFileName?: string | null): string {
   if (imageFileName) return `${apiBaseUrl}/uploads/${imageFileName}`;
@@ -13,13 +21,47 @@ function getImageSrc(imageUrl: string, imageFileName?: string | null): string {
 }
 
 export default function NewsDetailPage() {
-  const { id } = useParams<{ id: string }>();
+  // Param je "<id>" ili "<id>-<slug>" — kanonski oblik je sa slugom.
+  const { slug } = useParams<{ slug: string }>();
+  const id = parseNewsId(slug);
 
   const { data: article, isLoading } = useQuery({
     queryKey: ["news", id],
-    queryFn: () => newsApi.getById(Number(id)),
-    enabled: !!id,
+    queryFn: () => newsApi.getById(id!),
+    enabled: id !== null,
   });
+
+  const canonicalPath = article ? newsPath(article.id, article.title) : null;
+
+  useSEO(
+    article
+      ? {
+          title: truncate(`${article.title} | FK Mladost Lučani`, 70),
+          description: truncate(
+            stripHtml(article.excerpt) || stripHtml(article.content ?? ""),
+            160,
+          ),
+          path: canonicalPath!,
+          image: getImageSrc(article.imageUrl, article.imageFileName),
+          imageAlt: article.title,
+          type: "article",
+          jsonLd: articleJsonLd({
+            id: article.id,
+            title: article.title,
+            excerpt: article.excerpt,
+            category: article.category,
+            sortDate: article.sortDate,
+            image: getImageSrc(article.imageUrl, article.imageFileName),
+          }),
+        }
+      : null,
+  );
+
+  // Zastareo ili nepotpun URL (stari /vesti/47, izmenjen naslov) — zamenjujemo
+  // ga kanonskim bez novog unosa u istoriji.
+  if (article && canonicalPath && `/vesti/${slug}` !== canonicalPath) {
+    return <Navigate to={canonicalPath} replace />;
+  }
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -32,10 +74,13 @@ export default function NewsDetailPage() {
         ) : (
           <>
             <div className="relative w-full h-[300px] sm:h-[420px] lg:h-[500px]">
+              {/* Naslovna slika vesti je LCP element — ucitava se prioritetno. */}
               <img
                 src={getImageSrc(article.imageUrl, article.imageFileName)}
                 alt={article.title}
                 className="w-full h-full object-cover"
+                fetchPriority="high"
+                decoding="async"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
               <div className="absolute bottom-0 left-0 right-0">

@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { Calendar } from "lucide-react";
 import type { NewsItem } from "@/lib/api.ts";
 import { apiBaseUrl } from "@/lib/api.ts";
+import { newsPath } from "@/lib/seo.ts";
 
 type NewsCardProps = {
   article: NewsItem;
@@ -19,10 +20,11 @@ export default function NewsCard({ article, featured = false }: NewsCardProps) {
   if (featured) {
     return (
       <Link
-        to={`/vesti/${article.id}`}
+        to={newsPath(article.id, article.title)}
         className="group block rounded-2xl overflow-hidden border border-border shadow-lg relative min-h-[340px] lg:min-h-[400px]"
       >
-        <img src={imgSrc} alt={article.title} className="w-full h-full object-cover absolute inset-0 group-hover:scale-105 transition-transform duration-700" />
+        {/* Istaknuta vest je LCP element stranice — ucitava se odmah. */}
+        <img src={imgSrc} alt={article.title} className="w-full h-full object-cover absolute inset-0 group-hover:scale-105 transition-transform duration-700" loading="eager" fetchPriority="high" decoding="async" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 p-6">
           <span className="bg-accent text-accent-foreground text-[10px] font-bold px-2.5 py-1 rounded-full uppercase shadow-md">{article.category}</span>
@@ -35,9 +37,9 @@ export default function NewsCard({ article, featured = false }: NewsCardProps) {
   }
 
   return (
-    <Link to={`/vesti/${article.id}`} className="group block rounded-2xl overflow-hidden border border-border shadow-lg bg-card">
+    <Link to={newsPath(article.id, article.title)} className="group block rounded-2xl overflow-hidden border border-border shadow-lg bg-card">
       <div className="relative h-48 overflow-hidden">
-        <img src={imgSrc} alt={article.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+        <img src={imgSrc} alt={article.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" decoding="async" />
         <div className="absolute top-3 left-3">
           <span className="bg-accent text-accent-foreground text-[10px] font-bold px-2.5 py-1 rounded-full uppercase shadow-md">{article.category}</span>
         </div>

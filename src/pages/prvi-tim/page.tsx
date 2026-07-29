@@ -102,6 +102,8 @@ function PlayerBioModal({
               src={player.imageUrl}
               alt={player.name}
               className="w-full max-h-[50vh] object-contain mx-auto"
+              loading="lazy"
+              decoding="async"
             />
           ) : (
             <div className="w-full h-48 flex items-center justify-center">
@@ -214,6 +216,8 @@ function PlayerCard({
           src={player.imageUrl}
           alt={player.name}
           className="w-full h-full object-cover group-hover:scale-110 group-hover:-translate-y-2 transition-all duration-500 grayscale group-hover:grayscale-0"
+          loading="lazy"
+          decoding="async"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-[oklch(0.16_0.035_252)] via-transparent to-transparent opacity-80" />
         <div className="absolute bottom-0 right-0 bg-[oklch(0.69_0.095_228)] text-white font-black text-2xl md:text-4xl p-2 md:p-3 rounded-tl-xl shadow-lg transform translate-y-2 group-hover:translate-y-0 transition-transform">

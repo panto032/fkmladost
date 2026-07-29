@@ -1,5 +1,6 @@
 import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
 import { useEffect } from "react";
+import { useRouteSEO } from "./lib/seo.ts";
 import { DefaultProviders } from "./components/providers/default.tsx";
 import Index from "./pages/Index.tsx";
 import AdminPage from "./pages/admin/page.tsx";
@@ -29,17 +30,30 @@ function ScrollToTop() {
   return null;
 }
 
+/**
+ * Održava <title> i meta tagove tačnim pri SPA navigaciji. Pri prvom učitavanju
+ * iste tagove postavlja server (server/src/seo/), zbog crawlera bez JavaScripta.
+ */
+function RouteSEO() {
+  const { pathname } = useLocation();
+  useRouteSEO(pathname);
+  return null;
+}
+
 export default function App() {
   return (
     <DefaultProviders>
       <BrowserRouter>
         <ScrollToTop />
+        <RouteSEO />
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/admin" element={<AdminPage />} />
           <Route path="/prvi-tim" element={<PrviTimPage />} />
           <Route path="/vesti" element={<VestiPage />} />
-          <Route path="/vesti/:id" element={<NewsDetailPage />} />
+          {/* Param je "<id>-<slug>" (npr. 47-pobeda-u-lucanima); stari
+              linkovi oblika /vesti/47 i dalje rade. */}
+          <Route path="/vesti/:slug" element={<NewsDetailPage />} />
           <Route path="/omladinska-skola" element={<OmladinskaSkola />} />
           <Route path="/istorija-kluba" element={<IstorijaKluba />} />
           <Route path="/stadion" element={<StadionPage />} />
