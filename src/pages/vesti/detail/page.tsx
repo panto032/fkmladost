@@ -7,10 +7,10 @@ import Header from "../../home/_components/Header.tsx";
 import Footer from "../../home/_components/Footer.tsx";
 import { apiBaseUrl } from "@/lib/api.ts";
 import {
+  articleDescription,
   articleJsonLd,
   newsPath,
   parseNewsId,
-  stripHtml,
   truncate,
   useSEO,
 } from "@/lib/seo.ts";
@@ -37,10 +37,7 @@ export default function NewsDetailPage() {
     article
       ? {
           title: truncate(`${article.title} | FK Mladost Lučani`, 70),
-          description: truncate(
-            stripHtml(article.excerpt) || stripHtml(article.content ?? ""),
-            160,
-          ),
+          description: articleDescription(article),
           path: canonicalPath!,
           image: getImageSrc(article.imageUrl, article.imageFileName),
           imageAlt: article.title,

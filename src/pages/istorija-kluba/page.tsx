@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton.tsx";
 import Header from "../home/_components/Header.tsx";
 import Footer from "../home/_components/Footer.tsx";
+import { normalizeCmsHeadings } from "@/lib/cmsContent.ts";
 
 export default function IstorijaKluba() {
   const { data: page, isLoading } = useQuery({
@@ -79,7 +80,7 @@ export default function IstorijaKluba() {
           ) : page ? (
             <div
               className="prose-page prose-page-editorial"
-              dangerouslySetInnerHTML={{ __html: page.content }}
+              dangerouslySetInnerHTML={{ __html: normalizeCmsHeadings(page.content) }}
             />
           ) : (
             <p className="text-[oklch(0.50_0.03_252)] text-center py-12">

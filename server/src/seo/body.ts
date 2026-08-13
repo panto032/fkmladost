@@ -31,6 +31,30 @@ function link(href: string, content: string, attrs = ""): string {
   return `<a href="${esc(href)}"${attrs ? " " + attrs : ""}>${content}</a>`;
 }
 
+/**
+ * Pomera nivoe naslova u CMS sadrzaju tako da najnizi koriscen nivo postane
+ * h2 (h1 je vec zauzet naslovom stranice). Resava "heading skip" nalaz kad
+ * admin u Tiptap editoru pocne sadrzaj direktno sa H3 — cesta greska jer
+ * editor ne sprecava taj izbor. Ne popravlja preskoke UNUTAR sadrzaja
+ * (npr. h2 pa odmah h4) — to je stvar strukture koju bira admin, ne
+ * jednoznacna popravka.
+ *
+ * Identicna funkcija postoji na klijentu u src/lib/cmsContent.ts (ista
+ * napomena o duplikaciji kao svuda u seo/ — server ne moze da uvozi iz src/).
+ */
+export function normalizeCmsHeadings(html: string): string {
+  const levels = [...html.matchAll(/<h([1-6])[^>]*>/g)].map((m) => parseInt(m[1], 10));
+  if (levels.length === 0) return html;
+
+  const shift = 2 - Math.min(...levels);
+  if (shift === 0) return html;
+
+  return html.replace(/<(\/?)h([1-6])((?:\s[^>]*)?)>/g, (_match, slash, levelStr, attrs) => {
+    const newLevel = Math.min(6, Math.max(2, parseInt(levelStr, 10) + shift));
+    return `<${slash}h${newLevel}${attrs}>`;
+  });
+}
+
 interface StandingRow {
   position: number;
   name: string;
@@ -63,10 +87,12 @@ function standingsTable(rows: StandingRow[], caption: string): string {
     )
     .join("\n");
 
+  // Iste skracenice kao u klijentskoj tabeli (StandingsTable.tsx, super-liga/page.tsx)
+  // — dosledno latinica, kao i ceo ostatak sajta.
   return `<table>
     <caption>${esc(caption)}</caption>
     <thead>
-      <tr><th>#</th><th>Klub</th><th>Утакмице</th><th>П</th><th>Н</th><th>И</th><th>Голови</th><th>Гол разлика</th><th>Бодови</th></tr>
+      <tr><th>#</th><th>Klub</th><th>U</th><th>P</th><th>N</th><th>I</th><th>Golovi</th><th>GR</th><th>Bod</th></tr>
     </thead>
     <tbody>${body}</tbody>
   </table>`;
@@ -85,7 +111,7 @@ function matchesList(rows: MatchRow[], title: string): string {
   const items = rows
     .map(
       (m) =>
-        `<li>${m.round !== undefined ? `${esc(m.round)}. коло — ` : ""}${esc(m.date)}: ${esc(m.home)} ${
+        `<li>${m.round !== undefined ? `${esc(m.round)}. kolo — ` : ""}${esc(m.date)}: ${esc(m.home)} ${
           m.score ? esc(m.score) : "—"
         } ${esc(m.away)}</li>`,
     )
@@ -103,7 +129,7 @@ interface ScorerRow {
 function scorersList(rows: ScorerRow[], title: string): string {
   if (!rows.length) return "";
   const items = rows
-    .map((s) => `<li>${s.rank}. ${esc(s.name)} (${esc(s.club)}) — ${esc(s.goals)} гол.</li>`)
+    .map((s) => `<li>${s.rank}. ${esc(s.name)} (${esc(s.club)}) — ${esc(s.goals)} gol.</li>`)
     .join("\n");
   return `<section><h2>${esc(title)}</h2><ol>${items}</ol></section>`;
 }
@@ -199,8 +225,8 @@ export async function prviTimBody(): Promise<string> {
         .map(
           (p) =>
             `<li>#${p.number} ${esc(p.name)}${p.nationality ? ` (${esc(p.nationality)})` : ""}${
-              p.appearances != null ? ` — ${p.appearances} утакмица` : ""
-            }${p.goals != null ? `, ${p.goals} голова` : ""}</li>`,
+              p.appearances != null ? ` — ${p.appearances} utakmica` : ""
+            }${p.goals != null ? `, ${p.goals} golova` : ""}</li>`,
         )
         .join("\n");
       return `<section><h2>${esc(position)}</h2><ul>${items}</ul></section>`;
@@ -359,7 +385,7 @@ export async function analitikaRivalaBody(): Promise<string> {
 
   return `<h1>Analitika rivala — ${esc(a.home)} : ${esc(a.away)}</h1>
     <p>Analiza pred ${esc(a.roundNumber)}. kolo: međusobni duel ${esc(a.home)} i ${esc(a.away)}.</p>
-    <section><h2>Međusobni duели (H2H)</h2>
+    <section><h2>Međusobni duel (H2H)</h2>
       <ul>
         <li>Odigrano: ${a.h2hTotalPlayed}</li>
         <li>Pobede ${esc(a.home)}: ${a.h2hHomeWins}</li>
@@ -378,9 +404,11 @@ export async function vestiListBody(): Promise<string> {
     select: { id: true, title: true, excerpt: true, category: true, date: true },
   });
 
+  // newsListMarkup ide direktno na h3 (bez omotaca ovde bi to bio h1 -> h3
+  // preskok, tacno nalaz koji je audit prijavio za ovu rutu).
   return `<h1>Vesti</h1>
     <p>Najnovije vesti FK Mladost Lučani — izveštaji sa utakmica, najave, transferi i dešavanja u klubu.</p>
-    ${newsListMarkup(items)}`;
+    <section><h2>Sve vesti</h2>${newsListMarkup(items)}</section>`;
 }
 
 export async function dokumentaBody(): Promise<string> {
@@ -426,7 +454,7 @@ export async function cmsPageBody(slug: string, title: string, lead: string): Pr
   const page = await db.page.findFirst({ where: { slug, published: true } });
   return `<h1>${esc(title)}</h1>
     <p>${esc(lead)}</p>
-    ${page ? page.content : ""}`;
+    ${page ? normalizeCmsHeadings(page.content) : ""}`;
 }
 
 /** Kontakt — statican sadrzaj, nema CMS zapis. */

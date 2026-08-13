@@ -192,6 +192,32 @@ export function truncate(text: string, max = 160): string {
   return (lastSpace > max * 0.6 ? cut.slice(0, lastSpace) : cut).trimEnd() + "…";
 }
 
+/**
+ * Prag ispod kog se opis smatra "thin content" — vidi istoimenu funkciju u
+ * server/src/seo/meta.ts, ova mora da racuna isto da bi se meta tag poklopio
+ * pri SPA navigaciji sa onim koji je server vec poslao.
+ */
+const MIN_DESCRIPTION_LENGTH = 70;
+
+/**
+ * Meta opis vesti. Kad je excerpt kratak, dopunjuje se cinjenicama koje vec
+ * postoje u bazi (kategorija, naziv kluba) — ne izmislja se nista o samoj
+ * vesti, samo se doda kontekst koji stranica realno ima.
+ */
+export function articleDescription(article: {
+  excerpt: string;
+  content?: string | null;
+  category: string;
+}): string {
+  const summary = stripHtml(article.excerpt) || stripHtml(article.content ?? "") || "";
+  if (summary.length >= MIN_DESCRIPTION_LENGTH) return truncate(summary, 160);
+
+  const padded = summary
+    ? `${summary} Pročitajte celu vest iz kategorije ${article.category} na sajtu ${SITE.name}.`
+    : `Vest iz kategorije ${article.category} na sajtu ${SITE.name}.`;
+  return truncate(padded, 160);
+}
+
 function absolute(pathOrUrl: string): string {
   if (/^https?:\/\//i.test(pathOrUrl)) return pathOrUrl;
   return `${SITE.url}${pathOrUrl.startsWith("/") ? "" : "/"}${pathOrUrl}`;

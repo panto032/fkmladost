@@ -505,15 +505,35 @@ export function staticRouteHead(pathname: string, route: RouteMeta): HeadMeta {
   };
 }
 
+/**
+ * Prag ispod kog se opis smatra "thin content" — excerpt-ovi u bazi su cesto
+ * pisani kao naslovi ("Plavo-beli otpočeli pripreme", 28 znakova), ne kao
+ * rezimei, pa cesto padaju ispod ovoga.
+ */
+const MIN_DESCRIPTION_LENGTH = 70;
+
+/**
+ * Meta opis vesti. Kad je excerpt kratak, dopunjuje se cinjenicama koje vec
+ * postoje u bazi (kategorija, naziv kluba) — ne izmislja se nista o samoj
+ * vesti, samo se doda kontekst koji stranica realno ima.
+ */
+function articleDescription(article: ArticleData): string {
+  const summary = stripHtml(article.excerpt) || stripHtml(article.content ?? "") || "";
+  if (summary.length >= MIN_DESCRIPTION_LENGTH) return truncate(summary, 160);
+
+  const padded = summary
+    ? `${summary} Pročitajte celu vest iz kategorije ${article.category} na sajtu ${SITE.name}.`
+    : `Vest iz kategorije ${article.category} na sajtu ${SITE.name}.`;
+  return truncate(padded, 160);
+}
+
 /** Meta za pojedinacnu vest. */
 export function articleHead(article: ArticleData): HeadMeta {
   const canonical = `${SITE.url}${newsPath(article.id, article.title)}`;
-  const summary =
-    stripHtml(article.excerpt) || stripHtml(article.content ?? "") || "";
 
   return {
     title: truncate(`${article.title}${BRAND}`, 70),
-    description: truncate(summary, 160),
+    description: articleDescription(article),
     canonical,
     image: articleImageUrl(article),
     imageAlt: article.title,

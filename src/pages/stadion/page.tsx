@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton.tsx";
 import Header from "../home/_components/Header.tsx";
 import Footer from "../home/_components/Footer.tsx";
+import { normalizeCmsHeadings } from "@/lib/cmsContent.ts";
 
 /* ─── Key facts displayed as cards ─── */
 const KEY_FACTS = [
@@ -167,14 +168,18 @@ export default function StadionPage() {
 
 /* ─── Render rich content with custom section styling ─── */
 function StadionContent({ html }: { html: string }) {
+  // Naslovi se poravnaju PRE deljenja na <section> blokove — nivoi moraju da
+  // budu tacni preko celog sadrzaja, ne po komadu.
+  const normalized = normalizeCmsHeadings(html);
+
   // Split by <section> tags to render each section with unique styling
   const parser = new DOMParser();
-  const doc = parser.parseFromString(html, "text/html");
+  const doc = parser.parseFromString(normalized, "text/html");
   const sections = doc.querySelectorAll("section[data-section]");
 
   if (sections.length === 0) {
     // Fallback: render as plain prose
-    return <div className="prose-page" dangerouslySetInnerHTML={{ __html: html }} />;
+    return <div className="prose-page" dangerouslySetInnerHTML={{ __html: normalized }} />;
   }
 
   const sectionElements: React.ReactNode[] = [];
