@@ -64,8 +64,7 @@ export default function Header() {
                 uskim ekranima tekst ne gura dugme menija.
               */}
               <span
-                className="text-lg sm:text-2xl font-bold uppercase tracking-wide leading-none text-white drop-shadow-[0_1px_8px_rgba(0,0,0,0.4)] truncate"
-                style={{ fontFamily: "'Inter', sans-serif" }}
+                className="font-sans text-lg sm:text-2xl font-bold uppercase tracking-wide leading-none text-white drop-shadow-[0_1px_8px_rgba(0,0,0,0.4)] truncate"
               >
                 FK Mladost
               </span>

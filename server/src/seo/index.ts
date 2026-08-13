@@ -28,6 +28,7 @@ import {
   notFoundHead,
   type ArticleData,
 } from "./meta.js";
+import { routeBody, articleBody, fallbackBody } from "./body.js";
 
 // ── robots.txt i sitemap.xml ──────────────────────────────────────────
 
@@ -127,6 +128,8 @@ function escapeXml(value: string): string {
 
 const SEO_START = "<!--seo-->";
 const SEO_END = "<!--/seo-->";
+const SSR_START = "<!--ssr-->";
+const SSR_END = "<!--/ssr-->";
 
 /** Putanje koje nikad nisu HTML dokument. */
 const NON_DOCUMENT_PREFIXES = ["/api/", "/uploads/", "/assets/", "/@", "/node_modules/"];
@@ -165,9 +168,35 @@ export async function registerHtmlSeo(app: FastifyInstance, clientDistPath: stri
   }
 
   const prefix = template.slice(0, start + SEO_START.length);
-  const suffix = template.slice(end);
+  const afterHead = template.slice(end);
 
-  const render = (head: string) => `${prefix}\n    ${head}\n    ${suffix}`;
+  // <!--ssr--> markeri su unutar <div id="root">, posle <!--seo--> bloka.
+  const ssrStart = afterHead.indexOf(SSR_START);
+  const ssrEnd = afterHead.indexOf(SSR_END);
+  const ssrAvailable = ssrStart !== -1 && ssrEnd !== -1 && ssrEnd > ssrStart;
+  if (!ssrAvailable) {
+    app.log.error(
+      "SEO: markeri <!--ssr--> nisu pronadjeni u index.html — injekcija sadrzaja iskljucena, meta tagovi i dalje rade",
+    );
+  }
+
+  const midBeforeSsr = ssrAvailable ? afterHead.slice(0, ssrStart + SSR_START.length) : afterHead;
+  const tailAfterSsr = ssrAvailable ? afterHead.slice(ssrEnd) : "";
+
+  const render = (head: string, body = "") =>
+    ssrAvailable
+      ? `${prefix}\n    ${head}\n    ${midBeforeSsr}${body}${tailAfterSsr}`
+      : `${prefix}\n    ${head}\n    ${midBeforeSsr}`;
+
+  /** routeBody/articleBody citaju bazu — greska tu ne sme da obori citav odgovor. */
+  async function safeBody(build: () => Promise<string>, fallback: string): Promise<string> {
+    try {
+      return await build();
+    } catch (err) {
+      app.log.error({ err }, "SEO: neuspesna izgradnja SSR sadrzaja — koristim fallback");
+      return fallback;
+    }
+  }
 
   app.addHook("onRequest", async (request, reply) => {
     if (request.method !== "GET" && request.method !== "HEAD") return;
@@ -184,7 +213,11 @@ export async function registerHtmlSeo(app: FastifyInstance, clientDistPath: stri
 
     const staticRoute = ROUTES[pathname];
     if (staticRoute) {
-      return send(reply, render(renderHead(staticRouteHead(pathname, staticRoute))), 200);
+      const body = await safeBody(
+        () => routeBody(pathname, staticRoute),
+        fallbackBody(staticRoute.title, staticRoute.description),
+      );
+      return send(reply, render(renderHead(staticRouteHead(pathname, staticRoute)), body), 200);
     }
 
     const newsId = parseNewsId(pathname);
@@ -202,12 +235,16 @@ export async function registerHtmlSeo(app: FastifyInstance, clientDistPath: stri
         return reply.redirect(canonical, 301);
       }
 
-      return send(reply, render(renderHead(articleHead(article))), 200);
+      return send(reply, render(renderHead(articleHead(article)), articleBody(article)), 200);
     }
 
     // Nepoznata ruta — SPA prikazuje 404 stranicu, a mi vracamo i pravi
     // HTTP 404 da Google ovo ne tretira kao "soft 404".
-    return send(reply, render(renderHead(notFoundHead(pathname))), 404);
+    return send(
+      reply,
+      render(renderHead(notFoundHead(pathname)), fallbackBody("Stranica nije pronađena", "Tražena stranica ne postoji na sajtu FK Mladost Lučani.")),
+      404,
+    );
   });
 
   app.log.info({ routes: Object.keys(ROUTES).length }, "SEO: injekcija meta tagova aktivna");

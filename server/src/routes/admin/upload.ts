@@ -4,6 +4,15 @@ import { config } from "../../config.js";
 import path from "path";
 import fs from "fs/promises";
 import crypto from "crypto";
+import sharp from "sharp";
+
+// Fotografije sa telefona/foto-aparata cesto stizu na 3000-4000px sirine i po
+// nekoliko MB — na sajtu se nikad ne prikazuju vece od hero sekcije. PageSpeed
+// je bas ovakve slike flagovao ("Improve image delivery", "Avoid enormous
+// network payloads"). Zato se ovde smanjuju/kompresuju pre cuvanja; gif i svg
+// se ne diraju (animacija bi pukla / vec je vektor pa je sitan).
+const RESIZABLE_EXT = new Set([".jpg", ".jpeg", ".png", ".webp"]);
+const MAX_WIDTH = 1920;
 
 export async function uploadRoutes(app: FastifyInstance) {
   app.addHook("preHandler", authenticate);
@@ -23,7 +32,24 @@ export async function uploadRoutes(app: FastifyInstance) {
 
     await fs.mkdir(config.uploadDir, { recursive: true });
 
-    const buffer = await data.toBuffer();
+    let buffer = await data.toBuffer();
+
+    if (RESIZABLE_EXT.has(ext)) {
+      try {
+        const image = sharp(buffer).rotate(); // rotate() bez argumenata: primeni EXIF orijentaciju
+        const resized = image.resize({ width: MAX_WIDTH, withoutEnlargement: true });
+        buffer =
+          ext === ".png"
+            ? await resized.png({ compressionLevel: 9 }).toBuffer()
+            : ext === ".webp"
+              ? await resized.webp({ quality: 82 }).toBuffer()
+              : await resized.jpeg({ quality: 82, mozjpeg: true }).toBuffer();
+      } catch (err) {
+        // Nevalidna/oštećena slika — sacuvaj original umesto da zahtev padne.
+        app.log.warn({ err, filename: data.filename }, "upload: neuspesna optimizacija slike, cuvam original");
+      }
+    }
+
     await fs.writeFile(filePath, buffer);
 
     return {

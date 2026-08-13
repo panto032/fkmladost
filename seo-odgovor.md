@@ -1,0 +1,1 @@
+b637ce38 · Provereno uživo (13.8.2026): https://fkmladostlucani.com/vesti/3 vraća 301 na https://fkmladostlucani.com/vesti/3-mladost-zavrsila-drugu-fazu-priprema, tačan canonical je i u sirovom HTML-u. Redirekcija postoji u kodu od 29.7.2026 (server/src/seo/index.ts, parseNewsId + newsPath). GSC nalaz je zasnovan na lastCrawlTime 15.6.2026 — pre te izmene.

@@ -153,6 +153,8 @@ export default function Footer() {
               src="/msls-logo.png"
               alt="Mozzart Bet SuperLiga"
               className="h-10 object-contain"
+              width="612"
+              height="110"
               loading="lazy"
               decoding="async"
             />
@@ -161,6 +163,8 @@ export default function Footer() {
               src="/zajednica-logo.png"
               alt="Zajednica SuperLige i Prve Lige"
               className="h-24 object-contain brightness-0 invert opacity-70"
+              width="800"
+              height="320"
               loading="lazy"
               decoding="async"
             />
@@ -169,6 +173,8 @@ export default function Footer() {
               src="/mts-logo.svg"
               alt="mts"
               className="h-14 object-contain"
+              width="1000"
+              height="505"
               loading="lazy"
               decoding="async"
             />

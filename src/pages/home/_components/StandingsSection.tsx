@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
 import { standingsApi } from "@/lib/api.ts";
 import { ArrowRight } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton.tsx";
@@ -29,9 +30,20 @@ export default function StandingsSection() {
           Tabela{" "}
           <span className="text-accent ml-2">Superlige</span>
         </h3>
-        <button className="hidden sm:flex items-center text-accent font-semibold hover:text-accent/80 transition-colors text-sm bg-secondary px-4 py-2 rounded-full border border-border">
+        {/*
+          Ranije obican <button> bez onClick-a — nije nikuda vodio, ni za
+          korisnike ni za Google. "младост табела" upit se takmiči između
+          naslovne (mini-pregled) i /super-liga (kompletna tabela); pravi link
+          i signalizira Google-u koja je od te dve glavna, i radi za korisnike.
+          Vidljiv na svim sirinama (bio je hidden na mobilnom, gde Google
+          prvenstveno indeksira).
+        */}
+        <Link
+          to="/super-liga"
+          className="flex items-center text-accent font-semibold hover:text-accent/80 transition-colors text-sm bg-secondary px-4 py-2 rounded-full border border-border"
+        >
           Kompletna tabela <ArrowRight size={14} className="ml-1" />
-        </button>
+        </Link>
       </div>
 
       {isLoading ? (
