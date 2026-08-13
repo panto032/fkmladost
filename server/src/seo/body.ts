@@ -457,6 +457,30 @@ export async function cmsPageBody(slug: string, title: string, lead: string): Pr
     ${page ? normalizeCmsHeadings(page.content) : ""}`;
 }
 
+/**
+ * Istorijat omladinske skole — staticni tekst, nema CMS zapis (vidi
+ * src/pages/omladinska-skola/page.tsx). Ranije je ova ruta pogresno isla
+ * kroz cmsPageBody(), koja trazi Page zapis sa slug-om "omladinska-skola" —
+ * on ne postoji jer stranica nikad nije bila CMS-vezana, pa je crawler uvek
+ * dobijao samo naslov + uvodnu recenicu ("thin content" nalaz). Tekst ispod
+ * je prepisan iz klijentske stranice.
+ */
+export function omladinskaSkolaBody(): string {
+  const paragraphs = [
+    'Na inicijativu fudbalskog saveza sa sedištem u Čačku 1962. godine, oformljen je omladinski pogon FK "Mladost". Sekretar kluba Vasović Vujadin je prema preporuci i samom uviđaju okupio dečake iz varošice i okolnih sela i registrovao ih u savezu u Čačku.',
+    'Prva prijateljska utakmica odigrana je u leto 1962. g. u Čačku na stadionu FK Borac, sa FK "Borcem" koji je tada trenirao čuveni trener Dragan Bojović "Patak", i rezultat je bio 7:2 za FK "Borac". Kapiten te prve ekipe je bio Radoš Milovanović, a trener ekipe Bogoljub Janićijević "Bule". Ispostavilo se da je ta ekipa postala okosnica budućeg napredka koji je dosegao do grupe jug Srpske lige tadašnje Jugoslavije i Prve Srpske lige. Igrači iz te generacije su Radoš Milovanović, Radosav Ćebić, Vladan Jevđović, Petar Jakovljević i drugi.',
+    'Generacija rođena 1952. i 1953. godine pod vođstvom trenera Siniše Brkovića, imala je velike uspehe pa je sa reprezentacijom Srbije koja je 1971. god. bila na pripremama u Lučanima igrala 2:2, i iz te generacije je i Tadić koji je godinama bio glavni oslonac FK "Borac" iz Čačka i reprezentativac mlade reprezentacije, Zoran Đenadić okosnica prvog tima, Grujičić Ljubo dugogodišnji igrač Mladosti, Slobode i Majdanpeka. Iz sledećih generacija koje su prošle omladinsku školu Mladosti iz Lučana, izašli su igrači koji su obeležili uspehe FK Mladosti i to: Mićo Lugonja, Petar Karajičić, Dragoslav Zlatić, Milan Simeunović, Dragan Janićijević koji je igrao u FK "Borcu" i OFK "Beograd". Trener te generacije je bio Stevan Krasojević.',
+    'U sezoni 1985/1986. generacija rođena 1968. i 1969. godine postigla je do tada najveći uspeh osvojivši prvo mesto u ligi Čačak-Užice i Kraljevo i na turniru u Lučanima kvalifikovala se u najvišu ligu Srbije. U toj ekipi igrali su Dragan Janković, Nenad Milovanović, Nenad Nikolić i drugi. Ova ekipa pojačana sa igračima Predragom Plazinićem, Radojkom Pantelićem i drugim, igrala je zapaženu ulogu u eliti gde su se takmičili Crvena Zvezda, Partizan, OFK Beograd i drugi elitni takmičari, i ovu ekipu je vodio iskusni trener Siniša Brković.',
+    'Igrači Nenad Milovanović, Dejan Nikolić, Predrag Plazinić, Radojko Pantelić i drugi su kao prvotimci dostigli vrhunac i ulazak u drugu saveznu ligu, a zatim u ligu Srbija-Crna Gora. Iz mlade selekcije izašla su i poznata imena Vladimir Matijašević i Igor Dimitrijević, kao i standardni prvotimac Uroš Stamatović, Dejan Stojanović i Radoica Vasić koji je postao sinonim Mladosti.',
+    'Posle izvesnih problema i dugogodišnjeg igranja u eliti, klub je nastavio takmičenje u Zapadnoj Srbiji. U sezoni 2001/2002. godine pod vođstvom trenera Zorana Perkovića klub se ponovo vraća u najviši stepen takmičenja, a u toj generaciji su bili Nenad Novaković, Ivan Milošević, Dragan Ćirjaković i drugi. Iz ove generacije Ivan Milošević je postigao veliki uspeh — igranje u prvom timu i angažman u inostranstvu.',
+    'Klub se sada sa uspehom takmiči u ligi Zapadne Srbije pod vođstvom trenera Dejana Vasilića. Pored omladinskog pogona, klub poseduje kadete koji se takmiče u Zapadnoj Srbiji, pionire i petliće koji se takmiče u ligi Moravičkog okruga.',
+  ];
+
+  return `<h1>Omladinska škola</h1>
+    <p>Od 1962. godine, omladinska škola FK "Mladost" je rasadnik talenata koji su obeležili istoriju kluba i srpskog fudbala.</p>
+    ${paragraphs.map((p) => `<p>${esc(p)}</p>`).join("\n")}`;
+}
+
 /** Kontakt — statican sadrzaj, nema CMS zapis. */
 export function kontaktBody(): string {
   return `<h1>Kontakt</h1>
@@ -536,11 +560,7 @@ export async function routeBody(
     case "/istorija-kluba":
       return cmsPageBody("istorija-kluba", "Istorija kluba", "Istorijat FK Mladost Lučani od 1952. godine.");
     case "/omladinska-skola":
-      return cmsPageBody(
-        "omladinska-skola",
-        "Omladinska škola",
-        "Selekcije po uzrastu, treneri i način upisa mladih fudbalera.",
-      );
+      return omladinskaSkolaBody();
     case "/stadion":
       return cmsPageBody(
         "stadion",
