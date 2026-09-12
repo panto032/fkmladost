@@ -5,6 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <!--
+      Google tag (gtag.js) — mora da stoji VAN <!==seo==> bloka ispod, iz istog
+      razloga kao google-site-verification: server taj blok zamenjuje po ruti
+      pri svakom zahtevu, pa bi se tag ubacio samo na naslovnu. Ucitava se
+      async pa ne blokira render (SEO brief je LCP flagovao kao problem).
+    -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-DYG7V57FMP"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-DYG7V57FMP');
+    </script>
+
+    <!--
       SEO blok. U produkciji server zamenjuje sve izmedju <!==seo==> markera
       sadrzajem specificnim za rutu (vidi server/src/seo.ts), tako da i crawleri
       koji ne izvrsavaju JavaScript (Facebook, Viber, WhatsApp) vide tacne
