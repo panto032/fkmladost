@@ -163,20 +163,29 @@ export async function homeBody(): Promise<string> {
     db.match.findFirst({ where: { type: "next" } }),
   ]);
 
+  // Nekoliko fraza koje Google vec pokazuje za naslovnu (SEO brief,
+  // phrase_missing) — prirodno, u okviru stvarnog sadrzaja stranice, ne
+  // nabijanjem. Svaka recenica je iskorisna sama po sebi, fraza je samo
+  // dodatni razlog za redosled reci. Redosled reci u frazama je bitan, pa su
+  // neke varijante (obrnut red, ili vezane za protivnika koji se menja iz
+  // kola u kolo) namerno izostavljene — vidi seo-odgovor.md.
   const parts: string[] = [
     `<h1>${esc(SITE.name)}</h1>`,
-    `<p>Zvanični sajt FK Mladost Lučani — Super liga Srbije. Vesti, rezultati, tabela, raspored utakmica i sve o plavo-belima iz Lučana. Tradicija od 1952.</p>`,
+    `<p>Zvanični sajt FK Mladost Lučani — Fudbalski klub Mladost Lučani (u pojedinim izvorima i Lučani Mladost, FK Lučani) iz Lučana. Vesti, rezultati, tabela, raspored utakmica i sve o plavo-belima. Tradicija od 1952.</p>`,
   ];
 
   if (nextMatch) {
     parts.push(
-      `<section><h2>Naredna utakmica</h2><p>${esc(nextMatch.home)} — ${esc(nextMatch.away)}, ${esc(
+      `<section><h2>FK Mladost Lučani — utakmice</h2><p>${esc(nextMatch.home)} — ${esc(nextMatch.away)}, ${esc(
         nextMatch.date,
       )} ${esc(nextMatch.time)}, ${esc(nextMatch.stadium)} (${esc(nextMatch.competition)})</p></section>`,
     );
   }
 
   if (standings.length) {
+    const us = standings.find((s) => s.isHighlighted);
+
+    parts.push(`<p>Mladost — tabela</p>`);
     parts.push(
       standingsTable(
         standings.map((s) => ({
@@ -192,9 +201,12 @@ export async function homeBody(): Promise<string> {
           pts: s.points,
           highlighted: s.isHighlighted,
         })),
-        "Tabela Super lige Srbije",
+        "FK Mladost Lučani — tabela Super lige Srbije",
       ),
     );
+    if (us) {
+      parts.push(`<p>Mladost Lučani — poredak: ${us.position}. mesto sa ${us.points} bodova.</p>`);
+    }
     // Direktan link ka /super-liga razdvaja ciljanje upita "tabela" — na
     // naslovnoj je ovo samo mini-pregled, kompletna/azurna tabela zivi tamo.
     parts.push(`<p>${link("/super-liga", "Kompletna tabela Super lige, raspored i rezultati →")}</p>`);
@@ -203,6 +215,24 @@ export async function homeBody(): Promise<string> {
   if (news.length) {
     parts.push(`<section><h2>Najnovije vesti</h2>${newsListMarkup(news)}</section>`);
   }
+
+  // Brzi linkovi ka podstranicama koje su specificnije za pojedine upite
+  // (SEO brief, query_cannibalization: "mladost lucani omladinci" i "trener
+  // mladost lucani" se takmice izmedju naslovne i ovih dveju strana — ovo je
+  // interni link koji naslovnoj daje razlog da postoji, a onoj drugoj signal
+  // da je ona glavna za taj upit).
+  parts.push(`<section><h2>Klub</h2>
+    <ul>
+      <li>${link("/strucni-stab", "Trener Mladost Lučani i stručni štab")}</li>
+      <li>${link("/omladinska-liga", "Mladost Lučani omladinci — Omladinska liga Srbije")}</li>
+    </ul>
+  </section>`);
+
+  // Kratka engleska recenica za stranu publiku (dijaspora, mediji) — jedina
+  // od vise slicnih varijanti iz brief-a koju je vredelo dodati (najveci
+  // broj impresija u toj maloj grupi); ostale (standings/table/fc) bi
+  // zahtevale jos par gotovo identicnih recenica — vidi seo-odgovor.md.
+  parts.push(`<p>Mladost Lučani games, results and table — FK Mladost Lučani, Serbian Super League club from Lučani.</p>`);
 
   return parts.join("\n");
 }
@@ -233,8 +263,8 @@ export async function prviTimBody(): Promise<string> {
     })
     .join("\n");
 
-  return `<h1>Prvi tim FK Mladost Lučani</h1>
-    <p>Kompletan spisak igrača prvog tima sa brojevima dresova, pozicijama i statistikom u sezoni Super lige Srbije.</p>
+  return `<h1>Prvi tim — igrači FK Mladost Lučani</h1>
+    <p>Mladost Lučani igrači po pozicijama, sa brojevima dresova i statistikom tekuće sezone Super lige Srbije.</p>
     ${sections}`;
 }
 
@@ -248,7 +278,7 @@ export async function superLigaBody(): Promise<string> {
   const upcoming = matches.filter((m) => !m.score);
 
   return `<h1>Super liga Srbije — tabela i rezultati</h1>
-    <p>Aktuelna tabela Super lige Srbije, raspored i rezultati utakmica FK Mladost Lučani u najvišem rangu srpskog fudbala.</p>
+    <p>Aktuelna tabela Super lige Srbije, raspored i rezultati utakmica FK Mladost Lučani u najvišem rangu srpskog fudbala. Mladost Lučani tablice se ažuriraju posle svakog kola.</p>
     ${standingsTable(
       standings.map((s) => ({
         position: s.position,
@@ -378,13 +408,51 @@ export async function najavaKolaBody(): Promise<string> {
     <ul>${items}</ul>`;
 }
 
+/** Cita niz objekata iz Prisma Json kolone; nevalidan/nepoznat oblik -> prazan niz. */
+function asArray<T>(value: unknown): T[] {
+  return Array.isArray(value) ? (value as T[]) : [];
+}
+
+/**
+ * matchAnalytics ima mnogo vise od H2H zbira — teamStats/previousMatches/
+ * homeForm/awayForm su vec u bazi (isti podaci koje klijent prikazuje), ali
+ * ranije ih ovaj SSR sadrzaj uopste nije koristio, pa je strana bila "thin
+ * content" iako baza ima pun izvestaj. Sad se sve to prepisuje ovde.
+ */
 export async function analitikaRivalaBody(): Promise<string> {
   const a = await db.matchAnalytics.findFirst({ orderBy: { roundNumber: "desc" } });
   if (!a)
     return `<h1>Analitika rivala</h1><p>Detaljna analiza narednog protivnika FK Mladost Lučani: međusobni dueli, forma timova i statistika sezone.</p>`;
 
+  const teamStats = asArray<{ label: string; homeValue: string; awayValue: string }>(a.teamStats);
+  const previousMatches = asArray<{ date: string; homeTeam: string; awayTeam: string; score: string }>(
+    a.previousMatches,
+  );
+  const homeForm = asArray<{ date: string; result: string; score: string; teams: string }>(a.homeForm);
+  const awayForm = asArray<{ date: string; result: string; score: string; teams: string }>(a.awayForm);
+
+  const statsSection = teamStats.length
+    ? `<section><h2>Statistika timova</h2><ul>${teamStats
+        .map((s) => `<li>${esc(s.label)}: ${esc(a.home)} ${esc(s.homeValue)} — ${esc(a.away)} ${esc(s.awayValue)}</li>`)
+        .join("\n")}</ul></section>`
+    : "";
+
+  const previousSection = previousMatches.length
+    ? `<section><h2>Prethodni susreti</h2><ul>${previousMatches
+        .map((m) => `<li>${esc(m.date)}: ${esc(m.homeTeam)} ${esc(m.score)} ${esc(m.awayTeam)}</li>`)
+        .join("\n")}</ul></section>`
+    : "";
+
+  const formSection = (team: string, form: typeof homeForm) =>
+    form.length
+      ? `<section><h2>Forma — ${esc(team)}</h2><ul>${form
+          .map((f) => `<li>${esc(f.date)}: ${esc(f.teams)} ${esc(f.score)} (${esc(f.result)})</li>`)
+          .join("\n")}</ul></section>`
+      : "";
+
   return `<h1>Analitika rivala — ${esc(a.home)} : ${esc(a.away)}</h1>
     <p>Analiza pred ${esc(a.roundNumber)}. kolo: međusobni duel ${esc(a.home)} i ${esc(a.away)}.</p>
+    ${statsSection}
     <section><h2>Međusobni duel (H2H)</h2>
       <ul>
         <li>Odigrano: ${a.h2hTotalPlayed}</li>
@@ -393,7 +461,10 @@ export async function analitikaRivalaBody(): Promise<string> {
         <li>Pobede ${esc(a.away)}: ${a.h2hAwayWins}</li>
         <li>Golovi: ${a.h2hHomeGoals}:${a.h2hAwayGoals}</li>
       </ul>
-    </section>`;
+    </section>
+    ${previousSection}
+    ${formSection(a.home, homeForm)}
+    ${formSection(a.away, awayForm)}`;
 }
 
 export async function vestiListBody(): Promise<string> {
@@ -481,16 +552,25 @@ export function omladinskaSkolaBody(): string {
     ${paragraphs.map((p) => `<p>${esc(p)}</p>`).join("\n")}`;
 }
 
-/** Kontakt — statican sadrzaj, nema CMS zapis. */
+/**
+ * Kontakt — statican sadrzaj, nema CMS zapis. Prepisano iz kontakt/page.tsx
+ * (CONTACT_INFO) — radno vreme i mobilni telefon ranije nisu bili ovde, pa je
+ * strana bila znatno siromasnija za crawler nego sto stvarno jeste za
+ * korisnika.
+ */
 export function kontaktBody(): string {
   return `<h1>Kontakt</h1>
-    <p>Kontaktirajte FK Mladost Lučani.</p>
+    <p>Kontaktirajte FK Mladost Lučani — adresa, telefon, e-mail i kontakt forma za opšta pitanja, saradnju, sponzorstvo i akreditacije medija.</p>
     <address>
       ${esc(SITE.street)}, ${esc(SITE.postalCode)} ${esc(SITE.city)}, Srbija<br/>
       ${esc(SITE.stadium)}<br/>
       Tel: ${esc(SITE.phone)}<br/>
+      Mobilni: ${esc(SITE.mobilePhone)}<br/>
       E-mail: ${esc(SITE.email)}
-    </address>`;
+    </address>
+    <section><h2>Radno vreme</h2>
+      <p>Ponedeljak — petak: 09:00 — 17:00<br/>Vikend: zatvoreno</p>
+    </section>`;
 }
 
 const STAFF: Array<{ name: string; role: string; category: string }> = [
@@ -508,8 +588,11 @@ const STAFF: Array<{ name: string; role: string; category: string }> = [
 /** Strucni stab — statican spisak, nema CMS zapis (vidi src/pages/strucni-stab/page.tsx). */
 export function strucniStabBody(): string {
   const items = STAFF.map((s) => `<li>${esc(s.name)} — ${esc(s.role)} (${esc(s.category)})</li>`).join("\n");
+  // Dve recenice, obrnut red reci u svakoj — "trener mladost lucani" i
+  // "mladost lucani trener" su odvojeni upiti (SEO brief).
   return `<h1>Stručni štab</h1>
-    <p>Trener, pomoćni treneri i kompletan stručni štab prvog tima FK Mladost Lučani.</p>
+    <p>Trener Mladost Lučani i kompletan stručni štab prvog tima FK Mladost Lučani — pomoćni treneri, trener golmana i medicinski tim.</p>
+    <p>Mladost Lučani trener i stručni tim brinu o pripremi prvog tima kroz sezonu Super lige Srbije.</p>
     <ul>${items}</ul>`;
 }
 
@@ -565,7 +648,13 @@ export async function routeBody(
       return cmsPageBody(
         "stadion",
         'Stadion SRC "mr Radoš Milovanović"',
-        "Dom FK Mladost Lučani od 1952. godine.",
+        // Dve varijante redosleda reci ("Mladost Lučani stadion" i "Stadion
+        // Mladost Lučani") u istoj recenici — SEO brief trazi oba, prirodno
+        // stane kao objasnjenje alternativnog naziva. Obrnute dvoreci
+        // varijante bez "Mladost" ("Lučani stadion" / "stadion Lučani") su
+        // namerno izostavljene, previse su neprirodne za pravu recenicu —
+        // vidi seo-odgovor.md.
+        "Mladost Lučani stadion, poznat i kao Stadion Mladost Lučani, dom je FK Mladost Lučani od 1952. godine.",
       );
     case "/kontakt":
       return kontaktBody();

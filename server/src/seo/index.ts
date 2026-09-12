@@ -134,12 +134,28 @@ const SSR_END = "<!--/ssr-->";
 /** Putanje koje nikad nisu HTML dokument. */
 const NON_DOCUMENT_PREFIXES = ["/api/", "/uploads/", "/assets/", "/@", "/node_modules/"];
 
+/**
+ * Prave staticke ekstenzije — sve ostalo sa "ekstenzijom" i dalje treba
+ * puno SEO/SSR tretiranje kao dokument. Ranije je ovde bio opsti regex
+ * /\.[a-z0-9]{2,5}$/ koji je greskom hvatao i ".html" — stari Joomla URL-ovi
+ * tipa /index.php/component/k2/item/62-...-3-2.html su zbog toga preskakali
+ * injekciju i padali na sirov fallback iz build-ovanog index.html (prazan
+ * #root, canonical na naslovnu) umesto na pravi 404 sa noindex. Google ih je
+ * zato drzao indeksirane sa praznim sadrzajem i pogresnim canonical-om.
+ */
+const STATIC_ASSET_EXTENSIONS = new Set([
+  "png", "jpg", "jpeg", "gif", "webp", "avif", "svg", "ico",
+  "css", "js", "mjs", "json", "xml", "txt",
+  "woff", "woff2", "ttf", "eot", "map",
+  "pdf", "mp4", "webm",
+]);
+
 function isDocumentRequest(pathname: string): boolean {
   if (NON_DOCUMENT_PREFIXES.some((p) => pathname.startsWith(p))) return false;
   if (pathname === "/health" || pathname === "/robots.txt" || pathname === "/sitemap.xml")
     return false;
-  // Sve sa ekstenzijom je staticki resurs (/logo.png, /assets/app-a1b2.js …)
-  if (/\.[a-z0-9]{2,5}$/i.test(pathname)) return false;
+  const ext = /\.([a-z0-9]{2,5})$/i.exec(pathname)?.[1]?.toLowerCase();
+  if (ext && STATIC_ASSET_EXTENSIONS.has(ext)) return false;
   return true;
 }
 
@@ -225,6 +241,15 @@ export async function registerHtmlSeo(app: FastifyInstance, clientDistPath: stri
       const article = await loadArticle(app, newsId);
 
       if (!article) {
+        // Goli numericki URL bez sluga (npr. /vesti/3) cija vest vise ne
+        // postoji u bazi — ostatak iz doba pre uvodjenja sluga, Google ih i
+        // dalje drzi u indeksu i donose impresije. Preusmeri na listu vesti
+        // umesto 404 — korisnije za posetioca, i Google prestaje da ga vodi
+        // kao mrtav link. Slugovani URL koji ne resava vest (konkretan,
+        // pokvaren link) i dalje ide na pravi 404.
+        if (pathname === `/vesti/${newsId}`) {
+          return reply.redirect("/vesti", 301);
+        }
         return send(reply, render(renderHead(notFoundHead(pathname))), 404);
       }
 

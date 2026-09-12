@@ -3,12 +3,19 @@ import { ChevronRight } from "lucide-react";
 export default function HeroSection() {
   return (
     <section className="relative bg-[oklch(0.30_0.055_252)] text-white pb-28 md:pb-36 -mt-20">
-      {/* Background image */}
+      {/* Background image — ovo je LCP element naslovne stranice. Ranije se
+          ucitavao sa images.unsplash.com (generican stock stadion, 2000px,
+          bez nase kontrole nad brzinom/kesiranjem) — PageSpeed ga je flagovao
+          i kao "improve image delivery" i kao "enormous network payload".
+          Nas stadion.jpg je vec optimizovan (1600px, ~120KB) i pravi je,
+          relevantniji sadrzaj. fetchPriority="high" jer je ovo LCP slika. */}
       <div className="absolute inset-0 overflow-hidden">
         <img
-          src="https://images.unsplash.com/photo-1574561937874-23dd3e64dc89?auto=format&fit=crop&q=80&w=2000"
-          alt="Stadion pozadina"
+          src="/stadion.jpg"
+          alt="Stadion FK Mladost Lučani"
           className="w-full h-full object-cover opacity-25"
+          fetchPriority="high"
+          decoding="async"
         />
         {/* Lighter gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-[oklch(0.28_0.05_252)]/70 via-[oklch(0.35_0.05_252)]/50 to-[oklch(0.40_0.04_228)]/80" />

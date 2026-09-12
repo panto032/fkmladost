@@ -24,6 +24,7 @@ export const SITE = {
   founded: "1952",
   email: "fkmladostlucani@gmail.com",
   phone: "+381 32 817-809",
+  mobilePhone: "+381 62 8088 628",
   street: "Mr Radoša Milovanovića bb",
   city: "Lučani",
   postalCode: "32240",
@@ -415,6 +416,8 @@ export interface HeadMeta {
   graph?: unknown[];
   /** article:* tagovi za vesti. */
   article?: { published: string; modified: string; section: string };
+  /** Ako je postavljeno, ubacuje <link rel="preload" as="image"> — za LCP sliku stranice. */
+  preloadImage?: string;
 }
 
 /** Gradi kompletan sadrzaj SEO bloka koji se ubacuje u index.html. */
@@ -430,6 +433,9 @@ export function renderHead(meta: HeadMeta): string {
     `<meta name="description" content="${attr(meta.description)}" />`,
     `<link rel="canonical" href="${attr(meta.canonical)}" />`,
     `<meta name="robots" content="${robots}" />`,
+    ...(meta.preloadImage
+      ? [`<link rel="preload" as="image" href="${attr(meta.preloadImage)}" fetchpriority="high" />`]
+      : []),
     ``,
     `<meta property="og:title" content="${attr(meta.title)}" />`,
     `<meta property="og:description" content="${attr(meta.description)}" />`,
@@ -502,6 +508,9 @@ export function staticRouteHead(pathname: string, route: RouteMeta): HeadMeta {
     ogType: "website",
     noindex: route.noindex,
     graph,
+    // Naslovna stranica ucitava sopstvenu hero pozadinu (stadion.jpg) kao LCP
+    // element — preload joj daje prednost u odnosu na CSS/JS otkrivanje.
+    preloadImage: pathname === "/" ? "/stadion.jpg" : undefined,
   };
 }
 
