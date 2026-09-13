@@ -250,6 +250,15 @@ export const adminNewsApi = {
     upload<{ fileName: string; url: string }>("/api/admin/upload", file),
 };
 
+export const adminUploadApi = {
+  // Sazima/kompresuje sve vec sacuvane slike u uploads/ istim pipeline-om
+  // koji se koristi za nove upload-e (server/src/routes/admin/upload.ts).
+  reoptimize: () =>
+    post<{ optimized: number; skipped: number; failed: number; savedBytes: number }>(
+      "/api/admin/upload/reoptimize",
+    ),
+};
+
 export const adminScrapeApi = {
   standings: () => post<ScrapeResult>("/api/admin/scrape/standings"),
   scrapeStandings: () => post<ScrapeResult>("/api/admin/scrape/standings"),

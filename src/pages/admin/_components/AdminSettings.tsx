@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { authApi } from "@/lib/api.ts";
+import { authApi, adminUploadApi } from "@/lib/api.ts";
 import { useAuth } from "@/hooks/use-auth.ts";
 import { toast } from "sonner";
-import { Shield, KeyRound, User } from "lucide-react";
+import { Shield, KeyRound, User, ImageDown } from "lucide-react";
 import { Button } from "@/components/ui/button.tsx";
 import { Input } from "@/components/ui/input.tsx";
 import { Label } from "@/components/ui/label.tsx";
@@ -25,6 +25,18 @@ export default function AdminSettings() {
     },
     onError: (err) =>
       toast.error(err instanceof Error ? err.message : "Greška pri promeni lozinke"),
+  });
+
+  const reoptimizeImages = useMutation({
+    mutationFn: () => adminUploadApi.reoptimize(),
+    onSuccess: (r) => {
+      const savedMb = (r.savedBytes / (1024 * 1024)).toFixed(1);
+      toast.success(
+        `Gotovo: ${r.optimized} slika smanjeno (${savedMb} MB ušteđeno), ${r.skipped} već malih preskočeno${r.failed ? `, ${r.failed} nije uspelo` : ""}.`,
+      );
+    },
+    onError: (err) =>
+      toast.error(err instanceof Error ? err.message : "Greška pri optimizaciji slika"),
   });
 
   const handleChangePassword = () => {
@@ -126,6 +138,27 @@ export default function AdminSettings() {
           className="w-full"
         >
           {changePassword.isPending ? "Menjanje..." : "Promeni lozinku"}
+        </Button>
+      </div>
+
+      {/* Reoptimize existing uploads */}
+      <div className="border border-border/50 rounded-lg p-5 space-y-4">
+        <div className="flex items-center gap-2 mb-1">
+          <ImageDown size={16} className="text-foreground" />
+          <h4 className="text-sm font-semibold text-foreground">Optimizacija slika</h4>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Nove slike se automatski smanjuju pri postavljanju, ali one sačuvane pre nego
+          što je ta obrada uvedena ostaju velike. Ovo prođe kroz sve već postavljene
+          slike i sažme one preko 300 KB — ne dira dokumenta ni fajlove koji su već mali.
+        </p>
+        <Button
+          onClick={() => reoptimizeImages.mutate()}
+          disabled={reoptimizeImages.isPending}
+          variant="secondary"
+          className="w-full"
+        >
+          {reoptimizeImages.isPending ? "Optimizujem..." : "Optimizuj postojeće slike"}
         </Button>
       </div>
     </div>

@@ -227,6 +227,16 @@ export async function registerHtmlSeo(app: FastifyInstance, clientDistPath: stri
       return reply.redirect(`${pathname}${qs}`, 301);
     }
 
+    // Stari izvestaji sa utakmica sa prethodnog (Joomla) sajta — Google ih i
+    // dalje drzi u indeksu i donose impresije. Do sada su ispravno vracali
+    // 404 (posle popravke isDocumentRequest-a), ali SEO brief ih i dalje
+    // prijavljuje kao crawl_http_error jer i dalje nose saobracaj — isti
+    // obrazac kao vec potvrdjeni /vesti/3 -> /vesti: nema tacnog naslednika
+    // pa preusmeravamo na listu vesti umesto na goli 404.
+    if (/^\/index\.php\/component\/k2\/item\/[^/]+\.html$/i.test(pathname)) {
+      return reply.redirect("/vesti", 301);
+    }
+
     const staticRoute = ROUTES[pathname];
     if (staticRoute) {
       const body = await safeBody(

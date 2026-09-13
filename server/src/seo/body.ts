@@ -558,7 +558,21 @@ export function omladinskaSkolaBody(): string {
  * strana bila znatno siromasnija za crawler nego sto stvarno jeste za
  * korisnika.
  */
+/** Iste teme kao SUBJECTS u kontakt/page.tsx — sta forma stvarno pokriva. */
+const CONTACT_SUBJECTS = [
+  "Opšte pitanje",
+  "Saradnja i sponzorstvo",
+  "Omladinska škola — upis",
+  "Mediji i akreditacije",
+  "Prodaja ulaznica",
+];
+
 export function kontaktBody(): string {
+  const subjects = CONTACT_SUBJECTS.map((s) => `<li>${esc(s)}</li>`).join("\n");
+  // SITE.sameAs su prave, radne drustvene mreze — kontakt/page.tsx ima i
+  // Twitter u nizu, ali sa href="#" (nije pravi link), pa ga ne prepisujemo.
+  const socials = SITE.sameAs.map((url) => `<li>${link(url, url.includes("facebook") ? "Facebook" : "Instagram")}</li>`).join("\n");
+
   return `<h1>Kontakt</h1>
     <p>Kontaktirajte FK Mladost Lučani — adresa, telefon, e-mail i kontakt forma za opšta pitanja, saradnju, sponzorstvo i akreditacije medija.</p>
     <address>
@@ -570,6 +584,13 @@ export function kontaktBody(): string {
     </address>
     <section><h2>Radno vreme</h2>
       <p>Ponedeljak — petak: 09:00 — 17:00<br/>Vikend: zatvoreno</p>
+    </section>
+    <section><h2>Kontakt forma — teme</h2>
+      <p>Popunite formu na sajtu za jednu od sledećih tema:</p>
+      <ul>${subjects}</ul>
+    </section>
+    <section><h2>Društvene mreže</h2>
+      <ul>${socials}</ul>
     </section>`;
 }
 
